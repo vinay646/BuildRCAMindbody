@@ -5,9 +5,9 @@
  * quoting styles in CFG-04 (one line group per location, or one line with quantity) count the same.
  *
  * RLP-13: never recalculated synchronously inside the record trigger; the Asset trigger queues this
- * job, and LocationCountService.recalculateAll() can be scheduled nightly as a safety net.
+ * job, and LocationCountService.Nightly can be scheduled as a safety net.
  */
-public without sharing class LocationCountService implements Queueable, Schedulable {
+public without sharing class LocationCountService implements Queueable {
 
     public static final Set<String> CORE_TIERS = new Set<String>{ 'MB-STR', 'MB-ACC', 'MB-ULT', 'MB-ENT' };
 
@@ -23,9 +23,14 @@ public without sharing class LocationCountService implements Queueable, Schedula
         recalculate(rootIds);
     }
 
-    /** Schedulable entry point: recalculates every hierarchy (nightly safety net). */
-    public void execute(SchedulableContext ctx) {
-        recalculateAll();
+    /**
+     * Nightly safety net (RLP-13). Separate class because a Queueable cannot also implement Schedulable.
+     * Schedule once:  System.schedule('Mindbody location count', '0 0 2 * * ?', new LocationCountService.Nightly());
+     */
+    public class Nightly implements Schedulable {
+        public void execute(SchedulableContext ctx) {
+            recalculateAll();
+        }
     }
 
     public static void recalculateAll() {
