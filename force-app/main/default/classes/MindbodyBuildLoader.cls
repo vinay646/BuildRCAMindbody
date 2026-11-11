@@ -467,8 +467,10 @@ public without sharing class MindbodyBuildLoader {
         List<Map<String, Object>> schedRows = new List<Map<String, Object>>();
         for (Object o : (List<Object>) pricing.get('schedules')) {
             Map<String, Object> sc = (Map<String, Object>) o;
+            // ARM: a schedule cannot be activated without tiers, and tiers cannot change while it is active.
+            // So: schedule inactive -> tiers -> activate (re-runs deactivate first).
             schedRows.add(new Map<String, Object>{ 'Name' => sc.get('name'), 'ScheduleType' => sc.get('scheduleType'),
-                'AdjustmentMethod' => 'Range', 'IsActive' => true, 'Description' => sc.get('input'),
+                'AdjustmentMethod' => 'Range', 'IsActive' => false, 'Description' => sc.get('input'),
                 'EffectiveFrom' => Datetime.newInstanceGmt(2026, 1, 1) });
         }
         Map<String, SObject> schedules = sync('PriceAdjustmentSchedule', new List<String>{ 'Name' }, schedRows, null, null,
@@ -524,6 +526,12 @@ public without sharing class MindbodyBuildLoader {
         }
         sync('PriceAdjustmentTier', tierKey, tierRows, 'PriceAdjustmentScheduleId IN :ids',
             new Map<String, Object>{ 'ids' => idsOf(schedules.values()) }, null);
+
+        List<Map<String, Object>> activateRows = new List<Map<String, Object>>();
+        for (String n : schedules.keySet()) {
+            activateRows.add(new Map<String, Object>{ 'Name' => n, 'IsActive' => true });
+        }
+        sync('PriceAdjustmentSchedule', new List<String>{ 'Name' }, activateRows, null, null, null);
 
         // 3. floor price book (standard Pricebook2 + PricebookEntry)
         Map<String, Object> floor = (Map<String, Object>) pricing.get('floorPriceBook');
