@@ -114,7 +114,7 @@ Built: `Active_Location_Count__c`, `LocationCountService` (Queueable + Schedulab
 | PD-05 Usage products | Payments, Marketplace fee, SMS overage have no quote price | $0 entries only; rate cards in phase 7 | `products`, `pricebooks` |
 | PD-06 One-time products | Services and hardware use only the One-Time selling model | One-Time PSM; hardware gets ERP item ID from the integration | `products` |
 | PD-07 Attributes | Vertical, Region, Location Count, Prior System, Payments Opted In, Card Present, SMS Allowance, Branded App Platform | Picklist values per spec 12.6 | `attributes` |
-| PD-09 Selling models and frequencies | Recurring products offer the right terms and billing frequencies | Starter: Evergreen + 12/24/36, Monthly/Annual only; entry per currency × selling model | `catalog`, `products`, `pricebooks` |
+| PD-09 Selling models and frequencies | Recurring products offer the right terms and billing frequencies | 3 selling models: Evergreen Monthly, Term Monthly, One-Time (ARM allows one per type + pricing term). Contract length is the quote line's term, limited by **Allowed Term Months** (Starter/Accelerate/Ultimate 12/24/36, Enterprise 24/36, TAM 12). Starter billing Monthly/Annual only. Entry per currency × selling model | `catalog`, `products`, `pricebooks` |
 | PD-14 Integration status | Every product shows its ERP sync status | New on create; owned by the integration afterwards | `products` |
 
 ## 5. What is drafted so far (Salesforce source, ready to move to the new repo)

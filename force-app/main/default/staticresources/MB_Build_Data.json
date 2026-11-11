@@ -53,25 +53,11 @@
    "pricingTermUnit": "Months"
   },
   {
-   "name": "Term 12 Months",
+   "name": "Term Monthly",
    "type": "TermDefined",
    "pricingTerm": 1,
    "pricingTermUnit": "Months",
-   "termMonths": 12
-  },
-  {
-   "name": "Term 24 Months",
-   "type": "TermDefined",
-   "pricingTerm": 1,
-   "pricingTermUnit": "Months",
-   "termMonths": 24
-  },
-  {
-   "name": "Term 36 Months",
-   "type": "TermDefined",
-   "pricingTerm": 1,
-   "pricingTermUnit": "Months",
-   "termMonths": 36
+   "note": "Contract length (12, 24, 36 months) is the quote line's subscription term, limited by Product2.Allowed_Term_Months__c"
   },
   {
    "name": "One-Time",
@@ -86,9 +72,7 @@
    "category": "Subscriptions",
    "sellingModels": [
     "Evergreen Monthly",
-    "Term 12 Months",
-    "Term 24 Months",
-    "Term 36 Months"
+    "Term Monthly"
    ],
    "unit": "per location / month",
    "description": "Starter tier – per location per month (published price $79).",
@@ -100,7 +84,8 @@
    },
    "billingFrequencies": "Monthly;Annual",
    "bundle": true,
-   "configurable": false
+   "configurable": false,
+   "allowedTermMonths": "12;24;36"
   },
   {
    "code": "MB-ACC",
@@ -108,9 +93,7 @@
    "productType": "Recurring",
    "category": "Subscriptions",
    "sellingModels": [
-    "Term 12 Months",
-    "Term 24 Months",
-    "Term 36 Months"
+    "Term Monthly"
    ],
    "unit": "per location / month",
    "description": "Accelerate tier – per location per month.",
@@ -122,7 +105,8 @@
    },
    "billingFrequencies": "Monthly;Quarterly;Semiannual;Annual",
    "bundle": true,
-   "configurable": true
+   "configurable": true,
+   "allowedTermMonths": "12;24;36"
   },
   {
    "code": "MB-ULT",
@@ -130,9 +114,7 @@
    "productType": "Recurring",
    "category": "Subscriptions",
    "sellingModels": [
-    "Term 12 Months",
-    "Term 24 Months",
-    "Term 36 Months"
+    "Term Monthly"
    ],
    "unit": "per location / month",
    "description": "Ultimate tier – per location per month; includes 1,000 texts per location per month.",
@@ -144,7 +126,8 @@
    },
    "billingFrequencies": "Monthly;Quarterly;Semiannual;Annual",
    "bundle": true,
-   "configurable": true
+   "configurable": true,
+   "allowedTermMonths": "12;24;36"
   },
   {
    "code": "MB-ENT",
@@ -152,8 +135,7 @@
    "productType": "Recurring",
    "category": "Subscriptions",
    "sellingModels": [
-    "Term 24 Months",
-    "Term 36 Months"
+    "Term Monthly"
    ],
    "unit": "per location / month",
    "description": "Enterprise / multi-location plan – price comes from the master price agreement.",
@@ -165,7 +147,8 @@
    },
    "billingFrequencies": "Monthly;Quarterly;Semiannual;Annual",
    "bundle": true,
-   "configurable": true
+   "configurable": true,
+   "allowedTermMonths": "24;36"
   },
   {
    "code": "MB-AIC",
@@ -174,9 +157,7 @@
    "category": "Add-ons",
    "sellingModels": [
     "Evergreen Monthly",
-    "Term 12 Months",
-    "Term 24 Months",
-    "Term 36 Months"
+    "Term Monthly"
    ],
    "unit": "per location / month",
    "description": "AI Concierge add-on – co-termed to the tier; quantity equals the tier's locations.",
@@ -187,7 +168,8 @@
     "EUR": 140
    },
    "billingFrequencies": "Monthly;Quarterly;Semiannual;Annual",
-   "soldOnlyWithOthers": true
+   "soldOnlyWithOthers": true,
+   "allowedTermMonths": "12;24;36"
   },
   {
    "code": "MB-APP",
@@ -196,9 +178,7 @@
    "category": "Add-ons",
    "sellingModels": [
     "Evergreen Monthly",
-    "Term 12 Months",
-    "Term 24 Months",
-    "Term 36 Months"
+    "Term Monthly"
    ],
    "unit": "per brand / month",
    "description": "Branded app – one per brand, on the top account's line group.",
@@ -209,7 +189,8 @@
     "EUR": 185
    },
    "billingFrequencies": "Monthly;Quarterly;Semiannual;Annual",
-   "soldOnlyWithOthers": true
+   "soldOnlyWithOthers": true,
+   "allowedTermMonths": "12;24;36"
   },
   {
    "code": "MB-APP-SET",
@@ -234,7 +215,7 @@
    "productType": "Recurring",
    "category": "Services",
    "sellingModels": [
-    "Term 12 Months"
+    "Term Monthly"
    ],
    "unit": "per account / month",
    "description": "Technical Account Management – 12-month term.",
@@ -244,7 +225,8 @@
     "AUD": 1600,
     "EUR": 930
    },
-   "billingFrequencies": "Monthly;Quarterly;Semiannual;Annual"
+   "billingFrequencies": "Monthly;Quarterly;Semiannual;Annual",
+   "allowedTermMonths": "12"
   },
   {
    "code": "MB-IMP",
@@ -407,9 +389,7 @@
    "productType": "Recurring",
    "sellingModels": [
     "Evergreen Monthly",
-    "Term 12 Months",
-    "Term 24 Months",
-    "Term 36 Months"
+    "Term Monthly"
    ],
    "unit": "per location / month",
    "description": "Included feature component (Business Management) – $0, not sold on its own.",
@@ -428,9 +408,7 @@
    "productType": "Recurring",
    "sellingModels": [
     "Evergreen Monthly",
-    "Term 12 Months",
-    "Term 24 Months",
-    "Term 36 Months"
+    "Term Monthly"
    ],
    "unit": "per location / month",
    "description": "Included feature component (Mindbody App Listing) – $0, not sold on its own.",
@@ -449,9 +427,7 @@
    "productType": "Recurring",
    "sellingModels": [
     "Evergreen Monthly",
-    "Term 12 Months",
-    "Term 24 Months",
-    "Term 36 Months"
+    "Term Monthly"
    ],
    "unit": "per location / month",
    "description": "Included feature component (POS and Online Payments) – $0, not sold on its own.",
@@ -470,9 +446,7 @@
    "productType": "Recurring",
    "sellingModels": [
     "Evergreen Monthly",
-    "Term 12 Months",
-    "Term 24 Months",
-    "Term 36 Months"
+    "Term Monthly"
    ],
    "unit": "per location / month",
    "description": "Included feature component (Branded Web Widgets) – $0, not sold on its own.",
@@ -491,9 +465,7 @@
    "productType": "Recurring",
    "sellingModels": [
     "Evergreen Monthly",
-    "Term 12 Months",
-    "Term 24 Months",
-    "Term 36 Months"
+    "Term Monthly"
    ],
    "unit": "per location / month",
    "description": "Included feature component (Resource Management) – $0, not sold on its own.",
@@ -512,9 +484,7 @@
    "productType": "Recurring",
    "sellingModels": [
     "Evergreen Monthly",
-    "Term 12 Months",
-    "Term 24 Months",
-    "Term 36 Months"
+    "Term Monthly"
    ],
    "unit": "per location / month",
    "description": "Included feature component (Pick-a-Spot) – $0, not sold on its own.",
@@ -533,9 +503,7 @@
    "productType": "Recurring",
    "sellingModels": [
     "Evergreen Monthly",
-    "Term 12 Months",
-    "Term 24 Months",
-    "Term 36 Months"
+    "Term Monthly"
    ],
    "unit": "per location / month",
    "description": "Included feature component (Advanced Reporting) – $0, not sold on its own.",
@@ -554,9 +522,7 @@
    "productType": "Recurring",
    "sellingModels": [
     "Evergreen Monthly",
-    "Term 12 Months",
-    "Term 24 Months",
-    "Term 36 Months"
+    "Term Monthly"
    ],
    "unit": "per location / month",
    "description": "Included feature component (Promo Codes) – $0, not sold on its own.",
@@ -575,9 +541,7 @@
    "productType": "Recurring",
    "sellingModels": [
     "Evergreen Monthly",
-    "Term 12 Months",
-    "Term 24 Months",
-    "Term 36 Months"
+    "Term Monthly"
    ],
    "unit": "per location / month",
    "description": "Included feature component (Email and SMS Marketing) – $0, not sold on its own.",
@@ -596,9 +560,7 @@
    "productType": "Recurring",
    "sellingModels": [
     "Evergreen Monthly",
-    "Term 12 Months",
-    "Term 24 Months",
-    "Term 36 Months"
+    "Term Monthly"
    ],
    "unit": "per location / month",
    "description": "Included feature component (Lead Management) – $0, not sold on its own.",
@@ -617,9 +579,7 @@
    "productType": "Recurring",
    "sellingModels": [
     "Evergreen Monthly",
-    "Term 12 Months",
-    "Term 24 Months",
-    "Term 36 Months"
+    "Term Monthly"
    ],
    "unit": "per location / month",
    "description": "Included feature component (AI Concierge) – $0, not sold on its own.",
@@ -638,9 +598,7 @@
    "productType": "Recurring",
    "sellingModels": [
     "Evergreen Monthly",
-    "Term 12 Months",
-    "Term 24 Months",
-    "Term 36 Months"
+    "Term Monthly"
    ],
    "unit": "per location / month",
    "description": "Included feature component (Corporate Dashboard) – $0, not sold on its own.",

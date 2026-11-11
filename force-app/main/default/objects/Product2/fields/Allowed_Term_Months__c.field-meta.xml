@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Allowed_Term_Months__c</fullName>
+    <label>Allowed Term Months</label>
+    <description>Contract lengths a quote line may use for this product (CAT-07, spec 12.1). ARM has one term-defined selling model per pricing term, so the 12/24/36-month term is the quote line's subscription term, checked against this field (CR-13).</description>
+    <inlineHelpText>Contract lengths (months) allowed on a quote for this product, e.g. Enterprise 24 or 36 only.</inlineHelpText>
+    <type>MultiselectPicklist</type>
+    <required>false</required>
+    <visibleLines>3</visibleLines>
+    <valueSet>
+        <restricted>true</restricted>
+        <valueSetDefinition>
+            <sorted>false</sorted>
+            <value>
+                <fullName>12</fullName>
+                <default>false</default>
+                <label>12</label>
+            </value>
+            <value>
+                <fullName>24</fullName>
+                <default>false</default>
+                <label>24</label>
+            </value>
+            <value>
+                <fullName>36</fullName>
+                <default>false</default>
+                <label>36</label>
+            </value>
+        </valueSetDefinition>
+    </valueSet>
+</CustomField>

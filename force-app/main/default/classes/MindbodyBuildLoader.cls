@@ -155,19 +155,7 @@ public without sharing class MindbodyBuildLoader {
                 'CatalogId = :cid', new Map<String, Object>{ 'cid' => catalog.Id }, null);
         }
 
-        List<Map<String, Object>> psm = new List<Map<String, Object>>();
-        for (Object o : listOf('sellingModels')) {
-            Map<String, Object> m = (Map<String, Object>) o;
-            Map<String, Object> r = new Map<String, Object>{ 'Name' => m.get('name'),
-                'SellingModelType' => m.get('type'), 'Status' => 'Active' };
-            if (m.get('pricingTerm') != null) {
-                r.put('PricingTerm', m.get('pricingTerm'));
-                r.put('PricingTermUnit', m.get('pricingTermUnit'));
-            }
-            psm.add(r);
-        }
-        // selling models cannot change type once used: create only, never update
-        sync('ProductSellingModel', new List<String>{ 'Name' }, psm, null, null, null, true);
+        sellingModels(true);
         prorationPolicyId();
     }
 
@@ -180,6 +168,7 @@ public without sharing class MindbodyBuildLoader {
                 'Name' => p.get('name'), 'ProductCode' => p.get('code'), 'Description' => p.get('description'),
                 'IsActive' => true, 'Product_Type__c' => p.get('productType'),
                 'Allowed_Billing_Frequencies__c' => p.get('billingFrequencies'),
+                'Allowed_Term_Months__c' => p.get('allowedTermMonths'),
                 'Unit_Of_Sale__c' => p.get('unit'), 'Integration_Status__c' => 'New',
                 'IsSoldOnlyWithOtherProds' => p.get('soldOnlyWithOthers') == true
             };
@@ -215,7 +204,7 @@ public without sharing class MindbodyBuildLoader {
             'ProductId IN :ids', new Map<String, Object>{ 'ids' => idsOf(products.values()) }, null);
 
         // selling model options
-        Map<String, SObject> models = byKey('ProductSellingModel', 'Name', null, null);
+        Map<String, SObject> models = sellingModels(false);
         Id proration = prorationPolicyId();
         List<Map<String, Object>> opts = new List<Map<String, Object>>();
         for (Map<String, Object> p : allProducts()) {
@@ -389,7 +378,7 @@ public without sharing class MindbodyBuildLoader {
         String corporate = UserInfo.getDefaultCurrency();
 
         Map<String, SObject> products = byKey('Product2', 'ProductCode', 'ProductCode LIKE \'MB-%\'', null);
-        Map<String, SObject> models = byKey('ProductSellingModel', 'Name', null, null);
+        Map<String, SObject> models = sellingModels(false);
         List<Map<String, Object>> std = new List<Map<String, Object>>();
         List<Map<String, Object>> custom = new List<Map<String, Object>>();
         for (Map<String, Object> p : allProducts()) {
@@ -437,6 +426,67 @@ public without sharing class MindbodyBuildLoader {
     }
 
     // ================================================================== ARM lookups
+
+    /**
+     * ARM allows one selling model per (type, pricing term, pricing term unit), so selling models are matched
+     * on that combination, not on name: an org that already has e.g. a TermDefined / 1 / Months model under
+     * another name reuses it. Returns the build's model name (e.g. 'Term Monthly') -> the org's record.
+     * create = true adds the combinations the org does not have yet (catalog step only).
+     */
+    Map<String, SObject> sellingModels(Boolean create) {
+        Map<String, SObject> out = new Map<String, SObject>();
+        if (!hasObject('ProductSellingModel')) {
+            fail('ProductSellingModel is not available in this org');
+            return out;
+        }
+        Map<String, SObject> byCombo = new Map<String, SObject>();
+        for (SObject r : Database.query('SELECT Id, Name, SellingModelType, PricingTerm, PricingTermUnit, Status'
+                + ' FROM ProductSellingModel ORDER BY CreatedDate')) {
+            String k = psmKey(r.get('SellingModelType'), r.get('PricingTerm'), r.get('PricingTermUnit'));
+            if (!byCombo.containsKey(k) || r.get('Status') == 'Active' && byCombo.get(k).get('Status') != 'Active') {
+                byCombo.put(k, r);
+            }
+        }
+        List<Map<String, Object>> toCreate = new List<Map<String, Object>>();
+        for (Object o : listOf('sellingModels')) {
+            Map<String, Object> m = (Map<String, Object>) o;
+            String name = (String) m.get('name');
+            String k = psmKey(m.get('type'), m.get('pricingTerm'), m.get('pricingTermUnit'));
+            SObject found = byCombo.get(k);
+            if (found != null) {
+                out.put(name, found);
+                if (create) {
+                    info('ProductSellingModel ' + name + ': using existing "' + found.get('Name') + '" (' + found.get('Status') + ')'
+                        + (found.get('Status') == 'Active' ? '' : ' – ACTIVATE it in Setup'));
+                }
+            } else if (create) {
+                Map<String, Object> r = new Map<String, Object>{ 'Name' => name, 'SellingModelType' => m.get('type'), 'Status' => 'Active' };
+                if (m.get('pricingTerm') != null) {
+                    r.put('PricingTerm', m.get('pricingTerm'));
+                    r.put('PricingTermUnit', m.get('pricingTermUnit'));
+                }
+                toCreate.add(r);
+            } else {
+                fail('Selling model ' + name + ' (' + k + ') not found – run the catalog step first');
+            }
+        }
+        if (!toCreate.isEmpty()) {
+            Map<String, SObject> created = sync('ProductSellingModel', new List<String>{ 'Name' }, toCreate, null, null, null, true);
+            for (String name : created.keySet()) {
+                out.put(name, created.get(name));
+            }
+        }
+        return out;
+    }
+
+    static String psmKey(Object modelType, Object term, Object unit) {
+        String t = modelType == null ? '' : String.valueOf(modelType);
+        if (t == 'OneTime') {
+            return 'OneTime';   // one-time models have no pricing term
+        }
+        String n = term == null ? '' : String.valueOf(Decimal.valueOf(String.valueOf(term)).intValue());
+        return t + '|' + n + '|' + (unit == null ? '' : String.valueOf(unit));
+    }
 
     Id prorationPolicyId() {
         if (!hasObject('ProrationPolicy')) {
