@@ -1,50 +1,67 @@
-// Probe (changes nothing: every insert is rolled back): what Product Configuration Rules and Rule Libraries need.
+// Probe (changes nothing: every insert is rolled back).
+// Finding so far: ProductConfigurationRule cannot be created by API (createable=false, Name not editable) -
+// the builder creates it inside a Rule Library with UsageType 'Configurator'. The org has only the DRO library,
+// which is why the builder fails with "reading 'RuleLibraryVersions'". This lists the library definitions and
+// tries a Configurator library + version (rolled back).
 Map<String, Schema.SObjectType> gd = Schema.getGlobalDescribe();
-for (String o : new List<String>{ 'ProductConfigurationRule', 'RuleLibrary', 'RuleLibraryVersion', 'RuleLibraryDefinition' }) {
-    if (!gd.containsKey(o.toLowerCase())) { System.debug(LoggingLevel.ERROR, 'OBJECT ' + o + ': not available'); continue; }
-    Schema.DescribeSObjectResult od = gd.get(o.toLowerCase()).getDescribe();
-    System.debug(LoggingLevel.ERROR, 'OBJECT ' + o + ' createable=' + od.isCreateable());
-    for (Schema.SObjectField sf : od.fields.getMap().values()) {
+String allFields(String o) {
+    List<String> f = new List<String>();
+    for (Schema.SObjectField sf : Schema.getGlobalDescribe().get(o.toLowerCase()).getDescribe().fields.getMap().values()) {
         Schema.DescribeFieldResult d = sf.getDescribe();
-        if (!d.isCreateable() || d.isCustom()) continue;
-        String info = d.getName() + ' ' + d.getType() + (d.isNillable() ? '' : ' REQUIRED') + (d.isDefaultedOnCreate() ? ' (defaulted)' : '')
-            + (d.getLength() > 0 ? ' len ' + d.getLength() : '');
-        if (d.getType() == Schema.DisplayType.PICKLIST) {
-            List<String> v = new List<String>();
-            for (Schema.PicklistEntry e : d.getPicklistValues()) v.add(e.getValue());
-            info += ' [' + String.join(v, '|') + ']';
-        } else if (d.getType() == Schema.DisplayType.REFERENCE) {
-            info += ' -> ' + d.getReferenceTo();
-        }
-        System.debug(LoggingLevel.ERROR, '  FIELD ' + o + '.' + info);
+        if (d.getType() == Schema.DisplayType.BASE64 || d.getType() == Schema.DisplayType.TEXTAREA && d.getLength() > 4000) continue;
+        f.add(d.getName());
     }
+    return String.join(f, ', ');
 }
-Id mbUlt = null; Id mbAic = null;
-for (Product2 p : [SELECT Id, ProductCode FROM Product2 WHERE ProductCode IN ('MB-ULT', 'MB-AIC')]) {
-    if (p.ProductCode == 'MB-ULT') mbUlt = p.Id; else mbAic = p.Id;
-}
-System.debug(LoggingLevel.ERROR, 'PRODUCTS MB-ULT=' + mbUlt + ' MB-AIC=' + mbAic);
-// Test inserts, each rolled back
-List<Map<String, Object>> tries = new List<Map<String, Object>>{
-    new Map<String, Object>{ 'Name' => 'CR-05 AI Concierge included in Ultimate', 'ApiName' => 'CR_05_AI_Concierge_included_in_Ultimate',
-        'RuleType' => 'Configurator', 'RuleSubType' => 'BundleProduct', 'ProcessScope' => 'Bundle', 'Status' => 'Draft', 'Sequence' => 5 },
-    new Map<String, Object>{ 'Name' => 'Probe minimal', 'ApiName' => 'Probe_minimal', 'RuleType' => 'Configurator' }
-};
-for (Map<String, Object> t : tries) {
-    Savepoint sp = Database.setSavepoint();
+for (String o : new List<String>{ 'RuleLibraryDefinition', 'RuleLibraryDefVersion', 'RuleLibrary', 'RuleLibraryVersion' }) {
+    if (!gd.containsKey(o.toLowerCase())) { System.debug(LoggingLevel.ERROR, 'OBJECT ' + o + ': not available'); continue; }
     try {
-        SObject r = gd.get('productconfigurationrule').newSObject();
-        for (String k : t.keySet()) r.put(k, t.get(k));
-        Database.SaveResult res = Database.insert(r, false);
-        if (res.isSuccess()) {
-            System.debug(LoggingLevel.ERROR, 'TRY OK ' + t.get('Name') + ' -> inserted (rolled back)');
-        } else {
-            for (Database.Error e : res.getErrors()) {
-                System.debug(LoggingLevel.ERROR, 'TRY FAIL ' + t.get('Name') + ': ' + e.getStatusCode() + ' ' + e.getMessage() + ' ' + e.getFields());
+        List<SObject> rows = Database.query('SELECT ' + allFields(o) + ' FROM ' + o + ' LIMIT 50');
+        System.debug(LoggingLevel.ERROR, 'OBJECT ' + o + ' rows=' + rows.size());
+        for (SObject r : rows) {
+            Map<String, Object> m = r.getPopulatedFieldsAsMap().clone();
+            for (String k : new List<String>{ 'CreatedById', 'LastModifiedById', 'SystemModstamp', 'CreatedDate', 'LastModifiedDate', 'IsDeleted', 'CurrencyIsoCode', 'LastViewedDate', 'LastReferencedDate', 'OwnerId' }) m.remove(k);
+            System.debug(LoggingLevel.ERROR, '  ROW ' + o + ' ' + JSON.serialize(m));
+        }
+    } catch (Exception ex) { System.debug(LoggingLevel.ERROR, 'OBJECT ' + o + ' query failed: ' + ex.getMessage()); }
+}
+// Trial: Configurator library + version for each definition / def version found (rolled back)
+List<SObject> defs = Database.query('SELECT Id, DeveloperName FROM RuleLibraryDefinition');
+List<SObject> defVers = Database.query('SELECT ' + allFields('RuleLibraryDefVersion') + ' FROM RuleLibraryDefVersion');
+for (SObject def : defs) {
+    Savepoint sp = Database.setSavepoint();
+    String tag = 'def ' + def.get('DeveloperName');
+    try {
+        SObject lib = gd.get('rulelibrary').newSObject();
+        lib.put('Name', 'Mindbody Product Rules'); lib.put('ApiName', 'Mindbody_Product_Rules');
+        lib.put('UsageType', 'Configurator'); lib.put('RuleLibraryDefinitionId', def.Id);
+        lib.put('ContextDefinitionName', 'RLM_SalesTransactionContext');
+        Database.SaveResult r1 = Database.insert(lib, false);
+        if (!r1.isSuccess()) { System.debug(LoggingLevel.ERROR, 'TRY LIB FAIL ' + tag + ': ' + r1.getErrors()[0].getStatusCode() + ' ' + r1.getErrors()[0].getMessage()); }
+        else {
+            System.debug(LoggingLevel.ERROR, 'TRY LIB OK ' + tag);
+            for (SObject dv : defVers) {
+                Map<String, Object> dm = dv.getPopulatedFieldsAsMap();
+                if (!dm.values().contains(def.Id) && !String.valueOf(dm).contains(String.valueOf(def.Id))) continue;
+                Savepoint sp2 = Database.setSavepoint();
+                SObject ver = gd.get('rulelibraryversion').newSObject();
+                ver.put('Name', 'Mindbody Product Rules V1'); ver.put('ApiName', 'Mindbody_Product_Rules_V1');
+                ver.put('RuleLibraryId', lib.Id); ver.put('Description', 'Mindbody configuration rules');
+                ver.put('RuleLibraryDefVersionId', dv.Id); ver.put('StartDateTime', DateTime.now());
+                ver.put('Status', 'Draft'); ver.put('VersionNumber', 1);
+                ver.put('ContextDefinitionName', 'RLM_SalesTransactionContext');
+                Database.SaveResult r2 = Database.insert(ver, false);
+                System.debug(LoggingLevel.ERROR, (r2.isSuccess() ? 'TRY VER OK ' : 'TRY VER FAIL ') + tag + ' defVer ' + dv.Id
+                    + (r2.isSuccess() ? '' : ': ' + r2.getErrors()[0].getStatusCode() + ' ' + r2.getErrors()[0].getMessage()));
+                if (r2.isSuccess()) {
+                    ver.put('Status', 'Active');
+                    Database.SaveResult r3 = Database.update(ver, false);
+                    System.debug(LoggingLevel.ERROR, (r3.isSuccess() ? 'TRY ACTIVATE OK ' : 'TRY ACTIVATE FAIL ') + tag
+                        + (r3.isSuccess() ? '' : ': ' + r3.getErrors()[0].getMessage()));
+                }
+                Database.rollback(sp2);
             }
         }
-    } catch (Exception ex) {
-        System.debug(LoggingLevel.ERROR, 'TRY EXCEPTION ' + t.get('Name') + ': ' + ex.getMessage());
-    }
+    } catch (Exception ex) { System.debug(LoggingLevel.ERROR, 'TRY EXCEPTION ' + tag + ': ' + ex.getMessage()); }
     Database.rollback(sp);
 }
