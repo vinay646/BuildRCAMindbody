@@ -1007,7 +1007,12 @@ public without sharing class MindbodyBuildLoader {
         }
         Integer ok = 0;
         Integer bad = 0;
-        List<Database.SaveResult> ins = Database.insert(toInsert, false);
+        // Demo records are intentionally alike (six Halo spas in one city): save past duplicate-rule ALERTS.
+        // Duplicate rules set to BLOCK still block.
+        Database.DMLOptions dml = new Database.DMLOptions();
+        dml.OptAllOrNone = false;
+        dml.DuplicateRuleHeader.AllowSave = true;
+        List<Database.SaveResult> ins = Database.insert(toInsert, dml);
         for (Integer i = 0; i < ins.size(); i++) {
             if (ins[i].isSuccess()) {
                 result.put(insertKeys[i], toInsert[i]);
@@ -1018,7 +1023,7 @@ public without sharing class MindbodyBuildLoader {
             }
         }
         Integer upd = 0;
-        List<Database.SaveResult> ups = Database.update(toUpdate, false);
+        List<Database.SaveResult> ups = Database.update(toUpdate, dml);
         for (Integer i = 0; i < ups.size(); i++) {
             if (ups[i].isSuccess()) {
                 upd++;
