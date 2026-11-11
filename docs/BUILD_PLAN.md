@@ -70,7 +70,9 @@ Built: `Account_Level__c`, `Root_Account__c`, `ERP_Id__c`, `Billing_Id__c`, `Int
 
 Acceptance criteria
 1. **Payer Type** defaults to Self-Pay; a top account cannot be Parent-Pay.
-2. **Resolved Payer** = the account itself when Self-Pay, else the nearest Self-Pay ancestor.
+2. **Resolved Payer** = blank when the account pays for itself (Self-Pay), else the nearest Self-Pay ancestor.
+   (Salesforce does not allow an account lookup to point at its own record, so blank means "itself"; the same
+   applies to Root Account on the top account.)
 3. Changing a payer type or moving an account recalculates the payer for it and everything below it.
 4. Pulse worked example (spec 7A) resolves to exactly three payers: Pulse Fitness Brands, Coastal Fitness LLC, Pulse Venice.
 

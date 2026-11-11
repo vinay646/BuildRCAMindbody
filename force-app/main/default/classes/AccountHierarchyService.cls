@@ -1,9 +1,11 @@
 /**
  * Keeps the account hierarchy fields right (spec 2.3, US-01, US-02, LCM-16, RLP-12).
  *
- *  Root_Account__c    the top (corporate) account of the hierarchy; the root points at itself.
- *  Resolved_Payer__c  the account that pays: itself when Self-Pay, else the nearest Self-Pay ancestor
- *                     (parent, grandparent or great-grandparent).
+ *  Root_Account__c    the top (corporate) account of the hierarchy; blank on the top account itself.
+ *  Resolved_Payer__c  the account that pays: blank when the account pays for itself (Self-Pay), else the
+ *                     nearest Self-Pay ancestor (parent, grandparent or great-grandparent).
+ * Blank means "this account" because Salesforce does not let an account lookup point at its own record
+ * (CIRCULAR_DEPENDENCY, hierarchy constraint).
  *
  * Runs after insert and after a change of ParentId or Payer_Type__c, and recalculates the changed
  * accounts and everything below them (at most four levels, so three levels of descendants).
@@ -114,13 +116,14 @@ public without sharing class AccountHierarchyService {
 
     static Id rootOf(Account a) {
         List<Account> c = chain(a);
-        return c[c.size() - 1].Id;
+        Id root = c[c.size() - 1].Id;
+        return root == a.Id ? null : root;   // the top account has no Root Account (it is the root)
     }
 
     static Id payerOf(Account a) {
         for (Account step : chain(a)) {
             if (step.Payer_Type__c != PARENT_PAY) {   // Self-Pay, or blank (treated as self-pay)
-                return step.Id;
+                return step.Id == a.Id ? null : step.Id;   // blank = pays for itself
             }
         }
         return null;   // no self-pay ancestor: the root validation rule prevents this

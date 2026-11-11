@@ -2,8 +2,8 @@
 <CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
     <fullName>Root_Account__c</fullName>
     <label>Root Account</label>
-    <description>Top (corporate) account of this hierarchy. Maintained automatically by AccountHierarchyService – do not edit.</description>
-    <inlineHelpText>Top (corporate) account of this hierarchy. Maintained automatically by AccountHierarchyService – do not edit.</inlineHelpText>
+    <description>Top (corporate) account of this hierarchy; blank on the top account itself. Maintained automatically by AccountHierarchyService – do not edit.</description>
+    <inlineHelpText>Top (corporate) account of this hierarchy; blank on the top account itself. Maintained automatically by AccountHierarchyService – do not edit.</inlineHelpText>
     <type>Lookup</type>
     <referenceTo>Account</referenceTo>
     <relationshipName>Hierarchy_Members</relationshipName>

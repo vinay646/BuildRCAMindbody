@@ -30,10 +30,8 @@ public without sharing class LocationCountService implements Queueable, Schedula
 
     public static void recalculateAll() {
         Set<Id> roots = new Set<Id>();
-        for (AggregateResult r : [
-            SELECT Root_Account__c root FROM Account WHERE Root_Account__c != null GROUP BY Root_Account__c LIMIT 2000
-        ]) {
-            roots.add((Id) r.get('root'));
+        for (Account a : [SELECT Id FROM Account WHERE ParentId = null AND Account_Level__c != null LIMIT 2000]) {
+            roots.add(a.Id);
         }
         recalculate(roots);
     }
@@ -51,19 +49,27 @@ public without sharing class LocationCountService implements Queueable, Schedula
         // assets created another way may only carry Quantity, so both are summed and the ARM one wins.
         Map<String, Schema.SObjectField> f = Schema.SObjectType.Asset.fields.getMap();
         Boolean hasCurrent = f.containsKey('currentquantity');
-        String soql = 'SELECT Account.Root_Account__c root, SUM(Quantity) qty'
-            + (hasCurrent ? ', SUM(CurrentQuantity) cur' : '') + ' FROM Asset'
-            + ' WHERE Account.Root_Account__c IN :roots AND Product2.ProductCode IN :tiers'
+        String filters = ' Product2.ProductCode IN :tiers'
             + (f.containsKey('lifecycleenddate') ? ' AND (LifecycleEndDate = null OR LifecycleEndDate >= TODAY)' : '')
-            + ' AND (Status = null OR Status NOT IN :inactive)'
-            + ' GROUP BY Account.Root_Account__c';
+            + ' AND (Status = null OR Status NOT IN :inactive)';
+        String sums = 'SUM(Quantity) qty' + (hasCurrent ? ', SUM(CurrentQuantity) cur' : '');
         Map<String, Object> binds = new Map<String, Object>{
             'roots' => roots, 'tiers' => CORE_TIERS, 'inactive' => INACTIVE_STATUSES
         };
-        for (AggregateResult r : (List<AggregateResult>) Database.queryWithBinds(soql, binds, AccessLevel.SYSTEM_MODE)) {
-            Decimal cur = hasCurrent ? (Decimal) r.get('cur') : null;
-            Decimal q = (cur != null && cur > 0) ? cur : (Decimal) r.get('qty');
-            counts.put((Id) r.get('root'), q == null ? 0 : q);
+        // assets below the top account (their Root Account is the top) and assets on the top account itself
+        List<String> queries = new List<String>{
+            'SELECT Account.Root_Account__c root, ' + sums + ' FROM Asset WHERE Account.Root_Account__c IN :roots AND'
+                + filters + ' GROUP BY Account.Root_Account__c',
+            'SELECT AccountId root, ' + sums + ' FROM Asset WHERE AccountId IN :roots AND'
+                + filters + ' GROUP BY AccountId'
+        };
+        for (String soql : queries) {
+            for (AggregateResult r : (List<AggregateResult>) Database.queryWithBinds(soql, binds, AccessLevel.SYSTEM_MODE)) {
+                Decimal cur = hasCurrent ? (Decimal) r.get('cur') : null;
+                Decimal q = (cur != null && cur > 0) ? cur : (Decimal) r.get('qty');
+                Id root = (Id) r.get('root');
+                counts.put(root, counts.get(root) + (q == null ? 0 : q));
+            }
         }
         List<Account> updates = new List<Account>();
         for (Account a : [SELECT Id, Active_Location_Count__c FROM Account WHERE Id IN :roots]) {
@@ -89,8 +95,8 @@ public without sharing class LocationCountService implements Queueable, Schedula
             return;
         }
         Set<Id> roots = new Set<Id>();
-        for (Account a : [SELECT Root_Account__c FROM Account WHERE Id IN :accountIds AND Root_Account__c != null]) {
-            roots.add(a.Root_Account__c);
+        for (Account a : [SELECT Id, Root_Account__c FROM Account WHERE Id IN :accountIds]) {
+            roots.add(a.Root_Account__c != null ? a.Root_Account__c : a.Id);   // blank root = the account is the top
         }
         if (roots.isEmpty()) {
             return;

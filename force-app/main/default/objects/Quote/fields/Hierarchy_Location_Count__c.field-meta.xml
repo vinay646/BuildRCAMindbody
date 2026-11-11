@@ -7,7 +7,7 @@
     <type>Number</type>
     <precision>18</precision>
     <scale>0</scale>
-    <formula>BLANKVALUE(Opportunity.Account.Root_Account__r.Active_Location_Count__c, 0)</formula>
+    <formula>BLANKVALUE(IF(ISBLANK(Opportunity.Account.Root_Account__c), Opportunity.Account.Active_Location_Count__c, Opportunity.Account.Root_Account__r.Active_Location_Count__c), 0)</formula>
     <formulaTreatBlanksAs>BlankAsZero</formulaTreatBlanksAs>
     <unique>false</unique>
     <externalId>false</externalId>

@@ -32,17 +32,21 @@ private class AccountHierarchyServiceTest {
 
     @IsTest
     static void resolvesRootAndPayer() {
+        // blank = this account (Salesforce does not allow an account lookup to its own record)
         Map<String, Account> m = load();
         Id hq = m.get('Pulse Fitness Brands').Id;
+        Assert.isNull(m.get('Pulse Fitness Brands').Root_Account__c, 'the top account is the root');
         for (Account a : m.values()) {
-            Assert.areEqual(hq, a.Root_Account__c, a.Name + ' root');
+            if (a.Id != hq) {
+                Assert.areEqual(hq, a.Root_Account__c, a.Name + ' root');
+            }
         }
-        Assert.areEqual(hq, m.get('Pulse Fitness Brands').Resolved_Payer__c);
+        Assert.isNull(m.get('Pulse Fitness Brands').Resolved_Payer__c, 'HQ pays for itself');
         Assert.areEqual(hq, m.get('Pulse West').Resolved_Payer__c);
         Assert.areEqual(hq, m.get('Pulse Irvine').Resolved_Payer__c, 'pays two levels up');
-        Assert.areEqual(m.get('Coastal Fitness LLC').Id, m.get('Coastal Fitness LLC').Resolved_Payer__c);
+        Assert.isNull(m.get('Coastal Fitness LLC').Resolved_Payer__c, 'Coastal pays for itself');
         Assert.areEqual(m.get('Coastal Fitness LLC').Id, m.get('Pulse Santa Monica').Resolved_Payer__c);
-        Assert.areEqual(m.get('Pulse Venice').Id, m.get('Pulse Venice').Resolved_Payer__c);
+        Assert.isNull(m.get('Pulse Venice').Resolved_Payer__c, 'Venice pays for itself');
     }
 
     @IsTest
@@ -66,7 +70,7 @@ private class AccountHierarchyServiceTest {
         Id hq = m.get('Pulse Fitness Brands').Id;
         Assert.areEqual(hq, m.get('Coastal Fitness LLC').Resolved_Payer__c);
         Assert.areEqual(hq, m.get('Pulse Santa Monica').Resolved_Payer__c);
-        Assert.areEqual(m.get('Pulse Venice').Id, m.get('Pulse Venice').Resolved_Payer__c, 'self-pay stays its own payer');
+        Assert.isNull(m.get('Pulse Venice').Resolved_Payer__c, 'self-pay stays its own payer');
     }
 
     @IsTest
@@ -78,7 +82,7 @@ private class AccountHierarchyServiceTest {
         update irvine;
         Map<String, Account> m = load();
         Assert.areEqual(other.Id, m.get('Pulse Irvine').Root_Account__c, 'moved to another hierarchy (LCM-16)');
-        Assert.areEqual(other.Id, m.get('Pulse Irvine').Resolved_Payer__c);
+        Assert.areEqual(other.Id, m.get('Pulse Irvine').Resolved_Payer__c, 'parent-pay: Halo HQ pays');
     }
 
     @IsTest
