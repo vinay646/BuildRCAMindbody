@@ -22,6 +22,10 @@ NAME, LABEL = "Mindbody_Recurring_Pricing_Procedure", "Mindbody Recurring Pricin
 STD = "RLM_DefaultPricingProcedure"
 VOLUME_STEP = "Calculatenetunitpriceandnettotalpriceaftervolumebaseddiscount"
 VOLUME_GROUP = "Applyvolumebaseddiscountstolineswithoutcontractorlasttrxnpricing"
+# Left out: index-based price revision (consumer price index). Not in the Mindbody spec – renewal uplift (LCM-13)
+# uses the standard Uplift step, which stays – and the metadata API rejects this step's parameters on deploy
+# ("ValidStartDate isn't a valid variable name").
+DROP_GROUP = "Applypricerevisionforlineswithsubscriptionandwithoutderivedpricing"
 LINE_ATTRS = [  # (context attribute / tag, QuoteLineItem field)
     ("MbVolumeLocationCount", "Volume_Location_Count__c"),
     ("MbBillingPeriodMonths", "Billing_Period_Months__c"),
@@ -52,6 +56,31 @@ def step_field(step, field, value):
     if n != 1:
         sys.exit(f"step field {field} not found")
     return head + tail
+
+
+def drop_group(s, group):
+    """Remove a top-level list group and its children; close the gap in the top-level sequence numbers."""
+    all_steps = re.findall(r"<steps>.*?</steps>", s, flags=re.S)
+    def tail(st):
+        return st.split("</customElement>")[-1]
+    group_step = [st for st in all_steps if f"<name>{group}</name>" in tail(st) and "<parentStep>" not in tail(st)]
+    if len(group_step) != 1:
+        sys.exit(f"group {group} not found")
+    seq = int(re.search(r"<sequenceNumber>(\d+)</sequenceNumber>", tail(group_step[0])).group(1))
+    removed = 0
+    for st in all_steps:
+        t = tail(st)
+        if st is group_step[0] or f"<parentStep>{group}</parentStep>" in t:
+            s = s.replace(st, "", 1)
+            removed += 1
+        elif "<parentStep>" not in t:
+            n = int(re.search(r"<sequenceNumber>(\d+)</sequenceNumber>", t).group(1))
+            if n > seq:
+                s = s.replace(st, st[:len(st) - len(t)] + t.replace(f"<sequenceNumber>{n}</sequenceNumber>",
+                                                                    f"<sequenceNumber>{n - 1}</sequenceNumber>", 1), 1)
+    if removed < 2:
+        sys.exit(f"group {group}: removed only {removed} steps")
+    return s
 
 
 def constant(name, value, description):
@@ -90,6 +119,8 @@ def build_procedure(volume_id, term_id, frequency_id):
         if f"<parentStep>{VOLUME_GROUP}</parentStep>" not in st:
             sys.exit("cloned step lost its parent group")
     s = s.replace(vol, "".join(new_steps), 1)
+
+    s = drop_group(s, DROP_GROUP)
 
     # rename definition and version
     s = s.replace(f"<expressionSetDefinition>{STD}</expressionSetDefinition>", f"<expressionSetDefinition>{NAME}</expressionSetDefinition>")
