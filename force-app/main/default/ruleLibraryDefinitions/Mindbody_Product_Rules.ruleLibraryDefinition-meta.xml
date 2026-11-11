@@ -1,7 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<RuleLibraryDefinition xmlns="http://soap.sforce.com/2006/04/metadata">
-    <contextDefinition>RLM_SalesTransactionContext</contextDefinition>
-    <contextRuleStatus>Draft</contextRuleStatus>
-    <label>Mindbody Product Rules</label>
-    <usageType>Configurator</usageType>
-</RuleLibraryDefinition>

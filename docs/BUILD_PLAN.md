@@ -151,7 +151,7 @@ Apex → **Price Adjustment Schedules / Promotions / floor price book**; custom 
 | Rule | Standard feature | Status |
 |---|---|---|
 | CR-13 billing frequency and contract term allowed per product | Validation rules on Quote Line (`CR_13_Billing_Frequency_Allowed`, `CR_13_Contract_Term_Allowed`) | ✅ deployed |
-| CR-01 – CR-07, CR-09, CR-18 (tier per location, included features, add-on eligibility, quantities, hardware needs Payments, downgrade guard) | **Product Configuration Rules** (built in Setup → Product Configuration Rules) | Blocked: builder fails with "reading 'RuleLibraryVersions'" – see below |
+| CR-01 – CR-07, CR-09, CR-18 (tier per location, included features, add-on eligibility, quantities, hardware needs Payments, downgrade guard) | **Product Configuration Rules** (built in Setup → Product Configuration Rules) | Builder works (library fixed 11 Nov) – rules built in the builder, see below |
 | CR-08 Branded app setup added once per brand | **Bundle**: Branded app (MB-APP) is a bundle with Branded app setup (MB-APP-SET, $1,500 one-time) as a required child, quantity 1 constant, priced separately – no rule needed | Loader step `bundles` |
 | CR-15 region availability (Capital, Insurance, hardware) | **Product Qualification / Disqualification** | To do |
 | CR-10 promo conditions, CR-11/12 recommendations | Promotions qualifiers / product recommendations | To do |
@@ -166,9 +166,10 @@ Apex → **Price Adjustment Schedules / Promotions / floor price book**; custom 
 - `ruleLibraryDefinitions/Mindbody_Product_Rules` (usage type Configurator, standard metadata) was deployed.
   Salesforce created the definition record but no definition version and no library, and a retrieve returns it
   with empty fields. A library or version can't be added by API without a definition version.
-- Next: Setup → Revenue Settings → turn *Set Up Configuration Rules with Business Rules Engine* **off, save, on,
-  save** (re-provisions the Configurator library now that the user has the BRE permission sets), then retry
-  the builder. If it still fails, add this to the Salesforce support case.
+- **Resolved:** Revenue Settings → *Set Up Configuration Rules with Business Rules Engine* off, save, on, save
+  created the standard library *Configurator Rule* (usage type Configurator, context RLM_SalesTransactionContext,
+  version 1 Active). Only one Configurator library is allowed, so the hand-deployed `Mindbody_Product_Rules`
+  definition is removed (`cleanup-rule-library` action).
 
 
 

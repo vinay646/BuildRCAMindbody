@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- The Configurator rule library definition deployed by hand on 11 Nov 2026 was only half created (no version, no
+     library). Revenue Settings (BRE toggle off/on) then created the standard 'Configurator Rule' library, and only one
+     Configurator library is allowed, so this leftover is removed. -->
+<Package xmlns="http://soap.sforce.com/2006/04/metadata">
+    <types>
+        <members>Mindbody_Product_Rules</members>
+        <name>RuleLibraryDefinition</name>
+    </types>
+    <version>68.0</version>
+</Package>

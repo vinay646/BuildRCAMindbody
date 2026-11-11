@@ -24,6 +24,7 @@ on:
           - explore-context  # read-only: print the sales transaction context at the org's API version
           - explore-recipe   # read-only: print the org's pricing recipes and their lookup-table mappings
           - explore-rules    # read-only: print a constraint model (CML) and the product qualification setup
+          - cleanup-rule-library  # DELETES the leftover Mindbody_Product_Rules rule library definition
           - probe-config-rule  # changes nothing: test-insert a configuration rule and roll it back
       path:
         description: "Deploy / validate only this path – several paths comma-separated (default: all of force-app)"
@@ -216,6 +217,14 @@ jobs:
             sed -e 's/^[[:space:]]*//' "$f" | grep -v '^<?xml' | tr -d '\r\n'
             echo
           done
+
+      - name: Remove leftover rule library definition
+        if: env.ACTION == 'cleanup-rule-library'
+        run: |
+          sf project deploy start --api-version "$ORG_API" --manifest manifest/cleanup-rule-library/package.xml \
+            --post-destructive-changes manifest/cleanup-rule-library/destructiveChanges.xml \
+            --target-org target --ignore-warnings --wait 30 --json > result.json || true
+          ./scripts/deploy-summary.sh result.json "Remove leftover rule library definition"
 
       - name: Probe configuration rule
         if: env.ACTION == 'probe-config-rule'
