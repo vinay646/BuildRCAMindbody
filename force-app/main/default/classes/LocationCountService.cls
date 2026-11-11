@@ -47,10 +47,12 @@ public without sharing class LocationCountService implements Queueable, Schedula
         for (Id r : roots) {
             counts.put(r, 0);
         }
-        // ARM keeps the live quantity in CurrentQuantity; plain orgs only have Quantity.
+        // ARM keeps the live quantity in CurrentQuantity once the asset is managed by an order;
+        // assets created another way may only carry Quantity, so both are summed and the ARM one wins.
         Map<String, Schema.SObjectField> f = Schema.SObjectType.Asset.fields.getMap();
-        String qtyField = f.containsKey('currentquantity') ? 'CurrentQuantity' : 'Quantity';
-        String soql = 'SELECT Account.Root_Account__c root, SUM(' + qtyField + ') qty FROM Asset'
+        Boolean hasCurrent = f.containsKey('currentquantity');
+        String soql = 'SELECT Account.Root_Account__c root, SUM(Quantity) qty'
+            + (hasCurrent ? ', SUM(CurrentQuantity) cur' : '') + ' FROM Asset'
             + ' WHERE Account.Root_Account__c IN :roots AND Product2.ProductCode IN :tiers'
             + (f.containsKey('lifecycleenddate') ? ' AND (LifecycleEndDate = null OR LifecycleEndDate >= TODAY)' : '')
             + ' AND (Status = null OR Status NOT IN :inactive)'
@@ -59,7 +61,8 @@ public without sharing class LocationCountService implements Queueable, Schedula
             'roots' => roots, 'tiers' => CORE_TIERS, 'inactive' => INACTIVE_STATUSES
         };
         for (AggregateResult r : (List<AggregateResult>) Database.queryWithBinds(soql, binds, AccessLevel.SYSTEM_MODE)) {
-            Decimal q = (Decimal) r.get('qty');
+            Decimal cur = hasCurrent ? (Decimal) r.get('cur') : null;
+            Decimal q = (cur != null && cur > 0) ? cur : (Decimal) r.get('qty');
             counts.put((Id) r.get('root'), q == null ? 0 : q);
         }
         List<Account> updates = new List<Account>();

@@ -19,11 +19,12 @@ on:
           - retrieve         # pull the pricing procedure, decision tables and context built in Setup (read-only)
           - explore          # read-only: print the org's standard pricing procedure, decision tables and pricing objects
           - explore-picklists  # read-only: print the standard picklists the build extends
+          - cleanup          # DELETES the custom pieces replaced by standard features (manifest/cleanup)
       step:
         description: "Loader step (for action = load)"
         type: choice
         default: inventory
-        options: [inventory, accounts, catalog, products, bundles, attributes, pricebooks, pricingtables]
+        options: [inventory, accounts, catalog, products, bundles, attributes, pricebooks, pricingschedules]
   pull_request:
     paths: ["force-app/**", "sfdx-project.json"]
 
@@ -88,7 +89,7 @@ jobs:
       - name: Run Apex tests
         if: env.ACTION == 'test'
         run: |
-          sf apex run test --target-org target --class-names MindbodyPricingTest --test-level RunSpecifiedTests \
+          sf apex run test --target-org target --class-names AccountHierarchyServiceTest --test-level RunSpecifiedTests \
             --wait 20 --result-format json > tests.json || true
           ./scripts/test-summary.sh tests.json
 
@@ -150,6 +151,14 @@ jobs:
           name: explored-pricing-setup
           path: explored
           if-no-files-found: warn
+
+      - name: Remove custom pieces replaced by standard features
+        if: env.ACTION == 'cleanup'
+        run: |
+          sf project deploy start --manifest manifest/cleanup/package.xml \
+            --post-destructive-changes manifest/cleanup/destructiveChanges.xml \
+            --target-org target --ignore-warnings --wait 30 --json > result.json || true
+          ./scripts/deploy-summary.sh result.json "Cleanup (delete replaced custom pieces)"
 
       - name: Load one step
         if: env.ACTION == 'load'

@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Custom pieces replaced by standard ARM features (see docs/BUILD_PLAN.md, "Standard first").
+     Deleted from the org by the 'cleanup' workflow action, after the standard replacements are loaded. -->
+<Package xmlns="http://soap.sforce.com/2006/04/metadata">
+    <types>
+        <members>MindbodyPricing</members>
+        <members>MindbodyPricingTest</members>
+        <name>ApexClass</name>
+    </types>
+    <types>
+        <members>MB_Pricing_Rule__c</members>
+        <members>Volume_Discount_Band__mdt</members>
+        <members>Term_Discount__mdt</members>
+        <members>Frequency_Discount__mdt</members>
+        <members>Tier_Pricing_Rule__mdt</members>
+        <members>Promotion_Rule__mdt</members>
+        <name>CustomObject</name>
+    </types>
+    <types>
+        <members>QuoteLineItem.Volume_Discount__c</members>
+        <members>QuoteLineItem.Term_Discount__c</members>
+        <members>QuoteLineItem.Frequency_Discount__c</members>
+        <members>QuoteLineItem.Promo_Discount__c</members>
+        <members>QuoteLineItem.Manual_Discount__c</members>
+        <members>QuoteLineItem.Combined_Discount_Percent__c</members>
+        <members>QuoteLineItem.Net_Price__c</members>
+        <members>QuoteLineItem.Promo_Price__c</members>
+        <members>QuoteLineItem.Floor_Price__c</members>
+        <members>QuoteLineItem.Below_Floor__c</members>
+        <members>QuoteLineItem.Promo_Code__c</members>
+        <members>QuoteLineItem.Promo_Start_Date__c</members>
+        <members>QuoteLineItem.Promo_End_Date__c</members>
+        <members>QuoteLineItem.Pricing_Notes__c</members>
+        <members>Quote.Promo_Code__c</members>
+        <members>Product2.Product_Type__c</members>
+        <members>Product2.Unit_Of_Sale__c</members>
+        <members>Product2.Is_Core_Tier__c</members>
+        <members>Account.Vertical__c</members>
+        <name>CustomField</name>
+    </types>
+    <version>64.0</version>
+</Package>

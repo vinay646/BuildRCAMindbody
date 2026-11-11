@@ -87,7 +87,7 @@
    "bundle": true,
    "configurable": false,
    "allowedTermMonths": "12;24;36",
-   "coreTier": true
+   "unitOfMeasure": "Location"
   },
   {
    "code": "MB-ACC",
@@ -105,11 +105,11 @@
     "AUD": 429,
     "EUR": 249
    },
-   "billingFrequencies": "Monthly;Quarterly;Semiannual;Annual",
+   "billingFrequencies": "Monthly;Quarterly;Semi-Annual;Annual",
    "bundle": true,
    "configurable": true,
    "allowedTermMonths": "12;24;36",
-   "coreTier": true
+   "unitOfMeasure": "Location"
   },
   {
    "code": "MB-ULT",
@@ -127,11 +127,11 @@
     "AUD": 799,
     "EUR": 459
    },
-   "billingFrequencies": "Monthly;Quarterly;Semiannual;Annual",
+   "billingFrequencies": "Monthly;Quarterly;Semi-Annual;Annual",
    "bundle": true,
    "configurable": true,
    "allowedTermMonths": "12;24;36",
-   "coreTier": true
+   "unitOfMeasure": "Location"
   },
   {
    "code": "MB-ENT",
@@ -149,11 +149,11 @@
     "AUD": 0,
     "EUR": 0
    },
-   "billingFrequencies": "Monthly;Quarterly;Semiannual;Annual",
+   "billingFrequencies": "Monthly;Quarterly;Semi-Annual;Annual",
    "bundle": true,
    "configurable": true,
    "allowedTermMonths": "24;36",
-   "coreTier": true
+   "unitOfMeasure": "Location"
   },
   {
    "code": "MB-AIC",
@@ -172,11 +172,11 @@
     "AUD": 240,
     "EUR": 140
    },
-   "billingFrequencies": "Monthly;Quarterly;Semiannual;Annual",
+   "billingFrequencies": "Monthly;Quarterly;Semi-Annual;Annual",
    "soldOnlyWithOthers": false,
    "allowedTermMonths": "12;24;36",
    "note": "In the Add-ons category, so not 'sell only with other products' (ARM blocks that combination); tier eligibility is enforced by rules CR-04..CR-07.",
-   "coreTier": false
+   "unitOfMeasure": "Location"
   },
   {
    "code": "MB-APP",
@@ -195,11 +195,11 @@
     "AUD": 318,
     "EUR": 185
    },
-   "billingFrequencies": "Monthly;Quarterly;Semiannual;Annual",
+   "billingFrequencies": "Monthly;Quarterly;Semi-Annual;Annual",
    "soldOnlyWithOthers": false,
    "allowedTermMonths": "12;24;36",
    "note": "In the Add-ons category, so not 'sell only with other products' (ARM blocks that combination); tier eligibility is enforced by rules CR-04..CR-07.",
-   "coreTier": false
+   "unitOfMeasure": "Brand"
   },
   {
    "code": "MB-APP-SET",
@@ -217,7 +217,7 @@
     "AUD": 2400,
     "EUR": 1395
    },
-   "coreTier": false
+   "unitOfMeasure": "Brand"
   },
   {
    "code": "MB-TAM",
@@ -235,9 +235,9 @@
     "AUD": 1600,
     "EUR": 930
    },
-   "billingFrequencies": "Monthly;Quarterly;Semiannual;Annual",
+   "billingFrequencies": "Monthly;Quarterly;Semi-Annual;Annual",
    "allowedTermMonths": "12",
-   "coreTier": false
+   "unitOfMeasure": "Account"
   },
   {
    "code": "MB-IMP",
@@ -255,7 +255,7 @@
     "AUD": 4000,
     "EUR": 2325
    },
-   "coreTier": false
+   "unitOfMeasure": "Account"
   },
   {
    "code": "MB-DCV",
@@ -273,7 +273,7 @@
     "AUD": 1200,
     "EUR": 698
    },
-   "coreTier": false
+   "unitOfMeasure": "Source System"
   },
   {
    "code": "MB-CON",
@@ -291,7 +291,7 @@
     "AUD": 240,
     "EUR": 140
    },
-   "coreTier": false
+   "unitOfMeasure": "Hour"
   },
   {
    "code": "MB-HW-RDR",
@@ -309,7 +309,7 @@
     "AUD": 478,
     "EUR": 278
    },
-   "coreTier": false
+   "unitOfMeasure": "Each"
   },
   {
    "code": "MB-HW-TRM",
@@ -327,7 +327,7 @@
     "AUD": 798,
     "EUR": 464
    },
-   "coreTier": false
+   "unitOfMeasure": "Each"
   },
   {
    "code": "MB-HW-DOOR",
@@ -345,7 +345,7 @@
     "AUD": 1920,
     "EUR": 1116
    },
-   "coreTier": false
+   "unitOfMeasure": "Each"
   },
   {
    "code": "MB-PAY",
@@ -363,7 +363,7 @@
     "AUD": 0,
     "EUR": 0
    },
-   "coreTier": false
+   "unitOfMeasure": "Transaction"
   },
   {
    "code": "MB-MKT",
@@ -381,7 +381,7 @@
     "AUD": 0,
     "EUR": 0
    },
-   "coreTier": false
+   "unitOfMeasure": "First Purchase"
   },
   {
    "code": "MB-SMS",
@@ -399,7 +399,7 @@
     "AUD": 0,
     "EUR": 0
    },
-   "coreTier": false
+   "unitOfMeasure": "Text Message"
   }
  ],
  "features": [
@@ -420,7 +420,8 @@
     "EUR": 0
    },
    "feature": true,
-   "soldOnlyWithOthers": true
+   "soldOnlyWithOthers": true,
+   "unitOfMeasure": "Location"
   },
   {
    "code": "MB-F-APPL",
@@ -439,7 +440,8 @@
     "EUR": 0
    },
    "feature": true,
-   "soldOnlyWithOthers": true
+   "soldOnlyWithOthers": true,
+   "unitOfMeasure": "Location"
   },
   {
    "code": "MB-F-POS",
@@ -458,7 +460,8 @@
     "EUR": 0
    },
    "feature": true,
-   "soldOnlyWithOthers": true
+   "soldOnlyWithOthers": true,
+   "unitOfMeasure": "Location"
   },
   {
    "code": "MB-F-WEB",
@@ -477,7 +480,8 @@
     "EUR": 0
    },
    "feature": true,
-   "soldOnlyWithOthers": true
+   "soldOnlyWithOthers": true,
+   "unitOfMeasure": "Location"
   },
   {
    "code": "MB-F-RES",
@@ -496,7 +500,8 @@
     "EUR": 0
    },
    "feature": true,
-   "soldOnlyWithOthers": true
+   "soldOnlyWithOthers": true,
+   "unitOfMeasure": "Location"
   },
   {
    "code": "MB-F-PAS",
@@ -515,7 +520,8 @@
     "EUR": 0
    },
    "feature": true,
-   "soldOnlyWithOthers": true
+   "soldOnlyWithOthers": true,
+   "unitOfMeasure": "Location"
   },
   {
    "code": "MB-F-REP",
@@ -534,7 +540,8 @@
     "EUR": 0
    },
    "feature": true,
-   "soldOnlyWithOthers": true
+   "soldOnlyWithOthers": true,
+   "unitOfMeasure": "Location"
   },
   {
    "code": "MB-F-PROMO",
@@ -553,7 +560,8 @@
     "EUR": 0
    },
    "feature": true,
-   "soldOnlyWithOthers": true
+   "soldOnlyWithOthers": true,
+   "unitOfMeasure": "Location"
   },
   {
    "code": "MB-F-MKTG",
@@ -572,7 +580,8 @@
     "EUR": 0
    },
    "feature": true,
-   "soldOnlyWithOthers": true
+   "soldOnlyWithOthers": true,
+   "unitOfMeasure": "Location"
   },
   {
    "code": "MB-F-LEAD",
@@ -591,7 +600,8 @@
     "EUR": 0
    },
    "feature": true,
-   "soldOnlyWithOthers": true
+   "soldOnlyWithOthers": true,
+   "unitOfMeasure": "Location"
   },
   {
    "code": "MB-F-AIC",
@@ -610,7 +620,8 @@
     "EUR": 0
    },
    "feature": true,
-   "soldOnlyWithOthers": true
+   "soldOnlyWithOthers": true,
+   "unitOfMeasure": "Location"
   },
   {
    "code": "MB-F-CDB",
@@ -629,7 +640,8 @@
     "EUR": 0
    },
    "feature": true,
-   "soldOnlyWithOthers": true
+   "soldOnlyWithOthers": true,
+   "unitOfMeasure": "Location"
   }
  ],
  "bundles": {
@@ -1568,5 +1580,174 @@
     }
    ]
   }
- ]
+ ],
+ "pricing": {
+  "_about": "Standard ARM pricing records (spec 12.2). After loading, maintain them in Setup (Price Adjustment Schedules, price books, Promotions); this file only seeds them.",
+  "discountedProducts": [
+   "MB-STR",
+   "MB-ACC",
+   "MB-ULT",
+   "MB-ENT",
+   "MB-AIC",
+   "MB-APP"
+  ],
+  "schedules": [
+   {
+    "name": "Mindbody Hierarchy Volume",
+    "scheduleType": "Volume",
+    "input": "Active locations in the hierarchy (Quote Hierarchy Location Count) + core-tier locations on the quote (PRC-04, RLP-01)",
+    "tiers": [
+     [
+      1,
+      3,
+      0
+     ],
+     [
+      4,
+      10,
+      5
+     ],
+     [
+      11,
+      50,
+      10
+     ],
+     [
+      51,
+      200,
+      15
+     ],
+     [
+      201,
+      999999,
+      20
+     ]
+    ]
+   },
+   {
+    "name": "Mindbody Contract Term",
+    "scheduleType": "Term",
+    "input": "Quote line Subscription Term in months (PRC-06)",
+    "tiers": [
+     [
+      0,
+      23,
+      0
+     ],
+     [
+      24,
+      35,
+      5
+     ],
+     [
+      36,
+      999999,
+      10
+     ]
+    ]
+   },
+   {
+    "name": "Mindbody Billing Frequency",
+    "scheduleType": "Custom",
+    "input": "Months per billing period: Monthly 1, Quarterly 3, Semi-Annual 6, Annual 12 (PRC-06)",
+    "tiers": [
+     [
+      1,
+      2,
+      0
+     ],
+     [
+      3,
+      5,
+      2
+     ],
+     [
+      6,
+      11,
+      4
+     ],
+     [
+      12,
+      999999,
+      8
+     ]
+    ]
+   }
+  ],
+  "floorPriceBook": {
+   "name": "Mindbody Floor Prices",
+   "description": "Tier floor price per location per month (PRC-18). Net price below floor needs VP Sales then Finance approval.",
+   "prices": {
+    "MB-STR": {
+     "USD": 59,
+     "GBP": 51,
+     "AUD": 94,
+     "EUR": 55
+    },
+    "MB-ACC": {
+     "USD": 189,
+     "GBP": 164,
+     "AUD": 302,
+     "EUR": 176
+    },
+    "MB-ULT": {
+     "USD": 339,
+     "GBP": 295,
+     "AUD": 542,
+     "EUR": 315
+    }
+   }
+  },
+  "promotions": [
+   {
+    "name": "LAUNCH3",
+    "displayName": "Launch offer – $39 for 3 months",
+    "coupon": "LAUNCH3",
+    "targets": [
+     "MB-STR"
+    ],
+    "adjustmentType": "FixedPrice",
+    "amount": 39,
+    "months": 3,
+    "conditions": "New logos, 12-month term minimum, Mindbody Payments opted in (CR-10)"
+   },
+   {
+    "name": "SWITCH50",
+    "displayName": "Switch offer – 50% off for 6 months",
+    "coupon": "SWITCH50",
+    "targets": [
+     "MB-ACC",
+     "MB-ULT"
+    ],
+    "adjustmentType": "PercentageDiscount",
+    "percent": 50,
+    "months": 6,
+    "conditions": "Prior system is a competitor, 24-month term minimum, data conversion on the quote (CR-10)"
+   },
+   {
+    "name": "GROW2",
+    "displayName": "Grow offer – 2 months free per added location",
+    "coupon": "GROW2",
+    "targets": [
+     "MB-STR",
+     "MB-ACC",
+     "MB-ULT",
+     "MB-ENT"
+    ],
+    "adjustmentType": "PercentageDiscount",
+    "percent": 100,
+    "months": 2,
+    "conditions": "Existing customers adding a location mid-term, co-termed (CR-10)"
+   }
+  ],
+  "approvals": {
+   "autoApprovePercent": {
+    "MB-STR": 10,
+    "MB-ACC": 20,
+    "MB-ULT": 25,
+    "MB-ENT": null
+   },
+   "note": "Used by the standard approval rules in phase 5 (CFG-16); Enterprise always goes to the deal desk."
+  }
+ }
 }

@@ -1,9 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
-    <fullName>Is_Core_Tier__c</fullName>
-    <label>Core Tier</label>
-    <description>Starter, Accelerate, Ultimate or Enterprise: one per location (CFG-02); counted as a location for the volume band (RLP-01) and the pricing procedure's new-location count.</description>
-    <inlineHelpText>Checked for the four core tiers – each quantity is one location.</inlineHelpText>
-    <type>Checkbox</type>
-    <defaultValue>false</defaultValue>
-</CustomField>

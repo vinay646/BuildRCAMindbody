@@ -22,9 +22,9 @@
                 <label>Quarterly</label>
             </value>
             <value>
-                <fullName>Semiannual</fullName>
+                <fullName>Semi-Annual</fullName>
                 <default>false</default>
-                <label>Semiannual</label>
+                <label>Semi-Annual</label>
             </value>
             <value>
                 <fullName>Annual</fullName>

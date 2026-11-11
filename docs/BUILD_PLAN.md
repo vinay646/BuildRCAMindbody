@@ -117,43 +117,32 @@ Built: `Active_Location_Count__c`, `LocationCountService` (Queueable + Schedulab
 | PD-09 Selling models and frequencies | Recurring products offer the right terms and billing frequencies | 3 selling models: Evergreen Monthly, Term Monthly, One-Time (ARM allows one per type + pricing term). Contract length is the quote line's term, limited by **Allowed Term Months** (Starter/Accelerate/Ultimate 12/24/36, Enterprise 24/36, TAM 12). Starter billing Monthly/Annual only. Entry per currency × selling model | `catalog`, `products`, `pricebooks` |
 | PD-14 Integration status | Every product shows its ERP sync status | New on create; owned by the integration afterwards | `products` |
 
-## 5. Phase 3 – pricing
+## 5. Phase 3 – pricing (standard features only)
 
-### 3a. Pricing rules (built)
+Rule for the whole build: **standard ARM / Salesforce features first; anything custom is listed below with the
+reason.** The pricing waterfall (spec 12.2) is built only from standard pieces – see
+[PHASE3B_PRICING_PROCEDURE.md](PHASE3B_PRICING_PROCEDURE.md):
+volume, term and billing-frequency discounts are standard Price Adjustment Schedules (types Volume, Term, Custom)
+with tiers; promotions are standard Promotions with coupon codes; the floor is a standard price book; the
+waterfall shows in ARM's standard price breakdown. Seed data: loader step `pricingschedules`.
 
-`MindbodyPricing` is the single source of truth for the spec 12.2 waterfall. It reads the custom metadata tables, so
-changing a discount, band, floor or promo is a metadata edit, not code.
+### Custom pieces that remain, and why
 
-| Step | Rule | Table |
-|---|---|---|
-| 1 List | Price book entry, per location per month | – |
-| 2 Contract price | Master price agreement replaces list; steps 3–5 skipped (RLP-07) | Contract.Master_Contract__c |
-| 3 Volume | Active locations in the hierarchy (RLP-01) + new ones: 1–3 0%, 4–10 5%, 11–50 10%, 51–200 15%, 201+ 20% | Volume_Discount_Band__mdt |
-| 4 Term | 12 m 0%, 24 m 5%, 36 m 10% | Term_Discount__mdt |
-| 5 Frequency | Monthly 0%, Quarterly 2%, Semiannual 4%, Annual 8% | Frequency_Discount__mdt |
-| 6 Promotion | LAUNCH3, SWITCH50, GROW2 – only when their conditions hold (CR-10) | Promotion_Rule__mdt |
-| 7 Manual | Rep-entered percent | – |
-| 8 Floor / approval | Below floor → VP Sales then Finance; above auto-approve → sales manager; Enterprise → deal desk | Tier_Pricing_Rule__mdt |
+| Custom | Reason no standard feature fits |
+|---|---|
+| Account: Payer Type, Resolved Payer, Root Account + `AccountHierarchyService` | No standard self-pay / parent-pay or top-of-hierarchy field; billing rollup depends on them (2.3, RLP-03) |
+| Account: Active Location Count + `LocationCountService` | No standard rollup across a 4-level account hierarchy (RLP-01) |
+| Account: Account Level, Segment | No standard field for corporate / region / franchisee / location, or SMB / mid-market / enterprise |
+| ERP Id, Billing Id, Integration Status (account, product, address) | Spec needs ERP IDs and sync status on every record (NFR-07) |
+| Product: Allowed Billing Frequencies, Allowed Term Months | No standard allowed-frequency / allowed-term list per product (CAT-07, CR-13) |
+| Quote: Hierarchy Location Count | The pricing procedure needs the hierarchy count; no standard field holds it |
+| Contract: Master Contract | Standard contracts have no parent-contract link (RLP-07) |
+| `MindbodyBuildLoader` | Loads the demo data; not part of the runtime |
 
-`MindbodyPricingTest` proves the spec numbers, including the Pulse worked example ($499 → $449.10 → $404.19 →
-$371.85, 25.5% combined, sales-manager approval, $8,924.40 annual invoice for 2 locations).
-
-Quote line fields for the waterfall (PRC-17): Volume / Term / Frequency / Promo / Manual / Combined Discount %,
-Net Price, Promo Price, Floor Price, Below Floor, Promo Code, Promo Start / End Date, Pricing Notes.
-Quote: Promo Code, Hierarchy Location Count (from the root account, RLP-01). Contract: Master Contract (RLP-07).
-
-[Assumed] Floor and approval checks use the standard net price, not the time-boxed promo price; otherwise every
-LAUNCH3 quote ($39 < $59 floor) would need VP approval.
-
-### 3b. Native ARM pricing procedure (in progress)
-
-Decision: native pricing procedure (cloned from the org's *RLM Revenue Management Default Pricing Procedure*,
-context *RLM_SalesTransactionContext*). List price and contract price (ContractItemPrice, RLP-07) are native;
-volume by hierarchy locations, term, frequency, promotion and floor come from five decision tables over the
-**MB Pricing Rule** object, which loader step `pricingtables` fills from the custom metadata.
-
-Setup steps: [PHASE3B_PRICING_PROCEDURE.md](PHASE3B_PRICING_PROCEDURE.md). The `retrieve` action then saves the
-procedure, decision tables and context definition into the repo.
+Switched to standard: Product Type → **Product Family**; Vertical → **Industry**; Unit Of Sale → **Quantity Unit
+of Measure**; Core Tier flag → **classification** *Mindbody Subscription Tier*; discount tables and the pricing
+Apex → **Price Adjustment Schedules / Promotions / floor price book**; custom quote line discount fields →
+**standard price waterfall**. The `cleanup` action deletes the replaced custom pieces from the org.
 
 ## 6. Existing ExploremoreRCA setup the build reuses
 

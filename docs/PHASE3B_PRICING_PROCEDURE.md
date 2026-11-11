@@ -1,123 +1,106 @@
 ![Company logo](../logo.png)
 
-# Phase 3b – Mindbody pricing procedure (native ARM)
+# Phase 3b – Mindbody pricing with standard ARM features only
 
-Builds the spec 12.2 waterfall into ARM's own pricing engine so every quote line shows
-List → Contract → Volume → Term → Frequency → Promo → Manual → Net, and the floor check.
+The spec 12.2 waterfall built from out-of-the-box Agentforce Revenue Management pieces. Everything below was
+checked against what ExploremoreRCA actually has (`explore` action, 11 Nov 2026): the standard pricing procedure
+*RLM Revenue Management Default Pricing Procedure*, its decision tables, the *RLM_SalesTransactionContext*, and the
+pricing objects' fields and picklist values.
 
-The rules already exist and are tested: `MindbodyPricing` + `MindbodyPricingTest` (10/10 passing in ExploremoreRCA).
-This guide wires the same numbers into a pricing procedure. Use `MindbodyPricingTest`'s numbers to check each step.
+## Design – which standard feature does each step
 
-> Screen labels below are from Agentforce Revenue Management; they can differ slightly by release.
-> Keep the **API names exactly as written** – the `retrieve` action looks for them.
+| Spec step | Standard feature | Records (loader step `pricingschedules`) |
+|---|---|---|
+| 1 List price | Price book entry – *Get base prices from price book* step | regional price books (step `pricebooks`) |
+| 2 Contract price (RLP-07) | Contract Item Price – *Contract Pricing Entries* step | per master agreement (phase 6) |
+| 3 Volume by hierarchy locations (PRC-04, RLP-01) | **Price Adjustment Schedule, type Volume** + Volume Discount step | *Mindbody Hierarchy Volume*: 1–3 0%, 4–10 5%, 11–50 10%, 51–200 15%, 201+ 20% |
+| 4 Term (PRC-06) | **Price Adjustment Schedule, type Term** + Volume Discount step | *Mindbody Contract Term*: 0–23 0%, 24–35 5%, 36+ 10% |
+| 5 Billing frequency (PRC-06) | **Price Adjustment Schedule, type Custom** + Volume Discount step | *Mindbody Billing Frequency* (months per period): 1–2 0%, 3–5 2%, 6–11 4%, 12+ 8% |
+| 6 Promotion (PRC-07) | **Promotions** (Promotion, Promotion Target, Coupon) | LAUNCH3 ($39 fixed price, Starter), SWITCH50 (50%, Accelerate/Ultimate), GROW2 (100%, any tier) |
+| 7 Manual discount | Manual Discount step | – |
+| 8 Floor (PRC-18) | **Price book** *Mindbody Floor Prices* read by a second price-book step | Starter 59, Accelerate 189, Ultimate 339 (USD; GBP/AUD/EUR converted) |
+| Approvals (CFG-16) | Standard approval rules (phase 5) | auto-approve 10 / 20 / 25%, Enterprise deal desk |
+
+Tiers are created for each product × selling model × currency, because the standard *Price Adjustment Tier*
+decision table matches on schedule, product, selling model, currency, effective dates and quantity bounds.
+
+**One custom input remains:** *Quote → Hierarchy Location Count* (formula from the root account's Active Location
+Count). Reason: no standard field counts locations across a 4-level account hierarchy, and the volume band
+needs it (RLP-01).
 
 ## Before you start (GitHub Actions → Salesforce build)
 
-1. `deploy` – adds the **MB Pricing Rule** object and the **Core Tier** product flag.
-2. `load` → `products` – sets Core Tier on Starter, Accelerate, Ultimate, Enterprise.
-3. `load` → `pricingtables` – fills MB Pricing Rule from the custom metadata (5 volume, 4 term, 4 frequency,
-   7 promotion, 4 floor rows). Check in the org: App Launcher → **MB Pricing Rules** (or a report on it).
-4. `load` → `accounts` – demo customers, so you can test on a real quote.
+1. `deploy` – standard picklist values (Product Family, Industry, Unit of Measure) and the updated loader.
+2. `load` → `products` – Product Family, Unit of Measure, Semi-Annual frequency.
+3. `load` → `accounts` – demo customers (Industry = vertical).
+4. `load` → `pricingschedules` – 3 schedules + tiers, floor price book, 3 promotions with coupons.
+5. `cleanup` – deletes the custom pieces these replace (custom pricing table, discount metadata, custom quote
+   line discount fields, Product Type / Unit Of Sale / Core Tier / Vertical fields, the pricing Apex). Run it
+   only after steps 1–4 succeeded.
 
-## Step 1 – Extend the sales transaction context
+## Step 1 – Context: expose the hierarchy count
 
-The procedure can only read fields that are in its context definition.
+Setup → **Context Definitions** → *RLM_SalesTransactionContext* → **Extend** → API name
+`Mindbody_Sales_Transaction_Context`. On the **SalesTransaction** node add attribute `HierarchyLocationCount`
+(Number) mapped to **Quote.Hierarchy_Location_Count__c**. `SubscriptionTerm` and `BillingFrequency` are already in
+the standard context. Activate.
 
-1. Setup → **Context Definitions** → **RLM_SalesTransactionContext** → **Extend** (or Clone if Extend is not offered).
-   - Name: `Mindbody Sales Transaction Context`, API name `Mindbody_Sales_Transaction_Context`.
-2. On the **SalesTransaction** (header) node, add attributes and map them to the **Quote**:
+## Step 2 – Clone the standard procedure
 
-   | Attribute | Type | Quote field |
-   |---|---|---|
-   | `HierarchyLocationCount` | Number | `Hierarchy_Location_Count__c` |
-   | `PromoCode` | Text | `Promo_Code__c` |
+Setup → **Pricing Procedures** → *RLM Revenue Management Default Pricing Procedure* → **Save As** →
+`Mindbody Recurring Pricing Procedure` (`Mindbody_Recurring_Pricing_Procedure`), context
+*Mindbody_Sales_Transaction_Context*.
 
-3. On the **SalesTransactionItem** (line) node, add attributes and map them to **QuoteLineItem**
-   (inputs come from the product / line, outputs are written back):
+## Step 3 – Point the volume step at the hierarchy
 
-   | Attribute | Type | Direction | QuoteLineItem field |
-   |---|---|---|---|
-   | `IsCoreTier` | Boolean | input | `Product2.Is_Core_Tier__c` |
-   | `ProductCode` | Text | input | `Product2.ProductCode` (often already in the context) |
-   | `TermMonths` | Number | input | the line's subscription term (`SubscriptionTerm` – confirm the name on your line) |
-   | `BillingFrequency` | Text | input | `BillingFrequency` (often already in the context) |
-   | `VolumeDiscount` | Number | output | `Volume_Discount__c` |
-   | `TermDiscount` | Number | output | `Term_Discount__c` |
-   | `FrequencyDiscount` | Number | output | `Frequency_Discount__c` |
-   | `PromoDiscount` | Number | output | `Promo_Discount__c` |
-   | `PromoPrice` | Currency | output | `Promo_Price__c` |
-   | `FloorPrice` | Currency | output | `Floor_Price__c` |
-   | `BelowFloor` | Boolean | output | `Below_Floor__c` |
-   | `CombinedDiscount` | Number | output | `Combined_Discount_Percent__c` |
-   | `MbNetPrice` | Currency | output | `Net_Price__c` |
+The standard step *Calculate net unit price and net total price after volume-based discount* uses
+`PriceAdjustmentScheduleId = VolumePASIdConstant` and `Quantity = LineItemQuantity`.
 
-4. Save and **Activate** the context definition.
+1. Add a **Grouping and Aggregate** step (same type as the standard *Calculate subtotal…* steps): sum
+   `LineItemQuantity` of lines whose product is based on classification *Mindbody Subscription Tier* →
+   variable `NewLocations`.
+2. Add an **Assignment** step: `VolumeLocations = HierarchyLocationCount + NewLocations`.
+3. On the volume step: set the constant `VolumePASIdConstant` to the Id of **Mindbody Hierarchy Volume**, and its
+   **Quantity** input to `VolumeLocations`.
 
-## Step 2 – Decision tables over MB Pricing Rule
+## Step 4 – Term and frequency: two more volume steps
 
-Setup → **Decision Tables** → New. For each table: Source object **MB Pricing Rule** (`MB_Pricing_Rule__c`),
-filter `Is_Active__c = true` **and** the Rule Type shown, then **Activate**.
+Duplicate the volume step twice, right after it:
 
-| API name | Filter: Rule Type | Input columns (operator) | Output columns |
-|---|---|---|---|
-| `MB_Volume_Discount` | Volume | `Min_Value__c` (less or equal to the count), `Max_Value__c` (greater or equal to the count) | `Discount_Percent__c` |
-| `MB_Term_Discount` | Term | `Min_Value__c` (equals term months) | `Discount_Percent__c` |
-| `MB_Frequency_Discount` | Frequency | `Frequency__c` (equals) | `Discount_Percent__c` |
-| `MB_Promotion` | Promotion | `Promo_Code__c` (equals), `Product_Code__c` (equals) | `Discount_Percent__c`, `Promo_Price__c`, `Promo_Months__c`, `Min_Term_Months__c` |
-| `MB_Tier_Floor` | Floor | `Product_Code__c` (equals) | `Floor_Price__c`, `Auto_Approve_Percent__c` |
+| Copy | PriceAdjustmentScheduleId (new constant) | Quantity input |
+|---|---|---|
+| Term discount | Id of **Mindbody Contract Term** | `SubscriptionTerm` (blank → 0) |
+| Frequency discount | Id of **Mindbody Billing Frequency** | `FrequencyMonths` – Assignment before it: Monthly → 1, Quarterly → 3, Semi-Annual → 6, Annual → 12 |
 
-Term rows exist for 0 (evergreen), 12, 24 and 36 months. If your line stores the term in another unit, convert
-it to months in Step 3 before the lookup.
+Each copy keeps `InputUnitPrice = NetUnitPrice`, so the discounts compound in spec order and each appears as its
+own line in the standard price waterfall.
 
-## Step 3 – Clone the default procedure and add the Mindbody steps
+## Step 5 – Promotions
 
-1. Setup → **Pricing Procedures** → **RLM Revenue Management Default Pricing Procedure** → **Save As / Clone**.
-   - Name `Mindbody Recurring Pricing Procedure`, API name `Mindbody_Recurring_Pricing_Procedure`.
-   - Context definition: **Mindbody_Sales_Transaction_Context**.
-2. Keep the default elements for **List Price** (price book entry) and **Contract Pricing** (contract item price –
-   RLP-07). When a contract price is found, skip the next three discounts (add a condition on the contract-price
-   output, or put the three steps in a branch that runs only when there is no contract price).
-3. **New locations on the quote** – add an aggregate / rollup element: sum `Quantity` of lines where
-   `IsCoreTier = true`, into a variable `NewLocations`. Then a formula / assignment:
-   `VolumeCount = HierarchyLocationCount + NewLocations`.
-4. **Volume (step 3)** – Lookup element on `MB_Volume_Discount` with `VolumeCount` → `VolumeDiscount`; then a
-   percentage discount / price adjustment element applying `VolumeDiscount` %. Apply to core tiers and add-ons
-   (not to one-time products).
-5. **Term (step 4)** – Lookup `MB_Term_Discount` with `TermMonths` (blank → 0) → `TermDiscount`; percentage discount.
-6. **Frequency (step 5)** – Lookup `MB_Frequency_Discount` with `BillingFrequency` → `FrequencyDiscount`; percentage discount.
-7. **Promotion (step 6)** – only when `PromoCode` is filled: Lookup `MB_Promotion` with `PromoCode` + `ProductCode`.
-   Write `PromoPrice` (fixed-price promos) or `PromoDiscount` (percentage promos) to the line. The standard
-   price is **not** reduced – the promo is time-boxed (PRC-07) and the floor check uses the standard price.
-   Promo conditions (Payments opted in, competitor, term minimum – CR-10) are enforced as a rule in phase 4.
-8. Keep the default **Manual Discount** element (step 7).
-9. **Floor check (step 8)** – Lookup `MB_Tier_Floor` with `ProductCode` → `FloorPrice`, `AutoApprove`;
-   assignments: `MbNetPrice = net unit price`, `BelowFloor = MbNetPrice < FloorPrice`,
-   `CombinedDiscount = (ListPrice − MbNetPrice) / ListPrice × 100`.
-10. Save, **Activate**.
-11. Setup → **Revenue Settings** (or Salesforce Pricing Setup) → set **Mindbody Recurring Pricing Procedure** as the
-    default pricing procedure for quotes and orders.
+Setup → **Revenue Settings** (or *Salesforce Pricing Setup*) → turn on **Promotions** for quotes if it is off.
+The loader created LAUNCH3, SWITCH50 and GROW2 with their targets and coupon codes; a rep applies a coupon on the
+quote and the promotion shows as a *Promotion* adjustment on the line.
 
-## Step 4 – Check against the spec worked example
+Not standard and handled elsewhere:
+- **Promo conditions** (Payments opted in, competitor, term minimum – CR-10) → product rule in phase 4.
+- **Promo length** (months 1–3, 1–6, 2) → the promo price applies to the first ramp segment; the step-up to the
+  standard price is the ramp schedule (PRC-09, LCM-15) in phase 5.
 
-Create an opportunity on **Pulse Fitness Brands** → quote in **North America & Asia (USD)** → 2 × **Ultimate**,
-36-month term, billing frequency **Annual**. With 12 active Pulse locations the line must show:
+## Step 6 – Floor price
 
-| Step | Expected |
-|---|---|
-| List | 499.00 |
-| Volume (14 locations) | 10% → 449.10 |
-| Term (36) | 10% → 404.19 |
-| Frequency (Annual) | 8% → 371.85 |
-| Combined | 25.48% (spec: 25.5%) – above Ultimate's 25% auto-approve → sales manager approval (phase 5) |
-| Below Floor | false (floor 339) |
+Duplicate the standard *Get base prices from price book* step after Manual Discount: price book = **Mindbody Floor
+Prices**, output `UnitPrice` → variable `FloorPrice`. Phase 5's approval rule compares the net unit price with
+`FloorPrice` (below floor → VP Sales then Finance).
 
-Until the Pulse locations have active assets (phase 6), Hierarchy Location Count is 0: the same quote then prices
-with the 1–3 band (0%) – that is expected. To test the band now, quote 14 Ultimate locations on one line
-(NewLocations = 14 → 10%).
+## Step 7 – Activate and check
 
-## Step 5 – Save the procedure in the repo
+Activate the procedure; Revenue Settings → default pricing procedure = **Mindbody Recurring Pricing Procedure**.
 
-GitHub Actions → Salesforce build → `retrieve`. It pulls the procedure, the five decision tables and the context
-definition (`manifest/pricing-procedure.xml`) and attaches them to the run as **retrieved-pricing-procedure**.
-Tell Claude the run is done – it adds the files to `force-app` so the procedure is version-controlled and can be
-deployed to the next org.
+Check (spec 12.2 worked example): Pulse quote, USD price book, 2 × Ultimate, Subscription Term 36, Billing
+Frequency Annual, with 12 active Pulse locations → 499.00 → 449.10 (volume 10%) → 404.19 (term 10%) → 371.85
+(frequency 8%). Until Pulse has active assets (phase 6) Hierarchy Location Count is 0; quoting 14 Ultimate
+locations on the line gives the same volume band.
+
+## Step 8 – Save it in the repo
+
+Run `retrieve`; Claude adds the procedure and context definition to `force-app`.

@@ -18,7 +18,7 @@ public without sharing class MindbodyBuildLoader {
     public class LoaderException extends Exception {}
 
     public static final String RESOURCE = 'MB_Build_Data';
-    public static final List<String> STEPS = new List<String>{ 'inventory', 'accounts', 'catalog', 'products', 'bundles', 'attributes', 'pricebooks', 'pricingtables' };
+    public static final List<String> STEPS = new List<String>{ 'inventory', 'accounts', 'catalog', 'products', 'bundles', 'attributes', 'pricebooks', 'pricingschedules' };
 
     public List<String> log = new List<String>();
     public Integer errors = 0;
@@ -55,7 +55,7 @@ public without sharing class MindbodyBuildLoader {
             when 'attributes' { loadAttributes(); }
             when 'pricebooks' { loadPriceBooks(); }
             when 'inventory' { inventory(); }
-            when 'pricingtables' { loadPricingTables(); }
+            when 'pricingschedules' { loadPricingSchedules(); }
             when else { throw new LoaderException('Unknown step "' + step + '". Steps: ' + String.join(STEPS, ', ')); }
         }
     }
@@ -88,7 +88,7 @@ public without sharing class MindbodyBuildLoader {
                     'Payer_Type__c' => a.get('payer'),
                     'CurrencyIsoCode' => a.get('currency'),
                     'Segment__c' => a.get('segment'),
-                    'Vertical__c' => a.get('vertical')
+                    'Industry' => a.get('vertical')
                 };
                 if (a.get('parent') != null) {
                     SObject parent = byName.get((String) a.get('parent'));
@@ -168,11 +168,10 @@ public without sharing class MindbodyBuildLoader {
             Boolean bundle = p.get('bundle') == true;
             Map<String, Object> r = new Map<String, Object>{
                 'Name' => p.get('name'), 'ProductCode' => p.get('code'), 'Description' => p.get('description'),
-                'IsActive' => true, 'Product_Type__c' => p.get('productType'),
+                'IsActive' => true, 'Family' => p.get('productType'),
                 'Allowed_Billing_Frequencies__c' => p.get('billingFrequencies'),
                 'Allowed_Term_Months__c' => p.get('allowedTermMonths'),
-                'Is_Core_Tier__c' => p.get('coreTier') == true,
-                'Unit_Of_Sale__c' => p.get('unit'), 'Integration_Status__c' => 'New',
+                'QuantityUnitOfMeasure' => p.get('unitOfMeasure'), 'Integration_Status__c' => 'New',
                 'IsSoldOnlyWithOtherProds' => p.get('soldOnlyWithOthers') == true
             };
             if (bundle) {
@@ -443,60 +442,173 @@ public without sharing class MindbodyBuildLoader {
     }
 
     /**
-     * Copies the pricing custom metadata (spec 12.2) into MB_Pricing_Rule__c, which the ARM pricing procedure's
-     * decision tables read. The custom metadata stays the source of truth: change it, redeploy, re-run this step.
-     * Rows no longer in the metadata are deactivated, not deleted.
+     * Standard ARM pricing records for the spec 12.2 waterfall – no custom objects:
+     *   Price Adjustment Schedules + Tiers   volume by hierarchy locations, contract term, billing frequency
+     *   Price book "Mindbody Floor Prices"   tier floor per location per month (PRC-18)
+     *   Promotions + targets + coupons       LAUNCH3, SWITCH50, GROW2 (PRC-07)
+     * Tiers are created per product x selling model x currency, as the standard tier decision table matches on them.
      */
-    public void loadPricingTables() {
-        List<Map<String, Object>> rows = new List<Map<String, Object>>();
-        for (Volume_Discount_Band__mdt b : Volume_Discount_Band__mdt.getAll().values()) {
-            rows.add(new Map<String, Object>{ 'Rule_Key__c' => 'VOLUME-' + b.DeveloperName, 'Name' => 'Volume ' + b.MasterLabel,
-                'Rule_Type__c' => 'Volume', 'Min_Value__c' => b.Min_Locations__c,
-                'Max_Value__c' => b.Max_Locations__c == null ? 999999.0 : b.Max_Locations__c,
-                'Discount_Percent__c' => b.Discount_Percent__c, 'Is_Active__c' => true });
+    public void loadPricingSchedules() {
+        Map<String, Object> pricing = (Map<String, Object>) data.get('pricing');
+        Map<String, SObject> products = byKey('Product2', 'ProductCode', 'ProductCode LIKE \'MB-%\'', null);
+        Map<String, SObject> models = sellingModels(false);
+        Set<String> currencies = new Set<String>();
+        for (Object o : listOf('priceBooks')) {
+            currencies.add((String) ((Map<String, Object>) o).get('currency'));
         }
-        for (Term_Discount__mdt t : Term_Discount__mdt.getAll().values()) {
-            rows.add(new Map<String, Object>{ 'Rule_Key__c' => 'TERM-' + t.DeveloperName, 'Name' => 'Term ' + t.MasterLabel,
-                'Rule_Type__c' => 'Term', 'Min_Value__c' => t.Term_Months__c, 'Max_Value__c' => t.Term_Months__c,
-                'Discount_Percent__c' => t.Discount_Percent__c, 'Is_Active__c' => true });
+        if (fields('PricebookEntry').containsKey('currencyisocode')) {
+            currencies.retainAll(activeCurrencies());
+        } else {
+            currencies = new Set<String>{ UserInfo.getDefaultCurrency() };
         }
-        for (Frequency_Discount__mdt fd : Frequency_Discount__mdt.getAll().values()) {
-            rows.add(new Map<String, Object>{ 'Rule_Key__c' => 'FREQUENCY-' + fd.DeveloperName, 'Name' => 'Frequency ' + fd.MasterLabel,
-                'Rule_Type__c' => 'Frequency', 'Frequency__c' => fd.Frequency__c,
-                'Discount_Percent__c' => fd.Discount_Percent__c, 'Is_Active__c' => true });
+        Boolean multiCurrency = fields('PriceAdjustmentTier').containsKey('currencyisocode');
+
+        // 1. schedules
+        List<Map<String, Object>> schedRows = new List<Map<String, Object>>();
+        for (Object o : (List<Object>) pricing.get('schedules')) {
+            Map<String, Object> sc = (Map<String, Object>) o;
+            schedRows.add(new Map<String, Object>{ 'Name' => sc.get('name'), 'ScheduleType' => sc.get('scheduleType'),
+                'AdjustmentMethod' => 'Range', 'IsActive' => true, 'Description' => sc.get('input'),
+                'EffectiveFrom' => Datetime.newInstanceGmt(2026, 1, 1) });
         }
-        for (Promotion_Rule__mdt pr : Promotion_Rule__mdt.getAll().values()) {
-            // one row per eligible product, so a decision table can match code + product exactly
-            for (String code : (pr.Eligible_Products__c == null ? '' : pr.Eligible_Products__c).split(';')) {
-                if (String.isBlank(code)) {
+        Map<String, SObject> schedules = sync('PriceAdjustmentSchedule', new List<String>{ 'Name' }, schedRows, null, null,
+            new Set<String>{ 'ScheduleType' });
+
+        // 2. tiers: schedule x product x selling model x currency x band
+        Map<String, Object> productData = new Map<String, Object>();
+        for (Map<String, Object> pd : allProducts()) {
+            productData.put((String) pd.get('code'), pd);
+        }
+        List<Map<String, Object>> tierRows = new List<Map<String, Object>>();
+        for (Object o : (List<Object>) pricing.get('schedules')) {
+            Map<String, Object> sc = (Map<String, Object>) o;
+            SObject sched = schedules.get((String) sc.get('name'));
+            if (sched == null) {
+                continue;
+            }
+            for (Object codeObj : (List<Object>) pricing.get('discountedProducts')) {
+                String code = (String) codeObj;
+                SObject prod = products.get(code);
+                Map<String, Object> pd = (Map<String, Object>) productData.get(code);
+                if (prod == null || pd == null) {
+                    fail('Tier: product ' + code + ' not found – run the products step first');
                     continue;
                 }
-                rows.add(new Map<String, Object>{ 'Rule_Key__c' => 'PROMO-' + pr.DeveloperName + '-' + code.trim(),
-                    'Name' => 'Promo ' + pr.DeveloperName + ' ' + code.trim(), 'Rule_Type__c' => 'Promotion',
-                    'Promo_Code__c' => pr.DeveloperName, 'Product_Code__c' => code.trim(),
-                    'Discount_Percent__c' => pr.Promo_Discount_Percent__c, 'Promo_Price__c' => pr.Promo_Price__c,
-                    'Promo_Months__c' => pr.Promo_Months__c, 'Min_Term_Months__c' => pr.Min_Term_Months__c, 'Is_Active__c' => true });
+                for (Object m : (List<Object>) pd.get('sellingModels')) {
+                    SObject psm = models.get((String) m);
+                    if (psm == null) {
+                        continue;
+                    }
+                    for (String cur : currencies) {
+                        for (Object b : (List<Object>) sc.get('tiers')) {
+                            List<Object> band = (List<Object>) b;
+                            Map<String, Object> r = new Map<String, Object>{
+                                'Name' => sc.get('name') + ' ' + code + ' ' + band[0] + '-' + band[1],
+                                'PriceAdjustmentScheduleId' => sched.Id, 'Product2Id' => prod.Id,
+                                'ProductSellingModelId' => psm.Id, 'LowerBound' => band[0], 'UpperBound' => band[1],
+                                'TierType' => 'AdjustmentPercentage', 'TierValue' => band[2],
+                                'ScheduleType' => sc.get('scheduleType'),
+                                'EffectiveFrom' => Datetime.newInstanceGmt(2026, 1, 1) };
+                            if (multiCurrency) {
+                                r.put('CurrencyIsoCode', cur);
+                            }
+                            tierRows.add(r);
+                        }
+                    }
+                }
             }
         }
-        for (Tier_Pricing_Rule__mdt tr : Tier_Pricing_Rule__mdt.getAll().values()) {
-            rows.add(new Map<String, Object>{ 'Rule_Key__c' => 'FLOOR-' + tr.Product_Code__c, 'Name' => 'Floor ' + tr.MasterLabel,
-                'Rule_Type__c' => 'Floor', 'Product_Code__c' => tr.Product_Code__c, 'Floor_Price__c' => tr.Floor_Price__c,
-                'Auto_Approve_Percent__c' => tr.Auto_Approve_Percent__c, 'Is_Active__c' => true });
+        List<String> tierKey = new List<String>{ 'PriceAdjustmentScheduleId', 'Product2Id', 'ProductSellingModelId', 'LowerBound' };
+        if (multiCurrency) {
+            tierKey.add('CurrencyIsoCode');
         }
-        sync('MB_Pricing_Rule__c', new List<String>{ 'Rule_Key__c' }, rows, null, null, null);
+        sync('PriceAdjustmentTier', tierKey, tierRows, 'PriceAdjustmentScheduleId IN :ids',
+            new Map<String, Object>{ 'ids' => idsOf(schedules.values()) }, null);
 
-        Set<String> keep = new Set<String>();
-        for (Map<String, Object> r : rows) {
-            keep.add((String) r.get('Rule_Key__c'));
-        }
-        List<Map<String, Object>> stale = new List<Map<String, Object>>();
-        for (SObject r : Database.query('SELECT Rule_Key__c FROM MB_Pricing_Rule__c WHERE Is_Active__c = true')) {
-            if (!keep.contains((String) r.get('Rule_Key__c'))) {
-                stale.add(new Map<String, Object>{ 'Rule_Key__c' => r.get('Rule_Key__c'), 'Is_Active__c' => false });
+        // 3. floor price book (standard Pricebook2 + PricebookEntry)
+        Map<String, Object> floor = (Map<String, Object>) pricing.get('floorPriceBook');
+        Map<String, SObject> fpb = sync('Pricebook2', new List<String>{ 'Name' }, new List<Map<String, Object>>{
+            new Map<String, Object>{ 'Name' => floor.get('name'), 'IsActive' => true, 'Description' => floor.get('description') }
+        }, null, null, null);
+        SObject floorBook = fpb.get((String) floor.get('name'));
+        Boolean pbeMulti = fields('PricebookEntry').containsKey('currencyisocode');
+        List<Map<String, Object>> floorRows = new List<Map<String, Object>>();
+        Map<String, Object> floorPrices = (Map<String, Object>) floor.get('prices');
+        for (String code : floorPrices.keySet()) {
+            SObject prod = products.get(code);
+            Map<String, Object> pd = (Map<String, Object>) productData.get(code);
+            if (prod == null || pd == null || floorBook == null) {
+                continue;
+            }
+            Map<String, Object> byCur = (Map<String, Object>) floorPrices.get(code);
+            for (Object m : (List<Object>) pd.get('sellingModels')) {
+                SObject psm = models.get((String) m);
+                for (String cur : currencies) {
+                    if (psm == null || !byCur.containsKey(cur)) {
+                        continue;
+                    }
+                    Map<String, Object> e = new Map<String, Object>{ 'Pricebook2Id' => floorBook.Id, 'Product2Id' => prod.Id,
+                        'ProductSellingModelId' => psm.Id, 'UnitPrice' => byCur.get(cur), 'IsActive' => true, 'UseStandardPrice' => false };
+                    if (pbeMulti) {
+                        e.put('CurrencyIsoCode', cur);
+                    }
+                    floorRows.add(e);
+                }
             }
         }
-        if (!stale.isEmpty()) {
-            sync('MB_Pricing_Rule__c', new List<String>{ 'Rule_Key__c' }, stale, null, null, null);
+        List<String> pbeKey = new List<String>{ 'Pricebook2Id', 'Product2Id', 'ProductSellingModelId' };
+        if (pbeMulti) {
+            pbeKey.add('CurrencyIsoCode');
+        }
+        if (floorBook != null) {
+            sync('PricebookEntry', pbeKey, floorRows, 'Pricebook2Id = :pb', new Map<String, Object>{ 'pb' => floorBook.Id }, null);
+        }
+
+        // 4. promotions (standard Promotion, PromotionTarget, Coupon)
+        if (!hasObject('Promotion')) {
+            warn('Promotion is not available – turn on Promotions in Setup, then re-run this step');
+            return;
+        }
+        List<Map<String, Object>> promoRows = new List<Map<String, Object>>();
+        for (Object o : (List<Object>) pricing.get('promotions')) {
+            Map<String, Object> pr = (Map<String, Object>) o;
+            promoRows.add(new Map<String, Object>{ 'Name' => pr.get('name'), 'DisplayName' => pr.get('displayName'),
+                'Description' => pr.get('displayName') + '. Conditions: ' + pr.get('conditions')
+                    + '. Applies for ' + pr.get('months') + ' months (PRC-07).',
+                'IsActive' => true, 'IsAutomatic' => false, 'ExclusivityType' => 'No',
+                'StartDate' => Date.newInstance(2026, 1, 1), 'StartDateTime' => Datetime.newInstanceGmt(2026, 1, 1) });
+        }
+        Map<String, SObject> promos = sync('Promotion', new List<String>{ 'Name' }, promoRows, null, null, null);
+        List<Map<String, Object>> targetRows = new List<Map<String, Object>>();
+        List<Map<String, Object>> couponRows = new List<Map<String, Object>>();
+        for (Object o : (List<Object>) pricing.get('promotions')) {
+            Map<String, Object> pr = (Map<String, Object>) o;
+            SObject promo = promos.get((String) pr.get('name'));
+            if (promo == null) {
+                continue;
+            }
+            for (Object t : (List<Object>) pr.get('targets')) {
+                SObject prod = products.get((String) t);
+                if (prod == null) {
+                    continue;
+                }
+                Map<String, Object> r = new Map<String, Object>{ 'PromotionId' => promo.Id, 'Name' => pr.get('name') + ' ' + t,
+                    'TargetType' => 'Product', 'TargetId' => prod.Id, 'AdjustmentType' => pr.get('adjustmentType') };
+                if (pr.get('amount') != null) {
+                    r.put('AdjustmentAmount', pr.get('amount'));
+                }
+                if (pr.get('percent') != null) {
+                    r.put('AdjustmentPercent', pr.get('percent'));
+                }
+                targetRows.add(r);
+            }
+            couponRows.add(new Map<String, Object>{ 'PromotionId' => promo.Id, 'Name' => pr.get('coupon'),
+                'CouponCode' => pr.get('coupon'), 'Status' => 'Active', 'StartDateTime' => Datetime.newInstanceGmt(2026, 1, 1) });
+        }
+        Map<String, Object> promoScope = new Map<String, Object>{ 'ids' => idsOf(promos.values()) };
+        sync('PromotionTarget', new List<String>{ 'PromotionId', 'TargetId' }, targetRows, 'PromotionId IN :ids', promoScope, null);
+        if (hasObject('Coupon')) {
+            sync('Coupon', new List<String>{ 'CouponCode' }, couponRows, 'PromotionId IN :ids', promoScope, null);
         }
     }
 
@@ -989,6 +1101,10 @@ public without sharing class MindbodyBuildLoader {
         }
         if (v instanceof Id) {
             return String.valueOf((Id) v);
+        }
+        if (v instanceof Decimal || v instanceof Integer || v instanceof Double || v instanceof Long) {
+            // 1, 1.0 and 1.00 are the same key
+            return Decimal.valueOf(String.valueOf(v)).stripTrailingZeros().toPlainString();
         }
         return String.valueOf(v);
     }

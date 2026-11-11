@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<StandardValueSet xmlns="http://soap.sforce.com/2006/04/metadata">
+    <sorted>false</sorted>
+    <standardValue>
+        <fullName>None</fullName>
+        <default>false</default>
+        <label>None</label>
+    </standardValue>
+    <standardValue>
+        <fullName>Software</fullName>
+        <default>false</default>
+        <label>Software</label>
+    </standardValue>
+    <standardValue>
+        <fullName>Bundle</fullName>
+        <default>false</default>
+        <label>Bundle</label>
+    </standardValue>
+    <standardValue>
+        <fullName>Hardware</fullName>
+        <default>false</default>
+        <label>Hardware</label>
+    </standardValue>
+    <standardValue>
+        <fullName>Services</fullName>
+        <default>false</default>
+        <label>Services</label>
+    </standardValue>
+    <standardValue>
+        <fullName>3rd Party Software</fullName>
+        <default>false</default>
+        <label>3rd Party Software</label>
+    </standardValue>
+    <standardValue>
+        <fullName>Recurring</fullName>
+        <default>false</default>
+        <label>Recurring</label>
+    </standardValue>
+    <standardValue>
+        <fullName>Usage</fullName>
+        <default>false</default>
+        <label>Usage</label>
+    </standardValue>
+    <standardValue>
+        <fullName>Professional Services</fullName>
+        <default>false</default>
+        <label>Professional Services</label>
+    </standardValue>
+</StandardValueSet>

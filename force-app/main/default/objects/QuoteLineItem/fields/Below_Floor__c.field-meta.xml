@@ -1,9 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
-    <fullName>Below_Floor__c</fullName>
-    <label>Below Floor</label>
-    <description>Set by the last pricing step when the net price is below the tier floor; needs VP Sales and Finance approval (PRC-18).</description>
-    <inlineHelpText>Set by the last pricing step when the net price is below the tier floor; needs VP Sales and Finance approval (PRC-18).</inlineHelpText>
-    <type>Checkbox</type>
-    <defaultValue>false</defaultValue>
-</CustomField>

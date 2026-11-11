@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<StandardValueSet xmlns="http://soap.sforce.com/2006/04/metadata">
+    <sorted>false</sorted>
+    <standardValue>
+        <fullName>Each</fullName>
+        <default>false</default>
+        <label>Each</label>
+    </standardValue>
+    <standardValue>
+        <fullName>Location</fullName>
+        <default>false</default>
+        <label>Location</label>
+    </standardValue>
+    <standardValue>
+        <fullName>Brand</fullName>
+        <default>false</default>
+        <label>Brand</label>
+    </standardValue>
+    <standardValue>
+        <fullName>Account</fullName>
+        <default>false</default>
+        <label>Account</label>
+    </standardValue>
+    <standardValue>
+        <fullName>Source System</fullName>
+        <default>false</default>
+        <label>Source System</label>
+    </standardValue>
+    <standardValue>
+        <fullName>Hour</fullName>
+        <default>false</default>
+        <label>Hour</label>
+    </standardValue>
+    <standardValue>
+        <fullName>Transaction</fullName>
+        <default>false</default>
+        <label>Transaction</label>
+    </standardValue>
+    <standardValue>
+        <fullName>First Purchase</fullName>
+        <default>false</default>
+        <label>First Purchase</label>
+    </standardValue>
+    <standardValue>
+        <fullName>Text Message</fullName>
+        <default>false</default>
+        <label>Text Message</label>
+    </standardValue>
+</StandardValueSet>

@@ -1,9 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
-    <fullName>Requires_Data_Conversion__c</fullName>
-    <description>Custom data conversion (MB-DCV) must be on the quote.</description>
-    <fieldManageability>DeveloperControlled</fieldManageability>
-    <label>Requires Data Conversion</label>
-    <type>Checkbox</type>
-    <defaultValue>false</defaultValue>
-</CustomField>
