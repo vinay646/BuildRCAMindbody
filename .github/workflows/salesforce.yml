@@ -18,6 +18,7 @@ on:
           - test             # run the Mindbody Apex tests in the org (read-only for real data)
           - retrieve         # pull the pricing procedure, decision tables and context built in Setup (read-only)
           - explore          # read-only: print the org's standard pricing procedure, decision tables and pricing objects
+          - explore-picklists  # read-only: print the standard picklists the build extends
       step:
         description: "Loader step (for action = load)"
         type: choice
@@ -123,9 +124,21 @@ jobs:
           sf project retrieve start --manifest manifest/explore-pricing.xml --target-org target \
             --target-metadata-dir explored --unzip --wait 20 --json > explore.json || true
           jq -r '.result.messages // [] | .[] | "WARNING \(.fileName // ""): \(.problem)"' explore.json
-          for f in $(find explored -type f \( -name '*.xml' -o -name '*-meta.xml' -o -name '*.expressionSetDefinition' -o -name '*.decisionTable' -o -name '*.contextDefinition' \) | sort); do
+          for f in $(find explored -type f ! -name '*.zip' | sort); do
             echo "===== FILE $f"
             # each file on ONE line (indentation and newlines removed), so the whole result fits in the log tail
+            sed -e 's/^[[:space:]]*//' "$f" | grep -v '^<?xml' | tr -d '\r\n'
+            echo
+          done
+
+      - name: Explore standard picklists
+        if: env.ACTION == 'explore-picklists'
+        run: |
+          mkdir -p explored
+          sf project retrieve start --manifest manifest/explore-picklists.xml --target-org target \
+            --target-metadata-dir explored --unzip --wait 20 --json > explore.json || true
+          for f in $(find explored -type f ! -name '*.zip' | sort); do
+            echo "===== FILE $f"
             sed -e 's/^[[:space:]]*//' "$f" | grep -v '^<?xml' | tr -d '\r\n'
             echo
           done
