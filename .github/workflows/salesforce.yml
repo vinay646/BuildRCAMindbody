@@ -24,6 +24,7 @@ on:
           - explore-context  # read-only: print the sales transaction context at the org's API version
           - explore-recipe   # read-only: print the org's pricing recipes and their lookup-table mappings
           - explore-rules    # read-only: print a constraint model (CML) and the product qualification setup
+          - probe-config-rule  # changes nothing: test-insert a configuration rule and roll it back
       path:
         description: "Deploy / validate only this path (default: all of force-app)"
         required: false
@@ -213,6 +214,10 @@ jobs:
             sed -e 's/^[[:space:]]*//' "$f" | grep -v '^<?xml' | tr -d '\r\n'
             echo
           done
+
+      - name: Probe configuration rule
+        if: env.ACTION == 'probe-config-rule'
+        run: ./scripts/run-apex.sh scripts/apex/probe_config_rule.apex "Configuration rule probe (rolled back)"
 
       - name: Show record Ids
         if: env.ACTION == 'ids'
