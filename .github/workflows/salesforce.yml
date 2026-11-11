@@ -21,6 +21,10 @@ on:
           - explore-picklists  # read-only: print the standard picklists the build extends
           - cleanup          # DELETES the custom pieces replaced by standard features (manifest/cleanup)
           - ids              # read-only: print record Ids the pricing procedure metadata needs
+      path:
+        description: "Deploy / validate only this path (default: all of force-app)"
+        required: false
+        default: force-app
       step:
         description: "Loader step (for action = load)"
         type: choice
@@ -39,6 +43,7 @@ jobs:
       SFDX_AUTH_URL: ${{ secrets.SFDX_AUTH_URL }}
       ACTION: ${{ github.event.inputs.action || 'validate' }}
       STEP: ${{ github.event.inputs.step }}
+      DEPLOY_PATH: ${{ github.event.inputs.path || 'force-app' }}
     steps:
       - uses: actions/checkout@v7
 
@@ -77,13 +82,13 @@ jobs:
       - name: Validate (check-only deploy)
         if: env.ACTION == 'validate'
         run: |
-          sf project deploy start --dry-run --source-dir force-app --target-org target --test-level NoTestRun --wait 30 --json > result.json || true
+          sf project deploy start --dry-run --source-dir "$DEPLOY_PATH" --target-org target --test-level NoTestRun --wait 30 --json > result.json || true
           ./scripts/deploy-summary.sh result.json "Validate (check-only)"
 
       - name: Deploy
         if: env.ACTION == 'deploy' || env.ACTION == 'deploy-and-load'
         run: |
-          sf project deploy start --source-dir force-app --target-org target --wait 30 --json > result.json || true
+          sf project deploy start --source-dir "$DEPLOY_PATH" --target-org target --wait 30 --json > result.json || true
           ./scripts/deploy-summary.sh result.json "Deploy"
           sf org assign permset --name Mindbody_ARM_Build --target-org target || echo "Permission set already assigned"
 

@@ -30,6 +30,7 @@ LINE_ATTRS = [  # (context attribute / tag, QuoteLineItem field)
     ("MbVolumeLocationCount", "Volume_Location_Count__c"),
     ("MbBillingPeriodMonths", "Billing_Period_Months__c"),
 ]
+HIDDEN_HEADER_STD_ATTRS = [("IsContextInUse__std", "boolean")]  # reported by the org on deploy, missing from retrieve
 XML_HEAD = '<?xml version="1.0" encoding="UTF-8"?>\n'
 
 
@@ -153,6 +154,17 @@ def build_context():
         f"<fieldType>input</fieldType><key>false</key><title>{a}</title><transient>false</transient>"
         f"<value>false</value></contextAttributes>" for a, _ in LINE_ATTRS)
     c = c.replace(anchor_attr, anchor_attr + add_attrs, 1)
+    # 1b. system attributes the org has but a retrieve does not return: put them back, or the deploy reads
+    #     as deleting them ("Context Attribute is being delete IsContextInUse__std from node SalesTransaction")
+    header_attr = one(r"<contextAttributes><contextTags><title>RLM_Distributor_Account__c</title></contextTags>.*?</contextAttributes>",
+                      c, "RLM_Distributor_Account__c attribute")
+    for name, dtype in HIDDEN_HEADER_STD_ATTRS:
+        if f"<title>{name}</title></contextTags>" not in c:
+            inherited = f"SalesTransactionContext__stdctx/version/SalesTransaction/{name}"
+            c = c.replace(header_attr, header_attr + (
+                f"<contextAttributes><contextTags><inheritedFrom>{inherited}/{name}</inheritedFrom><title>{name}</title></contextTags>"
+                f"<dataType>{dtype}</dataType><fieldType>input</fieldType><inheritedFrom>{inherited}</inheritedFrom>"
+                f"<key>false</key><title>{name}</title><transient>false</transient><value>false</value></contextAttributes>"), 1)
     # 2. hydration from QuoteLineItem in the quote mapping (same place as RLM_Distributor_Unit_Price__c)
     anchor_map = one(r"<contextAttributeMappings><contextAttrHydrationDetails><objectName>QuoteLineItem</objectName>"
                      r"<queryAttribute>RLM_Distributor_Unit_Price__c</queryAttribute></contextAttrHydrationDetails>.*?</contextAttributeMappings>",
