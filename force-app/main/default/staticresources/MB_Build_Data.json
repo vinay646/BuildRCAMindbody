@@ -198,8 +198,10 @@
    "billingFrequencies": "Monthly;Quarterly;Semi-Annual;Annual",
    "soldOnlyWithOthers": false,
    "allowedTermMonths": "12;24;36",
-   "note": "In the Add-ons category, so not 'sell only with other products' (ARM blocks that combination); tier eligibility is enforced by rules CR-04..CR-07.",
-   "unitOfMeasure": "Brand"
+   "note": "Bundle (CR-08): its required child Branded app setup (MB-APP-SET) is added automatically, once. Also a component of the Accelerate and Ultimate bundles. In the Add-ons category, so not 'sell only with other products' (ARM blocks that combination); tier eligibility is enforced by rules CR-04..CR-07.",
+   "unitOfMeasure": "Brand",
+   "bundle": true,
+   "configurable": true
   },
   {
    "code": "MB-APP-SET",
@@ -210,7 +212,7 @@
     "One-Time"
    ],
    "unit": "per brand",
-   "description": "One-time Branded app setup fee, added once per brand (CR-08).",
+   "description": "One-time Branded app setup fee, once per brand – added automatically with the Branded app (CR-08).",
    "prices": {
     "USD": 1500,
     "GBP": 1305,
@@ -924,6 +926,20 @@
       "required": false,
       "default": false,
       "scale": "Constant"
+     }
+    ]
+   }
+  ],
+  "MB-APP": [
+   {
+    "name": "Setup",
+    "components": [
+     {
+      "code": "MB-APP-SET",
+      "required": true,
+      "default": true,
+      "scale": "Constant",
+      "priceIncluded": false
      }
     ]
    }

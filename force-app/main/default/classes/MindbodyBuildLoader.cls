@@ -240,6 +240,26 @@ public without sharing class MindbodyBuildLoader {
         Id relType = bundleRelationshipTypeId();
         Map<String, Object> bundles = (Map<String, Object>) data.get('bundles');
 
+        // The products step sets Type only when it creates a product; a product that later becomes a bundle
+        // (Branded app, CR-08) is switched here.
+        List<Product2> toBundle = new List<Product2>();
+        for (Product2 p : [SELECT Id, ProductCode, Type, ConfigureDuringSale FROM Product2 WHERE ProductCode IN :bundles.keySet()]) {
+            if (p.Type != 'Bundle') {
+                toBundle.add(new Product2(Id = p.Id, Type = 'Bundle', ConfigureDuringSale = 'Allowed'));
+            }
+        }
+        if (!toBundle.isEmpty()) {
+            Integer i = 0;
+            for (Database.SaveResult r : Database.update(toBundle, false)) {
+                if (r.isSuccess()) {
+                    info('Product ' + toBundle[i].Id + ' is now a bundle');
+                } else {
+                    fail('Could not make product ' + toBundle[i].Id + ' a bundle: ' + r.getErrors()[0].getMessage());
+                }
+                i++;
+            }
+        }
+
         List<Map<String, Object>> groupRows = new List<Map<String, Object>>();
         Set<Id> parentIds = new Set<Id>();
         for (String parentCode : bundles.keySet()) {
@@ -291,7 +311,10 @@ public without sharing class MindbodyBuildLoader {
                         // tier's location count (Proportional, CR-06), Branded app stays at 1 (Constant, CR-07).
                         // ARM only accepts Min/MaxQuantity when IsQuantityEditable is true, so they are not set.
                         'Quantity' => 1, 'QuantityScaleMethod' => comp.get('scale'),
-                        'DoesBundlePriceIncludeChild' => required, 'IsQuantityEditable' => false, 'Sequence' => seq++ });
+                        // included features are priced in the bundle ($0); a required child with its own price
+                        // (Branded app setup, CR-08) sets priceIncluded false
+                        'DoesBundlePriceIncludeChild' => comp.containsKey('priceIncluded') ? comp.get('priceIncluded') == true : required,
+                        'IsQuantityEditable' => false, 'Sequence' => seq++ });
                 }
             }
         }
