@@ -38,42 +38,26 @@ needs it (RLP-01).
    line discount fields, Product Type / Unit Of Sale / Core Tier / Vertical fields, the pricing Apex). Run it
    only after steps 1–4 succeeded.
 
-## Step 1 – Context: expose the hierarchy count
+## Steps 1–4 – built as metadata (no Setup clicks)
 
-Setup → **Context Definitions** → *RLM_SalesTransactionContext* → **Extend** → API name
-`Mindbody_Sales_Transaction_Context`. On the **SalesTransaction** node add attribute `HierarchyLocationCount`
-(Number) mapped to **Quote.Hierarchy_Location_Count__c**. `SubscriptionTerm` and `BillingFrequency` are already in
-the standard context. Activate.
+`scripts/build_pricing_procedure.py` builds both pieces from the org's standard ones (`reference/`) and they deploy
+with the rest of `force-app`:
 
-## Step 2 – Clone the standard procedure
+| Metadata | What changed vs. standard |
+|---|---|
+| `expressionSetDefinition/Mindbody_Recurring_Pricing_Procedure` | Copy of *RLM Revenue Management Default Pricing Procedure*. Its Volume Discount step now uses schedule **Mindbody Hierarchy Volume** with tier bounds = `MbVolumeLocationCount`; two copies of that standard step follow it: **Mindbody Contract Term** (bounds = standard `ItemSubscriptionTerm`) and **Mindbody Billing Frequency** (bounds = `MbBillingPeriodMonths`). Everything else is the standard procedure. |
+| `contextDefinitions/RLM_SalesTransactionContext` | The org's context plus two line attributes, `MbVolumeLocationCount` and `MbBillingPeriodMonths`, hydrated from quote line fields – added the same way the org's own `RLM_Distributor_Unit_Price__c` is |
+| Quote line `Volume_Location_Count__c` (formula) | Quote's Hierarchy Location Count + the line's quantity. Custom because no standard field holds the hierarchy count |
+| Quote line `Billing_Period_Months__c` (formula) | Monthly 1, Quarterly 3, Semi-Annual 6, Annual 12. Custom because tiers need a number and Billing Frequency is text |
 
-Setup → **Pricing Procedures** → *RLM Revenue Management Default Pricing Procedure* → **Save As** →
-`Mindbody Recurring Pricing Procedure` (`Mindbody_Recurring_Pricing_Procedure`), context
-*Mindbody_Sales_Transaction_Context*.
+Schedule Ids come from the `ids` action; for another org: `explore` → replace `reference/` files → `ids` →
+`python3 scripts/build_pricing_procedure.py VOLUME_ID TERM_ID FREQUENCY_ID`.
 
-## Step 3 – Point the volume step at the hierarchy
+Known limit: the volume count adds **this line's** quantity, not the sum of all core-tier lines on the quote. Quoting
+several locations on one line (CFG-04 single-line mode) is exact; one line group per location counts only that line.
 
-The standard step *Calculate net unit price and net total price after volume-based discount* uses
-`PriceAdjustmentScheduleId = VolumePASIdConstant` and `Quantity = LineItemQuantity`.
-
-1. Add a **Grouping and Aggregate** step (same type as the standard *Calculate subtotal…* steps): sum
-   `LineItemQuantity` of lines whose product is based on classification *Mindbody Subscription Tier* →
-   variable `NewLocations`.
-2. Add an **Assignment** step: `VolumeLocations = HierarchyLocationCount + NewLocations`.
-3. On the volume step: set the constant `VolumePASIdConstant` to the Id of **Mindbody Hierarchy Volume**, and its
-   **Quantity** input to `VolumeLocations`.
-
-## Step 4 – Term and frequency: two more volume steps
-
-Duplicate the volume step twice, right after it:
-
-| Copy | PriceAdjustmentScheduleId (new constant) | Quantity input |
-|---|---|---|
-| Term discount | Id of **Mindbody Contract Term** | `SubscriptionTerm` (blank → 0) |
-| Frequency discount | Id of **Mindbody Billing Frequency** | `FrequencyMonths` – Assignment before it: Monthly → 1, Quarterly → 3, Semi-Annual → 6, Annual → 12 |
-
-Each copy keeps `InputUnitPrice = NetUnitPrice`, so the discounts compound in spec order and each appears as its
-own line in the standard price waterfall.
+**One Setup step stays manual:** Revenue Settings → default pricing procedure = **Mindbody Recurring Pricing
+Procedure** (it is an org setting, not part of the procedure).
 
 ## Step 5 – Promotions
 

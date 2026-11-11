@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Billing_Period_Months__c</fullName>
+    <label>Billing Period Months</label>
+    <description>Input for the pricing procedure's billing-frequency tier (PRC-06): Monthly 1, Quarterly 3, Semi-Annual 6, Annual 12. Custom because the standard Billing Frequency is text and tiers need a number.</description>
+    <inlineHelpText>Months per billing period – decides the prepay discount.</inlineHelpText>
+    <type>Number</type>
+    <precision>3</precision>
+    <scale>0</scale>
+    <formula>CASE(TEXT(BillingFrequency), &apos;Annual&apos;, 12, &apos;Semi-Annual&apos;, 6, &apos;Quarterly&apos;, 3, 1)</formula>
+    <formulaTreatBlanksAs>BlankAsZero</formulaTreatBlanksAs>
+    <unique>false</unique>
+    <externalId>false</externalId>
+</CustomField>
