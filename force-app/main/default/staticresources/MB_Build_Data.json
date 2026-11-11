@@ -86,7 +86,8 @@
    "billingFrequencies": "Monthly;Annual",
    "bundle": true,
    "configurable": false,
-   "allowedTermMonths": "12;24;36"
+   "allowedTermMonths": "12;24;36",
+   "coreTier": true
   },
   {
    "code": "MB-ACC",
@@ -107,7 +108,8 @@
    "billingFrequencies": "Monthly;Quarterly;Semiannual;Annual",
    "bundle": true,
    "configurable": true,
-   "allowedTermMonths": "12;24;36"
+   "allowedTermMonths": "12;24;36",
+   "coreTier": true
   },
   {
    "code": "MB-ULT",
@@ -128,7 +130,8 @@
    "billingFrequencies": "Monthly;Quarterly;Semiannual;Annual",
    "bundle": true,
    "configurable": true,
-   "allowedTermMonths": "12;24;36"
+   "allowedTermMonths": "12;24;36",
+   "coreTier": true
   },
   {
    "code": "MB-ENT",
@@ -149,7 +152,8 @@
    "billingFrequencies": "Monthly;Quarterly;Semiannual;Annual",
    "bundle": true,
    "configurable": true,
-   "allowedTermMonths": "24;36"
+   "allowedTermMonths": "24;36",
+   "coreTier": true
   },
   {
    "code": "MB-AIC",
@@ -171,7 +175,8 @@
    "billingFrequencies": "Monthly;Quarterly;Semiannual;Annual",
    "soldOnlyWithOthers": false,
    "allowedTermMonths": "12;24;36",
-   "note": "In the Add-ons category, so not 'sell only with other products' (ARM blocks that combination); tier eligibility is enforced by rules CR-04..CR-07."
+   "note": "In the Add-ons category, so not 'sell only with other products' (ARM blocks that combination); tier eligibility is enforced by rules CR-04..CR-07.",
+   "coreTier": false
   },
   {
    "code": "MB-APP",
@@ -193,7 +198,8 @@
    "billingFrequencies": "Monthly;Quarterly;Semiannual;Annual",
    "soldOnlyWithOthers": false,
    "allowedTermMonths": "12;24;36",
-   "note": "In the Add-ons category, so not 'sell only with other products' (ARM blocks that combination); tier eligibility is enforced by rules CR-04..CR-07."
+   "note": "In the Add-ons category, so not 'sell only with other products' (ARM blocks that combination); tier eligibility is enforced by rules CR-04..CR-07.",
+   "coreTier": false
   },
   {
    "code": "MB-APP-SET",
@@ -210,7 +216,8 @@
     "GBP": 1305,
     "AUD": 2400,
     "EUR": 1395
-   }
+   },
+   "coreTier": false
   },
   {
    "code": "MB-TAM",
@@ -229,7 +236,8 @@
     "EUR": 930
    },
    "billingFrequencies": "Monthly;Quarterly;Semiannual;Annual",
-   "allowedTermMonths": "12"
+   "allowedTermMonths": "12",
+   "coreTier": false
   },
   {
    "code": "MB-IMP",
@@ -246,7 +254,8 @@
     "GBP": 2175,
     "AUD": 4000,
     "EUR": 2325
-   }
+   },
+   "coreTier": false
   },
   {
    "code": "MB-DCV",
@@ -263,7 +272,8 @@
     "GBP": 653,
     "AUD": 1200,
     "EUR": 698
-   }
+   },
+   "coreTier": false
   },
   {
    "code": "MB-CON",
@@ -280,7 +290,8 @@
     "GBP": 131,
     "AUD": 240,
     "EUR": 140
-   }
+   },
+   "coreTier": false
   },
   {
    "code": "MB-HW-RDR",
@@ -297,7 +308,8 @@
     "GBP": 260,
     "AUD": 478,
     "EUR": 278
-   }
+   },
+   "coreTier": false
   },
   {
    "code": "MB-HW-TRM",
@@ -314,7 +326,8 @@
     "GBP": 434,
     "AUD": 798,
     "EUR": 464
-   }
+   },
+   "coreTier": false
   },
   {
    "code": "MB-HW-DOOR",
@@ -331,7 +344,8 @@
     "GBP": 1044,
     "AUD": 1920,
     "EUR": 1116
-   }
+   },
+   "coreTier": false
   },
   {
    "code": "MB-PAY",
@@ -348,7 +362,8 @@
     "GBP": 0,
     "AUD": 0,
     "EUR": 0
-   }
+   },
+   "coreTier": false
   },
   {
    "code": "MB-MKT",
@@ -365,7 +380,8 @@
     "GBP": 0,
     "AUD": 0,
     "EUR": 0
-   }
+   },
+   "coreTier": false
   },
   {
    "code": "MB-SMS",
@@ -382,7 +398,8 @@
     "GBP": 0,
     "AUD": 0,
     "EUR": 0
-   }
+   },
+   "coreTier": false
   }
  ],
  "features": [

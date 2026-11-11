@@ -18,7 +18,7 @@ public without sharing class MindbodyBuildLoader {
     public class LoaderException extends Exception {}
 
     public static final String RESOURCE = 'MB_Build_Data';
-    public static final List<String> STEPS = new List<String>{ 'inventory', 'accounts', 'catalog', 'products', 'bundles', 'attributes', 'pricebooks' };
+    public static final List<String> STEPS = new List<String>{ 'inventory', 'accounts', 'catalog', 'products', 'bundles', 'attributes', 'pricebooks', 'pricingtables' };
 
     public List<String> log = new List<String>();
     public Integer errors = 0;
@@ -55,6 +55,7 @@ public without sharing class MindbodyBuildLoader {
             when 'attributes' { loadAttributes(); }
             when 'pricebooks' { loadPriceBooks(); }
             when 'inventory' { inventory(); }
+            when 'pricingtables' { loadPricingTables(); }
             when else { throw new LoaderException('Unknown step "' + step + '". Steps: ' + String.join(STEPS, ', ')); }
         }
     }
@@ -170,6 +171,7 @@ public without sharing class MindbodyBuildLoader {
                 'IsActive' => true, 'Product_Type__c' => p.get('productType'),
                 'Allowed_Billing_Frequencies__c' => p.get('billingFrequencies'),
                 'Allowed_Term_Months__c' => p.get('allowedTermMonths'),
+                'Is_Core_Tier__c' => p.get('coreTier') == true,
                 'Unit_Of_Sale__c' => p.get('unit'), 'Integration_Status__c' => 'New',
                 'IsSoldOnlyWithOtherProds' => p.get('soldOnlyWithOthers') == true
             };
@@ -438,6 +440,64 @@ public without sharing class MindbodyBuildLoader {
 
     static String resolved(Map<String, String> renamed, String name) {
         return renamed.containsKey(name) ? renamed.get(name) : name;
+    }
+
+    /**
+     * Copies the pricing custom metadata (spec 12.2) into MB_Pricing_Rule__c, which the ARM pricing procedure's
+     * decision tables read. The custom metadata stays the source of truth: change it, redeploy, re-run this step.
+     * Rows no longer in the metadata are deactivated, not deleted.
+     */
+    public void loadPricingTables() {
+        List<Map<String, Object>> rows = new List<Map<String, Object>>();
+        for (Volume_Discount_Band__mdt b : Volume_Discount_Band__mdt.getAll().values()) {
+            rows.add(new Map<String, Object>{ 'Rule_Key__c' => 'VOLUME-' + b.DeveloperName, 'Name' => 'Volume ' + b.MasterLabel,
+                'Rule_Type__c' => 'Volume', 'Min_Value__c' => b.Min_Locations__c,
+                'Max_Value__c' => b.Max_Locations__c == null ? 999999.0 : b.Max_Locations__c,
+                'Discount_Percent__c' => b.Discount_Percent__c, 'Is_Active__c' => true });
+        }
+        for (Term_Discount__mdt t : Term_Discount__mdt.getAll().values()) {
+            rows.add(new Map<String, Object>{ 'Rule_Key__c' => 'TERM-' + t.DeveloperName, 'Name' => 'Term ' + t.MasterLabel,
+                'Rule_Type__c' => 'Term', 'Min_Value__c' => t.Term_Months__c, 'Max_Value__c' => t.Term_Months__c,
+                'Discount_Percent__c' => t.Discount_Percent__c, 'Is_Active__c' => true });
+        }
+        for (Frequency_Discount__mdt fd : Frequency_Discount__mdt.getAll().values()) {
+            rows.add(new Map<String, Object>{ 'Rule_Key__c' => 'FREQUENCY-' + fd.DeveloperName, 'Name' => 'Frequency ' + fd.MasterLabel,
+                'Rule_Type__c' => 'Frequency', 'Frequency__c' => fd.Frequency__c,
+                'Discount_Percent__c' => fd.Discount_Percent__c, 'Is_Active__c' => true });
+        }
+        for (Promotion_Rule__mdt pr : Promotion_Rule__mdt.getAll().values()) {
+            // one row per eligible product, so a decision table can match code + product exactly
+            for (String code : (pr.Eligible_Products__c == null ? '' : pr.Eligible_Products__c).split(';')) {
+                if (String.isBlank(code)) {
+                    continue;
+                }
+                rows.add(new Map<String, Object>{ 'Rule_Key__c' => 'PROMO-' + pr.DeveloperName + '-' + code.trim(),
+                    'Name' => 'Promo ' + pr.DeveloperName + ' ' + code.trim(), 'Rule_Type__c' => 'Promotion',
+                    'Promo_Code__c' => pr.DeveloperName, 'Product_Code__c' => code.trim(),
+                    'Discount_Percent__c' => pr.Promo_Discount_Percent__c, 'Promo_Price__c' => pr.Promo_Price__c,
+                    'Promo_Months__c' => pr.Promo_Months__c, 'Min_Term_Months__c' => pr.Min_Term_Months__c, 'Is_Active__c' => true });
+            }
+        }
+        for (Tier_Pricing_Rule__mdt tr : Tier_Pricing_Rule__mdt.getAll().values()) {
+            rows.add(new Map<String, Object>{ 'Rule_Key__c' => 'FLOOR-' + tr.Product_Code__c, 'Name' => 'Floor ' + tr.MasterLabel,
+                'Rule_Type__c' => 'Floor', 'Product_Code__c' => tr.Product_Code__c, 'Floor_Price__c' => tr.Floor_Price__c,
+                'Auto_Approve_Percent__c' => tr.Auto_Approve_Percent__c, 'Is_Active__c' => true });
+        }
+        sync('MB_Pricing_Rule__c', new List<String>{ 'Rule_Key__c' }, rows, null, null, null);
+
+        Set<String> keep = new Set<String>();
+        for (Map<String, Object> r : rows) {
+            keep.add((String) r.get('Rule_Key__c'));
+        }
+        List<Map<String, Object>> stale = new List<Map<String, Object>>();
+        for (SObject r : Database.query('SELECT Rule_Key__c FROM MB_Pricing_Rule__c WHERE Is_Active__c = true')) {
+            if (!keep.contains((String) r.get('Rule_Key__c'))) {
+                stale.add(new Map<String, Object>{ 'Rule_Key__c' => r.get('Rule_Key__c'), 'Is_Active__c' => false });
+            }
+        }
+        if (!stale.isEmpty()) {
+            sync('MB_Pricing_Rule__c', new List<String>{ 'Rule_Key__c' }, stale, null, null, null);
+        }
     }
 
     /** Regional price books; one entry per product x currency x selling model, standard price book first. */

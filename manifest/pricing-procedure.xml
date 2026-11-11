@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Phase 3b: what the 'retrieve' workflow action pulls from the org after the Setup steps in
+     docs/PHASE3B_PRICING_PROCEDURE.md. Names must match the ones used there. -->
+<Package xmlns="http://soap.sforce.com/2006/04/metadata">
+    <types>
+        <members>Mindbody_Recurring_Pricing_Procedure</members>
+        <name>ExpressionSetDefinition</name>
+    </types>
+    <types>
+        <members>MB_Volume_Discount</members>
+        <members>MB_Term_Discount</members>
+        <members>MB_Frequency_Discount</members>
+        <members>MB_Promotion</members>
+        <members>MB_Tier_Floor</members>
+        <name>DecisionTable</name>
+    </types>
+    <types>
+        <members>Mindbody_Sales_Transaction_Context</members>
+        <name>ContextDefinition</name>
+    </types>
+    <version>64.0</version>
+</Package>

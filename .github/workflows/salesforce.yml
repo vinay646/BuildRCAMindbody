@@ -16,11 +16,12 @@ on:
           - load-all         # run every loader step in order
           - deploy-and-load  # deploy, then every loader step
           - test             # run the Mindbody Apex tests in the org (read-only for real data)
+          - retrieve         # pull the pricing procedure, decision tables and context built in Setup (read-only)
       step:
         description: "Loader step (for action = load)"
         type: choice
         default: inventory
-        options: [inventory, accounts, catalog, products, bundles, attributes, pricebooks]
+        options: [inventory, accounts, catalog, products, bundles, attributes, pricebooks, pricingtables]
   pull_request:
     paths: ["force-app/**", "sfdx-project.json"]
 
@@ -88,6 +89,30 @@ jobs:
           sf apex run test --target-org target --class-names MindbodyPricingTest --test-level RunSpecifiedTests \
             --wait 20 --result-format json > tests.json || true
           ./scripts/test-summary.sh tests.json
+
+      - name: Retrieve pricing procedure from the org
+        if: env.ACTION == 'retrieve'
+        run: |
+          mkdir -p retrieved
+          sf project retrieve start --manifest manifest/pricing-procedure.xml --target-org target \
+            --target-metadata-dir retrieved --unzip --wait 20 --json > retrieve.json || true
+          jq -r '.result.messages // [] | .[] | "WARNING \(.fileName // ""): \(.problem)"' retrieve.json
+          files=$(find retrieved -type f ! -name '*.zip' | sort)
+          echo "$files"
+          {
+            echo "### Retrieved from the org"
+            echo
+            if [ -n "$files" ]; then echo "$files" | sed 's/^/- /'; else echo "Nothing retrieved – check the names in manifest/pricing-procedure.xml"; fi
+            jq -r '.result.messages // [] | .[] | "- ⚠️ \(.fileName // ""): \(.problem)"' retrieve.json
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload retrieved metadata
+        if: env.ACTION == 'retrieve'
+        uses: actions/upload-artifact@v7
+        with:
+          name: retrieved-pricing-procedure
+          path: retrieved
+          if-no-files-found: warn
 
       - name: Load one step
         if: env.ACTION == 'load'

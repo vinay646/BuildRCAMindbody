@@ -145,13 +145,15 @@ Quote: Promo Code, Hierarchy Location Count (from the root account, RLP-01). Con
 [Assumed] Floor and approval checks use the standard net price, not the time-boxed promo price; otherwise every
 LAUNCH3 quote ($39 < $59 floor) would need VP approval.
 
-### 3b. Wiring into the ARM pricing procedure (next)
+### 3b. Native ARM pricing procedure (in progress)
 
-ARM prices quotes with a pricing procedure (expression set) over a context definition. Next step: read the org's
-pricing setup with `inventory`, then either extend the org's pricing procedure with the Mindbody steps (volume
-schedule fed by Hierarchy Location Count, term and frequency adjustments, promo, floor) or stamp the waterfall on
-the quote line from `MindbodyPricing` and feed the net price to the procedure. The choice depends on what the
-org's procedure and context definition offer.
+Decision: native pricing procedure (cloned from the org's *RLM Revenue Management Default Pricing Procedure*,
+context *RLM_SalesTransactionContext*). List price and contract price (ContractItemPrice, RLP-07) are native;
+volume by hierarchy locations, term, frequency, promotion and floor come from five decision tables over the
+**MB Pricing Rule** object, which loader step `pricingtables` fills from the custom metadata.
+
+Setup steps: [PHASE3B_PRICING_PROCEDURE.md](PHASE3B_PRICING_PROCEDURE.md). The `retrieve` action then saves the
+procedure, decision tables and context definition into the repo.
 
 ## 6. Existing ExploremoreRCA setup the build reuses
 
