@@ -25,6 +25,7 @@ on:
           - explore-recipe   # read-only: print the org's pricing recipes and their lookup-table mappings
           - explore-rules    # read-only: print a constraint model (CML) and the product qualification setup
           - cleanup-rule-library  # DELETES the leftover Mindbody_Product_Rules rule library definition
+          - explore-constraints  # read-only: constraint models (CML), their versions, product links and the CML files
           - explore-rule-api  # read-only: configuration-rule permissions, invocable actions and Connect API resources
           - probe-config-rule  # changes nothing: test-insert a configuration rule and roll it back
       path:
@@ -226,6 +227,24 @@ jobs:
             --post-destructive-changes manifest/cleanup-rule-library/destructiveChanges.xml \
             --target-org target --ignore-warnings --wait 30 --json > result.json || true
           ./scripts/deploy-summary.sh result.json "Remove leftover rule library definition"
+
+      - name: Explore constraint models
+        if: env.ACTION == 'explore-constraints'
+        run: |
+          ./scripts/run-apex.sh scripts/apex/explore_constraint_models.apex "Constraint models" || true
+          echo "===== METADATA TYPES with Constraint/Expression"
+          sf org list metadata-types --api-version "$ORG_API" --target-org target --json \
+            | jq -r '.result.metadataObjects[] | .xmlName' | grep -iE 'constraint|expression|cml' | tr '\n' ' '; echo
+          mkdir -p explored
+          sf project retrieve start --api-version "$ORG_API" --metadata ExpressionSetDefinition:QuantumBitBundle \
+            --metadata ExpressionSetDefinition:Server2 --metadata 'ConstraintOptDef:*' \
+            --target-org target --target-metadata-dir explored --unzip --wait 20 --json > explore.json || true
+          jq -r '.result.messages // [] | .[] | "WARNING \(.fileName // ""): \(.problem)"' explore.json
+          for f in $(find explored -type f ! -name '*.zip' | sort); do
+            echo "===== FILE $f ($(wc -c < "$f") bytes)"
+            sed -e 's/^[[:space:]]*//' "$f" | grep -v '^<?xml' | tr -d '\r\n' | head -c 4000
+            echo
+          done
 
       - name: Explore configuration rule APIs
         if: env.ACTION == 'explore-rule-api'
