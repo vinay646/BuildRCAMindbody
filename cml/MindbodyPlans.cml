@@ -1,0 +1,60 @@
+// ============================================================================
+// Mindbody Plans – constraint model (spec 12.3 product rules)
+// ============================================================================
+// Built on the pattern of the org's own QuantumBit models (release 262):
+//   * a virtual Quote container that sees every quote line (cart-level rules),
+//   * one CML type per product, linked to the product by an ExpressionSetConstraintObj
+//     "Type" record (loader step `constraints`, data: constraintModels in MB_Build_Data.json).
+// Inside the tier bundles the rules are already enforced by the bundle structure
+// (Starter has no add-ons group, Ultimate offers Branded app only, AI Concierge quantity
+// follows the locations, Branded app quantity is constant 1, setup fee is a required child).
+// This model adds the checks that need to see the WHOLE quote, e.g. an add-on added from
+// the catalog as its own line.
+//
+// Line-group (per location) rules – CR-01 one tier per location, CFG-13 no duplicate
+// product per Ship-To – need one quote line group per location (phase 5, CFG-12) and are
+// added here then.
+// ----------------------------------------------------------------------------
+
+@(virtual = "true")
+type Quote {
+    @(sourceContextNode = "SalesTransaction.SalesTransactionItem")
+    relation lineitems : LineItem;
+
+    // CR-05 / CAT-05: AI Concierge is included in Ultimate – no paid add-on next to it
+    message(lineitems[Ultimate] > 0 && lineitems[AIConciergeAddOn] > 0,
+        "AI Concierge is already included in Ultimate – remove the AI Concierge add-on.", "Error");
+
+    // CR-04 / CFG-03: Starter cannot take AI Concierge or Branded app
+    message(lineitems[Starter] > 0 && lineitems[AIConciergeAddOn] > 0,
+        "Starter can't add AI Concierge – choose Accelerate or Ultimate.", "Error");
+    message(lineitems[Starter] > 0 && lineitems[BrandedApp] > 0,
+        "Starter can't add Branded app – choose Accelerate or Ultimate.", "Error");
+
+    // CR-07: one Branded app per brand (on the top account's line group, not per location)
+    message(lineitems[BrandedApp] > 1,
+        "Branded app is sold once per brand – keep one Branded app on the top account's line group.", "Error");
+
+    // CR-09: hardware needs Mindbody Payments on the quote
+    message((lineitems[MobileCardReader] + lineitems[CountertopPaymentTerminal] + lineitems[DoorAccessKit]) > 0
+            && lineitems[MindbodyPayments] == 0,
+        "Hardware requires Mindbody Payments – add Mindbody Payments (opt in) to the quote.", "Error");
+}
+
+// --- Base type ---
+type LineItem;
+
+// --- Core tiers (bundles) ---
+type Starter : LineItem;
+type Accelerate : LineItem;
+type Ultimate : LineItem;
+
+// --- Add-ons ---
+type AIConciergeAddOn : LineItem;
+type BrandedApp : LineItem;
+
+// --- Payments and hardware ---
+type MindbodyPayments : LineItem;
+type MobileCardReader : LineItem;
+type CountertopPaymentTerminal : LineItem;
+type DoorAccessKit : LineItem;

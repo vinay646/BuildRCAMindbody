@@ -1765,5 +1765,22 @@
    },
    "note": "Used by the standard approval rules in phase 5 (CFG-16); Enterprise always goes to the deal desk."
   }
- }
+ },
+ "constraintModels": [
+  {
+   "apiName": "MindbodyPlans",
+   "note": "Created in Setup > Constraint Models (CML from cml/MindbodyPlans.cml); the loader adds the product links.",
+   "types": {
+    "Starter": "MB-STR",
+    "Accelerate": "MB-ACC",
+    "Ultimate": "MB-ULT",
+    "AIConciergeAddOn": "MB-AIC",
+    "BrandedApp": "MB-APP",
+    "MindbodyPayments": "MB-PAY",
+    "MobileCardReader": "MB-HW-RDR",
+    "CountertopPaymentTerminal": "MB-HW-TRM",
+    "DoorAccessKit": "MB-HW-DOOR"
+   }
+  }
+ ]
 }

@@ -18,7 +18,7 @@ public without sharing class MindbodyBuildLoader {
     public class LoaderException extends Exception {}
 
     public static final String RESOURCE = 'MB_Build_Data';
-    public static final List<String> STEPS = new List<String>{ 'inventory', 'accounts', 'catalog', 'products', 'bundles', 'attributes', 'pricebooks', 'pricingschedules' };
+    public static final List<String> STEPS = new List<String>{ 'inventory', 'accounts', 'catalog', 'products', 'bundles', 'attributes', 'pricebooks', 'pricingschedules', 'constraints' };
 
     public List<String> log = new List<String>();
     public Integer errors = 0;
@@ -56,6 +56,7 @@ public without sharing class MindbodyBuildLoader {
             when 'pricebooks' { loadPriceBooks(); }
             when 'inventory' { inventory(); }
             when 'pricingschedules' { loadPricingSchedules(); }
+            when 'constraints' { loadConstraintLinks(); }
             when else { throw new LoaderException('Unknown step "' + step + '". Steps: ' + String.join(STEPS, ', ')); }
         }
     }
@@ -330,6 +331,37 @@ public without sharing class MindbodyBuildLoader {
                 fail('Not in spec – remove by hand: component ' + extra.getSObject('ChildProduct').get('ProductCode')
                     + ' on bundle ' + extra.getSObject('ParentProduct').get('ProductCode') + ' (' + extra.Id + ')');
             }
+        }
+    }
+
+    /**
+     * Constraint model product links (spec 12.3): one "Type" link per CML type -> product.
+     * The model itself (CML text) is created in Setup > Constraint Models; the CML text cannot be written by API.
+     */
+    public void loadConstraintLinks() {
+        Map<String, SObject> products = byKey('Product2', 'ProductCode', 'ProductCode LIKE \'MB-%\'', null);
+        for (Object o : listOf('constraintModels')) {
+            Map<String, Object> m = (Map<String, Object>) o;
+            String apiName = (String) m.get('apiName');
+            List<SObject> sets = Database.query('SELECT Id FROM ExpressionSet WHERE ApiName = :apiName LIMIT 1');
+            if (sets.isEmpty()) {
+                fail('Constraint model ' + apiName + ' not found – create it in Setup > Constraint Models (paste cml/' + apiName + '.cml), then run this step again');
+                continue;
+            }
+            Id setId = sets[0].Id;
+            List<Map<String, Object>> rows = new List<Map<String, Object>>();
+            Map<String, Object> types = (Map<String, Object>) m.get('types');
+            for (String tag : types.keySet()) {
+                SObject p = products.get((String) types.get(tag));
+                if (p == null) {
+                    fail(apiName + ': product ' + types.get(tag) + ' for type ' + tag + ' not found');
+                    continue;
+                }
+                rows.add(new Map<String, Object>{ 'ExpressionSetId' => setId, 'ConstraintModelTag' => tag,
+                    'ConstraintModelTagType' => 'Type', 'ReferenceObjectId' => p.Id });
+            }
+            sync('ExpressionSetConstraintObj', new List<String>{ 'ExpressionSetId', 'ConstraintModelTag' }, rows,
+                'ExpressionSetId = :sid', new Map<String, Object>{ 'sid' => setId }, null);
         }
     }
 

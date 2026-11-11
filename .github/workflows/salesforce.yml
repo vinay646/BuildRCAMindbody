@@ -37,7 +37,7 @@ on:
         description: "Loader step (for action = load)"
         type: choice
         default: inventory
-        options: [inventory, accounts, catalog, products, bundles, attributes, pricebooks, pricingschedules]
+        options: [inventory, accounts, catalog, products, bundles, attributes, pricebooks, pricingschedules, constraints]
   pull_request:
     paths: ["force-app/**", "sfdx-project.json"]
 
