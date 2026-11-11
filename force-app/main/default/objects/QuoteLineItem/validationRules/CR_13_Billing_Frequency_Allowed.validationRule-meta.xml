@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ValidationRule xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>CR_13_Billing_Frequency_Allowed</fullName>
+    <active>true</active>
+    <description>CR-13 / CFG-14: the line's billing frequency must be one the product allows (Product &gt; Allowed Billing Frequencies). Mindbody products only.</description>
+    <errorConditionFormula>AND(
+  BEGINS(Product2.ProductCode, 'MB-'),
+  NOT(ISBLANK(Product2.Allowed_Billing_Frequencies__c)),
+  OR(
+    AND(ISPICKVAL(BillingFrequency, 'Monthly'), NOT(INCLUDES(Product2.Allowed_Billing_Frequencies__c, 'Monthly'))) ,
+    AND(ISPICKVAL(BillingFrequency, 'Quarterly'), NOT(INCLUDES(Product2.Allowed_Billing_Frequencies__c, 'Quarterly'))) ,
+    AND(ISPICKVAL(BillingFrequency, 'Semi-Annual'), NOT(INCLUDES(Product2.Allowed_Billing_Frequencies__c, 'Semi-Annual'))) ,
+    AND(ISPICKVAL(BillingFrequency, 'Annual'), NOT(INCLUDES(Product2.Allowed_Billing_Frequencies__c, 'Annual')))
+  )
+)</errorConditionFormula>
+    <errorDisplayField>BillingFrequency</errorDisplayField>
+    <errorMessage>This billing frequency is not offered for this product. Allowed: see the product's Allowed Billing Frequencies (e.g. Starter: Monthly or Annual).</errorMessage>
+</ValidationRule>
