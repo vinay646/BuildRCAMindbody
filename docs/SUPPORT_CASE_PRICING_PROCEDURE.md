@@ -32,6 +32,9 @@ the procedure **unchanged** validates.
 | **Refresh** on each of the three decision tables (App Launcher → Decision Tables) | Run; no change |
 | Context definition `RLM_SalesTransactionContext` | **Active**, no warnings; inherits `SalesTransactionContext__stdctx`; last modified 11 Nov 2026 12:46 UTC by the additive deploy |
 | Deactivate the default procedure, edit, Save | Same error; re-activating the unchanged procedure works |
+| Pricing recipe | `NGPDefaultRecipe` (12Ghm000000U63BEAS) **active**, default procedure `RLM_DefaultPricingProcedure`. `ListPrice` mappings present for `Price_Book_Entry_Decision_Table_v2`, `Contract_Pricing_Entries_Decision_Table` and `RLM_CostBookEntries`; `VolumeDiscount` for `Price_Adjustment_Tier_Decision_Table` |
+| Default pricing procedure in Salesforce Pricing Setup | `RLM_DefaultPricingProcedure`; quotes price normally with it |
+| Sandbox refresh | Not applicable (Developer Edition) |
 | Re-selecting the lookup tables in the builder | Same error |
 | API version | Retrieve/deploy at the org's version 68.0 |
 
