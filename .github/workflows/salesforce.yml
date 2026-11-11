@@ -217,7 +217,20 @@ jobs:
 
       - name: Probe configuration rule
         if: env.ACTION == 'probe-config-rule'
-        run: ./scripts/run-apex.sh scripts/apex/probe_config_rule.apex "Configuration rule probe (rolled back)"
+        run: |
+          ./scripts/run-apex.sh scripts/apex/probe_config_rule.apex "Configuration rule probe (rolled back)" || true
+          echo "===== METADATA TYPES with Rule/Configurator"
+          sf org list metadata-types --api-version "$ORG_API" --target-org target --json \
+            | jq -r '.result.metadataObjects[] | .xmlName' | grep -iE 'rule|configurator|constraint' | tr '\n' ' '; echo
+          mkdir -p explored
+          sf project retrieve start --api-version "$ORG_API" --metadata 'RuleLibraryDefinition:*' \
+            --target-org target --target-metadata-dir explored --unzip --wait 20 --json > explore.json || true
+          jq -r '.result.messages // [] | .[] | "WARNING \(.fileName // ""): \(.problem)"' explore.json
+          for f in $(find explored -type f ! -name '*.zip' | sort); do
+            echo "===== FILE $f"
+            sed -e 's/^[[:space:]]*//' "$f" | grep -v '^<?xml' | tr -d '\r\n'
+            echo
+          done
 
       - name: Show record Ids
         if: env.ACTION == 'ids'
