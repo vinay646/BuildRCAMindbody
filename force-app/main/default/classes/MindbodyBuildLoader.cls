@@ -69,7 +69,7 @@ public without sharing class MindbodyBuildLoader {
 
     /** Demo accounts, parents first, then a primary Bill-To for payers and a primary Ship-To for locations. */
     public void loadAccounts() {
-        List<Object> accounts = list_('accounts');
+        List<Object> accounts = listOf('accounts');
         Map<String, SObject> byName = new Map<String, SObject>();
         // load level by level so every parent exists before its children (spec 2.3)
         for (String level : new List<String>{ 'Corporate', 'Region', 'Franchisee', 'Location' }) {
@@ -146,7 +146,7 @@ public without sharing class MindbodyBuildLoader {
         SObject catalog = catalogs.get(String.valueOf(cat.get('name')));
         if (catalog != null) {
             List<Map<String, Object>> rows = new List<Map<String, Object>>();
-            for (Object o : list_('categories')) {
+            for (Object o : listOf('categories')) {
                 Map<String, Object> c = (Map<String, Object>) o;
                 rows.add(new Map<String, Object>{ 'CatalogId' => catalog.Id, 'Name' => c.get('name'),
                     'Code' => c.get('code'), 'SortOrder' => c.get('sequence'), 'IsNavigational' => true });
@@ -156,7 +156,7 @@ public without sharing class MindbodyBuildLoader {
         }
 
         List<Map<String, Object>> psm = new List<Map<String, Object>>();
-        for (Object o : list_('sellingModels')) {
+        for (Object o : listOf('sellingModels')) {
             Map<String, Object> m = (Map<String, Object>) o;
             Map<String, Object> r = new Map<String, Object>{ 'Name' => m.get('name'),
                 'SellingModelType' => m.get('type'), 'Status' => 'Active' };
@@ -320,7 +320,7 @@ public without sharing class MindbodyBuildLoader {
     /** Attribute picklists, values, definitions, and product attribute assignments (spec 12.6). */
     public void loadAttributes() {
         List<Map<String, Object>> picklists = new List<Map<String, Object>>();
-        for (Object o : list_('attributes')) {
+        for (Object o : listOf('attributes')) {
             Map<String, Object> a = (Map<String, Object>) o;
             if (a.get('type') == 'Picklist') {
                 picklists.add(new Map<String, Object>{ 'Name' => a.get('name') + ' Values', 'DataType' => 'Text',
@@ -331,7 +331,7 @@ public without sharing class MindbodyBuildLoader {
 
         List<Map<String, Object>> values = new List<Map<String, Object>>();
         List<Map<String, Object>> defs = new List<Map<String, Object>>();
-        for (Object o : list_('attributes')) {
+        for (Object o : listOf('attributes')) {
             Map<String, Object> a = (Map<String, Object>) o;
             Map<String, Object> d = new Map<String, Object>{ 'Name' => a.get('name'), 'Label' => a.get('name'),
                 'DeveloperName' => a.get('code'), 'Code' => a.get('code'), 'DataType' => a.get('type'),
@@ -358,7 +358,7 @@ public without sharing class MindbodyBuildLoader {
         Map<String, SObject> products = byKey('Product2', 'ProductCode', 'ProductCode LIKE \'MB-%\'', null);
         List<Map<String, Object>> pads = new List<Map<String, Object>>();
         Integer seq = 1;
-        for (Object o : list_('productAttributes')) {
+        for (Object o : listOf('productAttributes')) {
             Map<String, Object> pa = (Map<String, Object>) o;
             SObject prod = products.get((String) pa.get('product'));
             SObject def = attrDefs.get((String) pa.get('attribute'));
@@ -376,7 +376,7 @@ public without sharing class MindbodyBuildLoader {
     /** Regional price books; one entry per product x currency x selling model, standard price book first. */
     public void loadPriceBooks() {
         List<Map<String, Object>> books = new List<Map<String, Object>>();
-        for (Object o : list_('priceBooks')) {
+        for (Object o : listOf('priceBooks')) {
             Map<String, Object> b = (Map<String, Object>) o;
             books.add(new Map<String, Object>{ 'Name' => b.get('name'), 'IsActive' => true,
                 'Description' => 'Mindbody list prices in ' + b.get('currency') + ' (PRC-01).' });
@@ -399,7 +399,7 @@ public without sharing class MindbodyBuildLoader {
                 continue;
             }
             Map<String, Object> prices = (Map<String, Object>) p.get('prices');
-            for (Object o : list_('priceBooks')) {
+            for (Object o : listOf('priceBooks')) {
                 Map<String, Object> b = (Map<String, Object>) o;
                 String cur = (String) b.get('currency');
                 if (multiCurrency ? !activeCurrencies.contains(cur) : cur != corporate) {
@@ -414,7 +414,7 @@ public without sharing class MindbodyBuildLoader {
                     }
                     Object price = prices.get(cur);
                     Map<String, Object> e = new Map<String, Object>{ 'Product2Id' => prod.Id,
-                        'ProductSellingModelId' => psm.Id, 'UnitPrice' => price == null ? 0 : price,
+                        'ProductSellingModelId' => psm.Id, 'UnitPrice' => price == null ? (Object) 0 : price,
                         'IsActive' => true, 'UseStandardPrice' => false };
                     if (multiCurrency) {
                         e.put('CurrencyIsoCode', cur);
@@ -505,8 +505,8 @@ public without sharing class MindbodyBuildLoader {
     // ================================================================== generic, release-tolerant upsert
 
     Map<String, SObject> sync(String obj, List<String> keyFields, List<Map<String, Object>> rows,
-                              String where, Map<String, Object> binds, Set<String> insertOnly) {
-        return sync(obj, keyFields, rows, where, binds, insertOnly, false);
+                              String whereClause, Map<String, Object> binds, Set<String> insertOnly) {
+        return sync(obj, keyFields, rows, whereClause, binds, insertOnly, false);
     }
 
     /**
@@ -515,7 +515,7 @@ public without sharing class MindbodyBuildLoader {
      * insertOnly: fields set on create but never overwritten. createOnly: never update existing records.
      */
     Map<String, SObject> sync(String obj, List<String> keyFields, List<Map<String, Object>> rows,
-                              String where, Map<String, Object> binds, Set<String> insertOnly, Boolean createOnly) {
+                              String whereClause, Map<String, Object> binds, Set<String> insertOnly, Boolean createOnly) {
         Map<String, SObject> result = new Map<String, SObject>();
         if (!hasObject(obj)) {
             fail(obj + ' is not available in this org – is Revenue Cloud (ARM) enabled and does the user have access?');
@@ -537,7 +537,7 @@ public without sharing class MindbodyBuildLoader {
             selectFields.add('SellingModelType');
         }
         String soql = 'SELECT ' + String.join(selectFields, ', ') + ' FROM ' + obj
-            + (where == null ? '' : ' WHERE ' + where) + ' LIMIT 10000';
+            + (whereClause == null ? '' : ' WHERE ' + whereClause) + ' LIMIT 10000';
         Map<String, SObject> existing = new Map<String, SObject>();
         for (SObject r : Database.queryWithBinds(soql, binds == null ? new Map<String, Object>() : binds, AccessLevel.SYSTEM_MODE)) {
             existing.put(keyOf(r, keyFields), r);
@@ -557,14 +557,14 @@ public without sharing class MindbodyBuildLoader {
                     continue;
                 }
                 SObject rec = t.newSObject(current.Id);
-                Boolean any = false;
+                Boolean changed = false;
                 for (String field : row.keySet()) {
                     if (insertOnly != null && insertOnly.contains(field)) {
                         continue;
                     }
-                    any = put(rec, obj, field, row.get(field), false) || any;
+                    changed = put(rec, obj, field, row.get(field), false) || changed;
                 }
-                if (any) {
+                if (changed) {
                     toUpdate.add(rec);
                     updateKeys.add(key);
                 }
@@ -628,16 +628,26 @@ public without sharing class MindbodyBuildLoader {
         if (v == null) {
             return null;
         }
-        switch on t {
-            when DOUBLE, CURRENCY, PERCENT { return Decimal.valueOf(String.valueOf(v)); }
-            when INTEGER { return Integer.valueOf(String.valueOf(v)); }
-            when LONG { return Long.valueOf(String.valueOf(v)); }
-            when BOOLEAN { return v instanceof Boolean ? v : Boolean.valueOf(String.valueOf(v)); }
-            when DATE { return v instanceof Date ? v : Date.valueOf(String.valueOf(v)); }
-            when DATETIME { return v instanceof Datetime ? v : Datetime.valueOf(String.valueOf(v)); }
-            when REFERENCE, ID { return v instanceof Id ? v : (Object) Id.valueOf(String.valueOf(v)); }
-            when else { return v instanceof String ? v : String.valueOf(v); }
+        String text = String.valueOf(v);
+        if (t == Schema.DisplayType.DOUBLE || t == Schema.DisplayType.CURRENCY || t == Schema.DisplayType.PERCENT) {
+            return Decimal.valueOf(text);
         }
+        if (t == Schema.DisplayType.INTEGER) {
+            return Integer.valueOf(text);
+        }
+        if (t == Schema.DisplayType.BOOLEAN) {
+            return (v instanceof Boolean) ? v : (Object) Boolean.valueOf(text);
+        }
+        if (t == Schema.DisplayType.DATE) {
+            return (v instanceof Date) ? v : (Object) Date.valueOf(text);
+        }
+        if (t == Schema.DisplayType.DATETIME) {
+            return (v instanceof Datetime) ? v : (Object) Datetime.valueOf(text);
+        }
+        if (t == Schema.DisplayType.REFERENCE || t == Schema.DisplayType.ID) {
+            return (v instanceof Id) ? v : (Object) Id.valueOf(text);
+        }
+        return text;
     }
 
     static String keyOf(SObject r, List<String> keyFields) {
@@ -667,14 +677,14 @@ public without sharing class MindbodyBuildLoader {
         return String.valueOf(v);
     }
 
-    Map<String, SObject> byKey(String obj, String field, String where, Map<String, Object> binds) {
+    Map<String, SObject> byKey(String obj, String field, String whereClause, Map<String, Object> binds) {
         Map<String, SObject> out = new Map<String, SObject>();
         if (!hasObject(obj)) {
             fail(obj + ' is not available in this org');
             return out;
         }
         String extra = obj == 'ProductSellingModel' ? ', SellingModelType' : '';
-        String soql = 'SELECT Id, ' + field + extra + ' FROM ' + obj + (where == null ? '' : ' WHERE ' + where) + ' LIMIT 10000';
+        String soql = 'SELECT Id, ' + field + extra + ' FROM ' + obj + (whereClause == null ? '' : ' WHERE ' + whereClause) + ' LIMIT 10000';
         for (SObject r : Database.queryWithBinds(soql, binds == null ? new Map<String, Object>() : binds, AccessLevel.SYSTEM_MODE)) {
             out.put((String) r.get(field), r);
         }
@@ -694,16 +704,16 @@ public without sharing class MindbodyBuildLoader {
 
     List<Map<String, Object>> allProducts() {
         List<Map<String, Object>> out = new List<Map<String, Object>>();
-        for (Object o : list_('products')) {
+        for (Object o : listOf('products')) {
             out.add((Map<String, Object>) o);
         }
-        for (Object o : list_('features')) {
+        for (Object o : listOf('features')) {
             out.add((Map<String, Object>) o);
         }
         return out;
     }
 
-    List<Object> list_(String key) {
+    List<Object> listOf(String key) {
         Object v = data.get(key);
         return v == null ? new List<Object>() : (List<Object>) v;
     }
