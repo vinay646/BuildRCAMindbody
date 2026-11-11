@@ -236,6 +236,17 @@ jobs:
           sf org list metadata-types --api-version "$ORG_API" --target-org target --json \
             | jq -r '.result.metadataObjects[] | .xmlName' | grep -iE 'constraint|expression|cml' | tr '\n' ' '; echo
           mkdir -p explored
+          echo "===== TOOLING ExpressionSetDefinitionVersion fields"
+          sf api request rest "/services/data/v$ORG_API/tooling/sobjects/ExpressionSetDefinitionVersion/describe" --target-org target 2>/dev/null \
+            | jq -r '.fields[]? | "\(.name):\(.type):create=\(.createable):update=\(.updateable)"' | tr '\n' ' '; echo
+          for o in ExpressionSetDefinition ExpressionSetVersion; do
+            echo "===== TOOLING $o fields"
+            sf api request rest "/services/data/v$ORG_API/tooling/sobjects/$o/describe" --target-org target 2>/dev/null \
+              | jq -r '.fields[]? | "\(.name):\(.type)"' | tr '\n' ' '; echo
+          done
+          echo "===== TOOLING Server2_V1 record"
+          sf api request rest "/services/data/v$ORG_API/tooling/query?q=SELECT+Id,DeveloperName,Metadata+FROM+ExpressionSetDefinitionVersion+WHERE+DeveloperName='Server2_V1'" \
+            --target-org target 2>&1 | tr -d '\n' | head -c 6000; echo
           for m in 'ExpressionSetDefinitionVersion:QuantumBitBundle_V1' 'ExpressionSetDefinitionVersion:Server2_V1' 'ConstraintOptDef:*'; do
             echo "===== RETRIEVE $m"
             rm -rf explored; mkdir -p explored
