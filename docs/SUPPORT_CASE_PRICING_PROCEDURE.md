@@ -29,6 +29,9 @@ the procedure **unchanged** validates.
 |---|---|
 | Decision tables used by the List Price steps (`Price_Book_Entry_Decision_Table_v2` 0lDhm00000017XREAY, `RLM_CostBookEntries` 0lDhm00000017XtEAI, `Contract_Pricing_Entries_Decision_Table` 0lDhm00000017XZEAY) | All **Active**; Ids match the procedure's `LookUpId` |
 | Setup → Salesforce Pricing Setup → **Sync Pricing Data** | Run; no change |
+| **Refresh** on each of the three decision tables (App Launcher → Decision Tables) | Run; no change |
+| Context definition `RLM_SalesTransactionContext` | **Active**, no warnings; inherits `SalesTransactionContext__stdctx`; last modified 11 Nov 2026 12:46 UTC by the additive deploy |
+| Deactivate the default procedure, edit, Save | Same error; re-activating the unchanged procedure works |
 | Re-selecting the lookup tables in the builder | Same error |
 | API version | Retrieve/deploy at the org's version 68.0 |
 
