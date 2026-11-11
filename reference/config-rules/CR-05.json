@@ -1,0 +1,168 @@
+{
+  "usageSubType": "Transaction",
+  "sequence": 1,
+  "criteriaExpressionType": "All",
+  "apiName": "cr05AiConciergeIncludedInUltimate",
+  "endDate": null,
+  "criteria": [
+    {
+      "sourceDataType": "Lookup",
+      "conditionExpression": null,
+      "sourceValues": [
+        "01thm000000vXaNAAU"
+      ],
+      "sourceContextTagName": "Product",
+      "sourceInformation": [
+        {
+          "type": "Tag",
+          "name": "ProductBasedOn",
+          "values": {
+            "values": [
+              null
+            ]
+          }
+        },
+        {
+          "type": "Tag",
+          "name": "Product",
+          "values": {
+            "values": [
+              "01thm000000vXaNAAU"
+            ]
+          }
+        },
+        {
+          "type": "Enum",
+          "name": "ProductType",
+          "values": {
+            "values": [
+              "Static"
+            ]
+          }
+        },
+        {
+          "type": "Tag",
+          "name": "ProductName",
+          "values": {
+            "values": [
+              null
+            ]
+          }
+        },
+        {
+          "type": "Tag",
+          "name": "ItemPath",
+          "values": {
+            "values": [
+              null
+            ]
+          }
+        },
+        {
+          "type": "Tag",
+          "name": "ParentPRCPath",
+          "values": {
+            "values": [
+              null
+            ]
+          }
+        }
+      ],
+      "sourceOperator": "Equals",
+      "conditions": [
+        {
+          "contextTagName": "Product",
+          "dataType": "Lookup",
+          "values": [
+            "01thm000000vXaPAAU"
+          ],
+          "behaviorTypeLock": null,
+          "attributeName": null,
+          "conditionIndex": 1,
+          "type": "Tag",
+          "operator": "Equals"
+        }
+      ],
+      "criteriaIndex": 1
+    }
+  ],
+  "scope": "Transaction",
+  "name": "CR 05 AI Concierge included in Ultimate",
+  "description": "",
+  "actions": [
+    {
+      "targetValues": [
+        "01thm000000vXaPAAU"
+      ],
+      "targetInformation": [
+        {
+          "type": "Tag",
+          "name": "ProductBasedOn",
+          "values": {
+            "values": [
+              null
+            ]
+          }
+        },
+        {
+          "type": "Tag",
+          "name": "Product",
+          "values": {
+            "values": [
+              "01thm000000vXaPAAU"
+            ]
+          }
+        },
+        {
+          "type": "Enum",
+          "name": "ProductType",
+          "values": {
+            "values": [
+              "Static"
+            ]
+          }
+        },
+        {
+          "type": "Tag",
+          "name": "ProductName",
+          "values": {
+            "values": [
+              null
+            ]
+          }
+        },
+        {
+          "type": "Tag",
+          "name": "ItemPath",
+          "values": {
+            "values": [
+              null
+            ]
+          }
+        },
+        {
+          "type": "Tag",
+          "name": "ParentPRCPath",
+          "values": {
+            "values": [
+              null
+            ]
+          }
+        }
+      ],
+      "targetDataType": null,
+      "message": "AI Concierge is already included in Ultimate – remove the AI Concierge add-on",
+      "targetOperator": "Equals",
+      "actionType": "Validate",
+      "sequence": 1,
+      "actionParameters": [],
+      "targetContextTagName": "Product",
+      "messageType": "Error",
+      "name": "RuleAction0",
+      "behaviorTypeLock": null,
+      "actionParametersExpression": null
+    }
+  ],
+  "startDate": "2026-11-03T15:32:00",
+  "status": "Active"
+}
