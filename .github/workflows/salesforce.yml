@@ -28,13 +28,13 @@ permissions:
 
 jobs:
   salesforce:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     env:
       SFDX_AUTH_URL: ${{ secrets.SFDX_AUTH_URL }}
       ACTION: ${{ github.event.inputs.action || 'validate' }}
       STEP: ${{ github.event.inputs.step }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - name: Stop if the org is not connected
         run: |
@@ -43,7 +43,7 @@ jobs:
             exit 1
           fi
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v7
         with:
           node-version: "22"
 
