@@ -151,10 +151,23 @@ Apex → **Price Adjustment Schedules / Promotions / floor price book**; custom 
 | Rule | Standard feature | Status |
 |---|---|---|
 | CR-13 billing frequency and contract term allowed per product | Validation rules on Quote Line (`CR_13_Billing_Frequency_Allowed`, `CR_13_Contract_Term_Allowed`) | ✅ deployed |
-| CR-01 – CR-09, CR-18 (tier per location, included features, add-on eligibility, quantities, Branded app setup, hardware needs Payments, downgrade guard) | **Product Configuration Rules** (standard records, loaded by the loader) | Waiting for one example rule built in Setup, to copy the definition format |
+| CR-01 – CR-09, CR-18 (tier per location, included features, add-on eligibility, quantities, Branded app setup, hardware needs Payments, downgrade guard) | **Product Configuration Rules** (built in Setup → Product Configuration Rules) | Blocked: builder fails with "reading 'RuleLibraryVersions'" – see below |
 | CR-15 region availability (Capital, Insurance, hardware) | **Product Qualification / Disqualification** | To do |
 | CR-10 promo conditions, CR-11/12 recommendations | Promotions qualifiers / product recommendations | To do |
 | CR-14 Ship-To vs price book region, CR-16 Enterprise needs master contract, CR-17 payer override reason | Validation rules on quote / line group | Phase 5 (needs Ship-To and payer on line groups) |
+
+**Configuration rule builder – findings (11 Nov 2026, `probe-config-rule`):**
+- Product Configuration Rules can't be created by API (`ProductConfigurationRule` isn't createable), so they're
+  built in the Setup builder, which stores them in a Business Rules Engine *rule library* with usage type
+  `Configurator`.
+- The org had only the DRO rule library (usage type `Dfo`, used by order fulfilment). No Configurator library
+  existed, so the builder fails with "Cannot read properties of undefined (reading 'RuleLibraryVersions')".
+- `ruleLibraryDefinitions/Mindbody_Product_Rules` (usage type Configurator, standard metadata) was deployed.
+  Salesforce created the definition record but no definition version and no library, and a retrieve returns it
+  with empty fields. A library or version can't be added by API without a definition version.
+- Next: Setup → Revenue Settings → turn *Set Up Configuration Rules with Business Rules Engine* **off, save, on,
+  save** (re-provisions the Configurator library now that the user has the BRE permission sets), then retry
+  the builder. If it still fails, add this to the Salesforce support case.
 
 
 
