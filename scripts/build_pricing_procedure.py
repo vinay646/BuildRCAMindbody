@@ -30,7 +30,7 @@ LINE_ATTRS = [  # (context attribute / tag, QuoteLineItem field)
     ("MbVolumeLocationCount", "Volume_Location_Count__c"),
     ("MbBillingPeriodMonths", "Billing_Period_Months__c"),
 ]
-HIDDEN_HEADER_STD_ATTRS = [("IsContextInUse__std", "boolean")]  # reported by the org on deploy, missing from retrieve
+HIDDEN_HEADER_STD_ATTRS = []  # none at the org API version (68.0); an older retrieve misses newer standard attributes
 XML_HEAD = '<?xml version="1.0" encoding="UTF-8"?>\n'
 
 

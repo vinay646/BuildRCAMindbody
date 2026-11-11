@@ -174,10 +174,10 @@ jobs:
         if: env.ACTION == 'explore-context'
         run: |
           mkdir -p explored
-          sf project retrieve start --api-version "$ORG_API" --metadata ContextDefinition:RLM_SalesTransactionContext \
+          sf project retrieve start --api-version "$ORG_API" --metadata ContextDefinition:RLM_SalesTransactionContext --metadata ExpressionSetDefinition:RLM_DefaultPricingProcedure \
             --target-org target --target-metadata-dir explored --unzip --wait 20 --json > explore.json || true
           echo "API version: $ORG_API"
-          for f in $(find explored -type f -name '*.contextDefinition' | sort); do
+          for f in $(find explored -type f \( -name '*.contextDefinition' -o -name '*.expressionSetDefinition' \) | sort); do
             echo "===== FILE $f"
             sed -e 's/^[[:space:]]*//' "$f" | grep -v '^<?xml' | tr -d '\r\n'
             echo
