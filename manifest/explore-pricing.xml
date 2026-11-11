@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Read-only: the org's standard pricing setup, pulled by the 'explore' workflow action so the Mindbody
+     procedure can be designed around what ARM offers out of the box. -->
+<Package xmlns="http://soap.sforce.com/2006/04/metadata">
+    <types>
+        <members>RLM_DefaultPricingProcedure</members>
+        <members>RLM_DefaultPricingDiscoveryProcedure</members>
+        <name>ExpressionSetDefinition</name>
+    </types>
+    <types>
+        <members>Price_Adjustment_Tier_Decision_Table</members>
+        <members>Tiered_Adjustment_Tier_Decision_Table</members>
+        <members>Attribute_Based_Adjustment_Decision_Table</members>
+        <members>Bundle_Based_Adjustment_Decision_Table</members>
+        <members>Contract_Pricing_Entries_Decision_Table</members>
+        <members>Contract_Pricing_Volume_Tiers</members>
+        <members>Price_Book_Entry_Decision_Table_v2</members>
+        <members>Derived_Pricing_Entries_Decision_Table</members>
+        <members>RLM_CostBookEntries</members>
+        <name>DecisionTable</name>
+    </types>
+    <types>
+        <members>RLM_SalesTransactionContext</members>
+        <name>ContextDefinition</name>
+    </types>
+    <version>64.0</version>
+</Package>

@@ -17,6 +17,7 @@ on:
           - deploy-and-load  # deploy, then every loader step
           - test             # run the Mindbody Apex tests in the org (read-only for real data)
           - retrieve         # pull the pricing procedure, decision tables and context built in Setup (read-only)
+          - explore          # read-only: print the org's standard pricing procedure, decision tables and pricing objects
       step:
         description: "Loader step (for action = load)"
         type: choice
@@ -112,6 +113,28 @@ jobs:
         with:
           name: retrieved-pricing-procedure
           path: retrieved
+          if-no-files-found: warn
+
+      - name: Explore standard pricing setup
+        if: env.ACTION == 'explore'
+        run: |
+          ./scripts/run-apex.sh scripts/apex/explore_pricing.apex "Standard pricing objects" || true
+          mkdir -p explored
+          sf project retrieve start --manifest manifest/explore-pricing.xml --target-org target \
+            --target-metadata-dir explored --unzip --wait 20 --json > explore.json || true
+          jq -r '.result.messages // [] | .[] | "WARNING \(.fileName // ""): \(.problem)"' explore.json
+          for f in $(find explored -type f \( -name '*.xml' -o -name '*-meta.xml' -o -name '*.expressionSetDefinition' -o -name '*.decisionTable' -o -name '*.contextDefinition' \) | sort); do
+            echo "===== FILE $f"
+            # one line per element keeps the log readable; drop the long XML namespace header
+            sed -e 's/^[[:space:]]*//' "$f" | grep -v '^<?xml' | tr -d '\r'
+          done
+
+      - name: Upload explored metadata
+        if: env.ACTION == 'explore'
+        uses: actions/upload-artifact@v7
+        with:
+          name: explored-pricing-setup
+          path: explored
           if-no-files-found: warn
 
       - name: Load one step
