@@ -18,8 +18,8 @@ on:
       step:
         description: "Loader step (for action = load)"
         type: choice
-        default: accounts
-        options: [accounts, catalog, products, bundles, attributes, pricebooks]
+        default: inventory
+        options: [inventory, accounts, catalog, products, bundles, attributes, pricebooks]
   pull_request:
     paths: ["force-app/**", "sfdx-project.json"]
 

@@ -18,7 +18,7 @@ public without sharing class MindbodyBuildLoader {
     public class LoaderException extends Exception {}
 
     public static final String RESOURCE = 'MB_Build_Data';
-    public static final List<String> STEPS = new List<String>{ 'accounts', 'catalog', 'products', 'bundles', 'attributes', 'pricebooks' };
+    public static final List<String> STEPS = new List<String>{ 'inventory', 'accounts', 'catalog', 'products', 'bundles', 'attributes', 'pricebooks' };
 
     public List<String> log = new List<String>();
     public Integer errors = 0;
@@ -54,6 +54,7 @@ public without sharing class MindbodyBuildLoader {
             when 'bundles' { loadBundles(); }
             when 'attributes' { loadAttributes(); }
             when 'pricebooks' { loadPriceBooks(); }
+            when 'inventory' { inventory(); }
             when else { throw new LoaderException('Unknown step "' + step + '". Steps: ' + String.join(STEPS, ', ')); }
         }
     }
@@ -341,6 +342,7 @@ public without sharing class MindbodyBuildLoader {
         }
         sync('AttributePicklistValue', new List<String>{ 'PicklistId', 'Value' }, values,
             'PicklistId IN :ids', new Map<String, Object>{ 'ids' => idsOf(lists.values()) }, null);
+        Map<String, String> renamed = reuseExistingAttributes(defs);
         Map<String, SObject> attrDefs = sync('AttributeDefinition', new List<String>{ 'Name' }, defs, null, null,
             new Set<String>{ 'DeveloperName', 'DataType', 'PicklistId' });
 
@@ -350,7 +352,8 @@ public without sharing class MindbodyBuildLoader {
         for (Object o : listOf('productAttributes')) {
             Map<String, Object> pa = (Map<String, Object>) o;
             SObject prod = products.get((String) pa.get('product'));
-            SObject def = attrDefs.get((String) pa.get('attribute'));
+            String attrName = (String) pa.get('attribute');
+            SObject def = attrDefs.get(renamed.containsKey(attrName) ? renamed.get(attrName) : attrName);
             if (prod == null || def == null) {
                 fail('Product attribute ' + pa.get('product') + ' / ' + pa.get('attribute') + ': product or attribute missing');
                 continue;
@@ -500,18 +503,135 @@ public without sharing class MindbodyBuildLoader {
                 return p.Id;
             }
         }
+        if (!found.isEmpty()) {
+            // reuse the org's existing policy rather than adding another one
+            if (warned.add('proration-reuse')) {
+                info('ProrationPolicy: using existing "' + found[0].get('Name') + '" – confirm it prorates daily (BIL-04)');
+            }
+            return found[0].Id;
+        }
         Map<String, SObject> created = sync('ProrationPolicy', new List<String>{ 'Name' }, new List<Map<String, Object>>{
             new Map<String, Object>{ 'Name' => name, 'ProrationPolicyType' => 'StandardTimePeriods',
                 'ArePartialPeriodsAllowed' => true, 'StandardTimePeriods' => 'Daily', 'RemainderStrategy' => 'AddToFirst' }
         }, null, null, null, true);
-        if (created.containsKey(name)) {
-            return created.get(name).Id;
+        return created.containsKey(name) ? created.get(name).Id : null;
+    }
+
+    /**
+     * Points build attributes at attribute definitions the org already has under another spelling
+     * (same name in another case, same DeveloperName, or same Code), so they are reused, not duplicated.
+     * Returns build name -> org name for the ones renamed.
+     */
+    Map<String, String> reuseExistingAttributes(List<Map<String, Object>> defs) {
+        Map<String, String> renamed = new Map<String, String>();
+        if (!hasObject('AttributeDefinition')) {
+            return renamed;
         }
-        if (!found.isEmpty()) {
-            warn('Could not create ' + name + ' – using existing proration policy ' + found[0].get('Name') + ' (BIL-04 needs daily proration: confirm it)');
-            return found[0].Id;
+        Map<String, Schema.SObjectField> f = fields('AttributeDefinition');
+        List<String> cols = new List<String>{ 'Id', 'Name' };
+        for (String c : new List<String>{ 'DeveloperName', 'Code' }) {
+            if (f.containsKey(c.toLowerCase())) {
+                cols.add(c);
+            }
         }
-        return null;
+        Map<String, String> byAlt = new Map<String, String>();
+        Set<String> exactNames = new Set<String>();
+        for (SObject r : Database.query('SELECT ' + String.join(cols, ', ') + ' FROM AttributeDefinition LIMIT 5000')) {
+            String n = (String) r.get('Name');
+            exactNames.add(n);
+            byAlt.put('n:' + n.toLowerCase(), n);
+            for (String c : cols) {
+                if (c != 'Id' && c != 'Name' && r.get(c) != null) {
+                    byAlt.put('k:' + String.valueOf(r.get(c)).toLowerCase(), n);
+                }
+            }
+        }
+        for (Map<String, Object> d : defs) {
+            String n = (String) d.get('Name');
+            if (exactNames.contains(n)) {
+                continue;
+            }
+            String hit = byAlt.get('n:' + n.toLowerCase());
+            if (hit == null && d.get('DeveloperName') != null) {
+                hit = byAlt.get('k:' + String.valueOf(d.get('DeveloperName')).toLowerCase());
+            }
+            if (hit == null && d.get('Code') != null) {
+                hit = byAlt.get('k:' + String.valueOf(d.get('Code')).toLowerCase());
+            }
+            if (hit != null) {
+                info('AttributeDefinition ' + n + ': using existing "' + hit + '"');
+                d.put('Name', hit);
+                d.remove('DeveloperName');
+                renamed.put(n, hit);
+            }
+        }
+        return renamed;
+    }
+
+    /** Read-only: lists the ARM setup records the org already has, so the build can reuse them. */
+    public void inventory() {
+        Map<String, List<String>> objs = new Map<String, List<String>>{
+            'ProductSellingModel' => new List<String>{ 'SellingModelType', 'PricingTerm', 'PricingTermUnit', 'Status' },
+            'ProrationPolicy' => new List<String>{ 'ProrationPolicyType', 'RemainderStrategy', 'ArePartialPeriodsAllowed' },
+            'ProductRelationshipType' => new List<String>{ 'MainProductRoleCat', 'AssociatedProductRoleCat' },
+            'ProductCatalog' => new List<String>{ 'Code', 'CatalogType' },
+            'ProductClassification' => new List<String>{ 'Code', 'Status' },
+            'AttributeDefinition' => new List<String>{ 'DeveloperName', 'Code', 'DataType', 'IsActive' },
+            'AttributePicklist' => new List<String>{ 'DataType', 'Status' },
+            'AttributeCategory' => new List<String>{ 'Code' },
+            'Pricebook2' => new List<String>{ 'IsActive', 'IsStandard' },
+            'RateCard' => new List<String>{ 'Type' },
+            'UsageResource' => new List<String>{ 'Code', 'Status' },
+            'ExpressionSetDefinition' => new List<String>{ 'DeveloperName' },
+            'BillingPolicy' => new List<String>{ 'Status' },
+            'BillingTreatment' => new List<String>{ 'Status' },
+            'PaymentTerm' => new List<String>{ 'Status' },
+            'LegalEntity' => new List<String>{ 'Status' }
+        };
+        for (String obj : objs.keySet()) {
+            if (!hasObject(obj)) {
+                log.add('  ' + obj + ': not available');
+                continue;
+            }
+            Map<String, Schema.SObjectField> f = fields(obj);
+            List<String> cols = new List<String>{ 'Id', 'Name' };
+            for (String c : objs.get(obj)) {
+                if (f.containsKey(c.toLowerCase())) {
+                    cols.add(c);
+                }
+            }
+            List<SObject> rows;
+            try {
+                rows = Database.query('SELECT ' + String.join(cols, ', ') + ' FROM ' + obj + ' ORDER BY CreatedDate LIMIT 50');
+            } catch (Exception e) {
+                log.add('  ' + obj + ': could not read – ' + e.getMessage());
+                continue;
+            }
+            log.add('  ' + obj + ': ' + rows.size() + (rows.size() == 50 ? '+' : '') + ' record(s)');
+            for (SObject r : rows) {
+                List<String> parts = new List<String>();
+                for (Integer i = 2; i < cols.size(); i++) {
+                    parts.add(cols[i] + '=' + r.get(cols[i]));
+                }
+                log.add('    - ' + r.get('Name') + (parts.isEmpty() ? '' : ' (' + String.join(parts, ', ') + ')'));
+            }
+        }
+        // the ProrationPolicy fields this release offers, so daily proration (BIL-04) can be set right
+        if (hasObject('ProrationPolicy')) {
+            Map<String, Schema.SObjectField> f = fields('ProrationPolicy');
+            for (String k : f.keySet()) {
+                Schema.DescribeFieldResult d = f.get(k).getDescribe();
+                if (!d.isCustom() && d.isCreateable() && d.getType() == Schema.DisplayType.PICKLIST) {
+                    List<String> vals = new List<String>();
+                    for (Schema.PicklistEntry e : d.getPicklistValues()) {
+                        vals.add(e.getValue());
+                    }
+                    log.add('  ProrationPolicy.' + d.getName() + ' values: ' + String.join(vals, ', '));
+                }
+            }
+        }
+        Integer products = Database.countQuery('SELECT COUNT() FROM Product2');
+        log.add('  Product2: ' + products + ' product(s) in the org');
     }
 
     Id bundleRelationshipTypeId() {
