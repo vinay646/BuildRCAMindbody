@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Allowed_Billing_Frequencies__c</fullName>
+    <label>Allowed Billing Frequencies</label>
+    <description>Billing frequencies a quote line may use for this product (CAT-07, CFG-14, CR-13).</description>
+    <inlineHelpText>Billing frequencies a quote line may use for this product (CAT-07, CFG-14, CR-13).</inlineHelpText>
+    <type>MultiselectPicklist</type>
+    <required>false</required>
+    <visibleLines>4</visibleLines>
+    <valueSet>
+        <restricted>true</restricted>
+        <valueSetDefinition>
+            <sorted>false</sorted>
+            <value>
+                <fullName>Monthly</fullName>
+                <default>false</default>
+                <label>Monthly</label>
+            </value>
+            <value>
+                <fullName>Quarterly</fullName>
+                <default>false</default>
+                <label>Quarterly</label>
+            </value>
+            <value>
+                <fullName>Semiannual</fullName>
+                <default>false</default>
+                <label>Semiannual</label>
+            </value>
+            <value>
+                <fullName>Annual</fullName>
+                <default>false</default>
+                <label>Annual</label>
+            </value>
+        </valueSetDefinition>
+    </valueSet>
+</CustomField>

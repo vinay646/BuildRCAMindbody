@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>ERP_Id__c</fullName>
+    <label>ERP Id</label>
+    <description>NetSuite customer internal ID written back by the integration (INT-06).</description>
+    <inlineHelpText>NetSuite customer internal ID written back by the integration (INT-06).</inlineHelpText>
+    <type>Text</type>
+    <length>50</length>
+    <required>false</required>
+    <unique>false</unique>
+    <externalId>true</externalId>
+</CustomField>

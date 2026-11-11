@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ValidationRule xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>CAT_10_Hardware_One_Time_No_Frequency</fullName>
+    <active>true</active>
+    <description>CAT-10 / CAT-07: billing frequencies apply to recurring products only; hardware, services and usage products have none.</description>
+    <errorConditionFormula>AND(NOT(ISPICKVAL(Product_Type__c, 'Recurring')), NOT(ISBLANK(Allowed_Billing_Frequencies__c)))</errorConditionFormula>
+    <errorDisplayField>Allowed_Billing_Frequencies__c</errorDisplayField>
+    <errorMessage>Only Recurring products have billing frequencies. Clear Allowed Billing Frequencies for this product type.</errorMessage>
+</ValidationRule>

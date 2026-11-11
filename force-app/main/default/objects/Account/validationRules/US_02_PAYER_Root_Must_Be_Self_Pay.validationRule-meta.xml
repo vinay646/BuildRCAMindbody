@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ValidationRule xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>US_02_PAYER_Root_Must_Be_Self_Pay</fullName>
+    <active>true</active>
+    <description>US-02 / spec 2.3: the top account of a hierarchy has no ancestor to pay for it, so it must be Self-Pay.</description>
+    <errorConditionFormula>AND(ISBLANK(ParentId), ISPICKVAL(Payer_Type__c, 'Parent-Pay'))</errorConditionFormula>
+    <errorDisplayField>Payer_Type__c</errorDisplayField>
+    <errorMessage>An account with no parent must be Self-Pay – there is no ancestor to pay for it.</errorMessage>
+</ValidationRule>

@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ValidationRule xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>US_01_ACC_DEPTH_Max_Four_Levels</fullName>
+    <active>true</active>
+    <description>US-01 / spec 2.3: a hierarchy is at most four levels (corporate, region, franchisee, location).</description>
+    <errorConditionFormula>NOT(ISBLANK(Parent.Parent.Parent.ParentId))</errorConditionFormula>
+    <errorDisplayField>ParentId</errorDisplayField>
+    <errorMessage>An account hierarchy can be at most four levels deep (corporate, region, franchisee, location). Choose a parent higher up.</errorMessage>
+</ValidationRule>

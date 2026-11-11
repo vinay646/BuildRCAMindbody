@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ValidationRule xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>US_01_ACC_DEPTH_Parent_Required</fullName>
+    <active>true</active>
+    <description>US-01 / spec 2.3: every account below corporate level needs its parent; parents must exist before children.</description>
+    <errorConditionFormula>AND(ISBLANK(ParentId), NOT(ISBLANK(TEXT(Account_Level__c))), NOT(ISPICKVAL(Account_Level__c, 'Corporate')))</errorConditionFormula>
+    <errorDisplayField>ParentId</errorDisplayField>
+    <errorMessage>Only a Corporate account can be the top of a hierarchy. Set the parent account, or change the level to Corporate.</errorMessage>
+</ValidationRule>

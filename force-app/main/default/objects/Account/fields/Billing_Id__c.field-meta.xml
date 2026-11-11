@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Billing_Id__c</fullName>
+    <label>Billing Id</label>
+    <description>Billing system / billing account ID (spec 2.3 external IDs).</description>
+    <inlineHelpText>Billing system / billing account ID (spec 2.3 external IDs).</inlineHelpText>
+    <type>Text</type>
+    <length>50</length>
+    <required>false</required>
+    <unique>false</unique>
+    <externalId>true</externalId>
+</CustomField>

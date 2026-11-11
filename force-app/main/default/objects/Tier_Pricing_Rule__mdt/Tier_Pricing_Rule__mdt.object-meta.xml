@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomObject xmlns="http://soap.sforce.com/2006/04/metadata">
+    <description>PRC-18 / CFG-16 / spec 12.2: floor price and auto-approve limit per tier.</description>
+    <label>Tier Pricing Rule</label>
+    <pluralLabel>Tier Pricing Rules</pluralLabel>
+    <visibility>Public</visibility>
+</CustomObject>

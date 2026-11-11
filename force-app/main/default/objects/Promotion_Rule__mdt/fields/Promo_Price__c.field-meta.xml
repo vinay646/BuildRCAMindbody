@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Promo_Price__c</fullName>
+    <description>Fixed promo price per location per month, if the offer is a price.</description>
+    <fieldManageability>DeveloperControlled</fieldManageability>
+    <label>Promo Price (USD)</label>
+    <type>Number</type>
+    <precision>9</precision>
+    <scale>2</scale>
+    <required>false</required>
+    <unique>false</unique>
+    <externalId>false</externalId>
+</CustomField>

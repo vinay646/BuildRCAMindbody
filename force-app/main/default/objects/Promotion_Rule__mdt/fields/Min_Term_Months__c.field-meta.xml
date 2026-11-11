@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Min_Term_Months__c</fullName>
+    <description>Minimum contract term for the promo.</description>
+    <fieldManageability>DeveloperControlled</fieldManageability>
+    <label>Min Term Months</label>
+    <type>Number</type>
+    <precision>9</precision>
+    <scale>2</scale>
+    <required>false</required>
+    <unique>false</unique>
+    <externalId>false</externalId>
+</CustomField>

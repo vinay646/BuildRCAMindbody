@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>ERP_Address_Id__c</fullName>
+    <label>ERP Address Id</label>
+    <description>NetSuite address ID written back by the customer sync (INT-06).</description>
+    <inlineHelpText>NetSuite address ID written back by the customer sync (INT-06).</inlineHelpText>
+    <type>Text</type>
+    <length>50</length>
+    <required>false</required>
+    <unique>false</unique>
+    <externalId>true</externalId>
+</CustomField>

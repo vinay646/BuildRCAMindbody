@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomObject xmlns="http://soap.sforce.com/2006/04/metadata">
+    <description>PRC-04 / spec 12.2 step 3: discount by active locations across the whole hierarchy (RLP-01) plus new locations on the quote.</description>
+    <label>Volume Discount Band</label>
+    <pluralLabel>Volume Discount Bands</pluralLabel>
+    <visibility>Public</visibility>
+</CustomObject>

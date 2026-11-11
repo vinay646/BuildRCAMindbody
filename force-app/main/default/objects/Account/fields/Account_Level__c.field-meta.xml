@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Account_Level__c</fullName>
+    <label>Account Level</label>
+    <description>Hierarchy level (spec 2.3): Corporate, Region, Franchisee or Location. Only Corporate accounts may have no parent.</description>
+    <inlineHelpText>Hierarchy level (spec 2.3): Corporate, Region, Franchisee or Location. Only Corporate accounts may have no parent.</inlineHelpText>
+    <type>Picklist</type>
+    <required>false</required>
+    <valueSet>
+        <restricted>true</restricted>
+        <valueSetDefinition>
+            <sorted>false</sorted>
+            <value>
+                <fullName>Corporate</fullName>
+                <default>false</default>
+                <label>Corporate</label>
+            </value>
+            <value>
+                <fullName>Region</fullName>
+                <default>false</default>
+                <label>Region</label>
+            </value>
+            <value>
+                <fullName>Franchisee</fullName>
+                <default>false</default>
+                <label>Franchisee</label>
+            </value>
+            <value>
+                <fullName>Location</fullName>
+                <default>false</default>
+                <label>Location</label>
+            </value>
+        </valueSetDefinition>
+    </valueSet>
+</CustomField>

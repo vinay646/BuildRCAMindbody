@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Active_Location_Count__c</fullName>
+    <label>Active Location Count</label>
+    <description>On the root account: active core-tier locations across the whole hierarchy (RLP-01). Drives the volume discount band. Maintained by LocationCountService.</description>
+    <inlineHelpText>On the root account: active core-tier locations across the whole hierarchy (RLP-01). Drives the volume discount band. Maintained by LocationCountService.</inlineHelpText>
+    <type>Number</type>
+    <precision>18</precision>
+    <scale>0</scale>
+    <required>false</required>
+    <unique>false</unique>
+    <externalId>false</externalId>
+</CustomField>

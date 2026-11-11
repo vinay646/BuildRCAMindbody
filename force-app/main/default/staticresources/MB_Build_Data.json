@@ -1,0 +1,1628 @@
+{
+ "_about": "Mindbody ARM build data – single source of truth for the catalog, pricing and demo accounts. Prices are the illustrative demo prices from spec 12.1; only Starter $79, the payments fee range and the marketplace fee are published by Mindbody. Regional prices for add-ons, services and hardware use the [Assumed] ratios GBP 0.87, AUD 1.6, EUR 0.93. EUR tier prices are [Assumed].",
+ "catalog": {
+  "name": "Mindbody Products",
+  "code": "MB-CATALOG",
+  "description": "Mindbody B2B software and services catalog (spec CAT-01)."
+ },
+ "categories": [
+  {
+   "name": "Subscriptions",
+   "code": "MB-CAT-SUBSCRIP",
+   "sequence": 1
+  },
+  {
+   "name": "Add-ons",
+   "code": "MB-CAT-ADDONS",
+   "sequence": 2
+  },
+  {
+   "name": "Messaging",
+   "code": "MB-CAT-MESSAGIN",
+   "sequence": 3
+  },
+  {
+   "name": "Payments",
+   "code": "MB-CAT-PAYMENTS",
+   "sequence": 4
+  },
+  {
+   "name": "Marketplace",
+   "code": "MB-CAT-MARKETPL",
+   "sequence": 5
+  },
+  {
+   "name": "Services",
+   "code": "MB-CAT-SERVICES",
+   "sequence": 6
+  },
+  {
+   "name": "Hardware",
+   "code": "MB-CAT-HARDWARE",
+   "sequence": 7
+  }
+ ],
+ "prorationPolicy": {
+  "name": "Mindbody Daily Proration"
+ },
+ "sellingModels": [
+  {
+   "name": "Evergreen Monthly",
+   "type": "Evergreen",
+   "pricingTerm": 1,
+   "pricingTermUnit": "Months"
+  },
+  {
+   "name": "Term 12 Months",
+   "type": "TermDefined",
+   "pricingTerm": 1,
+   "pricingTermUnit": "Months",
+   "termMonths": 12
+  },
+  {
+   "name": "Term 24 Months",
+   "type": "TermDefined",
+   "pricingTerm": 1,
+   "pricingTermUnit": "Months",
+   "termMonths": 24
+  },
+  {
+   "name": "Term 36 Months",
+   "type": "TermDefined",
+   "pricingTerm": 1,
+   "pricingTermUnit": "Months",
+   "termMonths": 36
+  },
+  {
+   "name": "One-Time",
+   "type": "OneTime"
+  }
+ ],
+ "products": [
+  {
+   "code": "MB-STR",
+   "name": "Starter",
+   "productType": "Recurring",
+   "category": "Subscriptions",
+   "sellingModels": [
+    "Evergreen Monthly",
+    "Term 12 Months",
+    "Term 24 Months",
+    "Term 36 Months"
+   ],
+   "unit": "per location / month",
+   "description": "Starter tier – per location per month (published price $79).",
+   "prices": {
+    "USD": 79,
+    "GBP": 69,
+    "AUD": 129,
+    "EUR": 75
+   },
+   "billingFrequencies": "Monthly;Annual",
+   "bundle": true,
+   "configurable": false
+  },
+  {
+   "code": "MB-ACC",
+   "name": "Accelerate",
+   "productType": "Recurring",
+   "category": "Subscriptions",
+   "sellingModels": [
+    "Term 12 Months",
+    "Term 24 Months",
+    "Term 36 Months"
+   ],
+   "unit": "per location / month",
+   "description": "Accelerate tier – per location per month.",
+   "prices": {
+    "USD": 269,
+    "GBP": 229,
+    "AUD": 429,
+    "EUR": 249
+   },
+   "billingFrequencies": "Monthly;Quarterly;Semiannual;Annual",
+   "bundle": true,
+   "configurable": true
+  },
+  {
+   "code": "MB-ULT",
+   "name": "Ultimate",
+   "productType": "Recurring",
+   "category": "Subscriptions",
+   "sellingModels": [
+    "Term 12 Months",
+    "Term 24 Months",
+    "Term 36 Months"
+   ],
+   "unit": "per location / month",
+   "description": "Ultimate tier – per location per month; includes 1,000 texts per location per month.",
+   "prices": {
+    "USD": 499,
+    "GBP": 429,
+    "AUD": 799,
+    "EUR": 459
+   },
+   "billingFrequencies": "Monthly;Quarterly;Semiannual;Annual",
+   "bundle": true,
+   "configurable": true
+  },
+  {
+   "code": "MB-ENT",
+   "name": "Enterprise",
+   "productType": "Recurring",
+   "category": "Subscriptions",
+   "sellingModels": [
+    "Term 24 Months",
+    "Term 36 Months"
+   ],
+   "unit": "per location / month",
+   "description": "Enterprise / multi-location plan – price comes from the master price agreement.",
+   "prices": {
+    "USD": 0,
+    "GBP": 0,
+    "AUD": 0,
+    "EUR": 0
+   },
+   "billingFrequencies": "Monthly;Quarterly;Semiannual;Annual",
+   "bundle": true,
+   "configurable": true
+  },
+  {
+   "code": "MB-AIC",
+   "name": "AI Concierge add-on",
+   "productType": "Recurring",
+   "category": "Add-ons",
+   "sellingModels": [
+    "Evergreen Monthly",
+    "Term 12 Months",
+    "Term 24 Months",
+    "Term 36 Months"
+   ],
+   "unit": "per location / month",
+   "description": "AI Concierge add-on – co-termed to the tier; quantity equals the tier's locations.",
+   "prices": {
+    "USD": 150,
+    "GBP": 131,
+    "AUD": 240,
+    "EUR": 140
+   },
+   "billingFrequencies": "Monthly;Quarterly;Semiannual;Annual",
+   "soldOnlyWithOthers": true
+  },
+  {
+   "code": "MB-APP",
+   "name": "Branded app",
+   "productType": "Recurring",
+   "category": "Add-ons",
+   "sellingModels": [
+    "Evergreen Monthly",
+    "Term 12 Months",
+    "Term 24 Months",
+    "Term 36 Months"
+   ],
+   "unit": "per brand / month",
+   "description": "Branded app – one per brand, on the top account's line group.",
+   "prices": {
+    "USD": 199,
+    "GBP": 173,
+    "AUD": 318,
+    "EUR": 185
+   },
+   "billingFrequencies": "Monthly;Quarterly;Semiannual;Annual",
+   "soldOnlyWithOthers": true
+  },
+  {
+   "code": "MB-APP-SET",
+   "name": "Branded app setup",
+   "productType": "Professional Services",
+   "category": "Add-ons",
+   "sellingModels": [
+    "One-Time"
+   ],
+   "unit": "per brand",
+   "description": "One-time Branded app setup fee, added once per brand (CR-08).",
+   "prices": {
+    "USD": 1500,
+    "GBP": 1305,
+    "AUD": 2400,
+    "EUR": 1395
+   }
+  },
+  {
+   "code": "MB-TAM",
+   "name": "Technical Account Management",
+   "productType": "Recurring",
+   "category": "Services",
+   "sellingModels": [
+    "Term 12 Months"
+   ],
+   "unit": "per account / month",
+   "description": "Technical Account Management – 12-month term.",
+   "prices": {
+    "USD": 1000,
+    "GBP": 870,
+    "AUD": 1600,
+    "EUR": 930
+   },
+   "billingFrequencies": "Monthly;Quarterly;Semiannual;Annual"
+  },
+  {
+   "code": "MB-IMP",
+   "name": "Premium implementation",
+   "productType": "Professional Services",
+   "category": "Services",
+   "sellingModels": [
+    "One-Time"
+   ],
+   "unit": "per account",
+   "description": "Premium implementation – one-time.",
+   "prices": {
+    "USD": 2500,
+    "GBP": 2175,
+    "AUD": 4000,
+    "EUR": 2325
+   }
+  },
+  {
+   "code": "MB-DCV",
+   "name": "Custom data conversion",
+   "productType": "Professional Services",
+   "category": "Services",
+   "sellingModels": [
+    "One-Time"
+   ],
+   "unit": "per source system",
+   "description": "Custom data conversion – priced per source system.",
+   "prices": {
+    "USD": 750,
+    "GBP": 653,
+    "AUD": 1200,
+    "EUR": 698
+   }
+  },
+  {
+   "code": "MB-CON",
+   "name": "One-on-one consulting",
+   "productType": "Professional Services",
+   "category": "Services",
+   "sellingModels": [
+    "One-Time"
+   ],
+   "unit": "per hour",
+   "description": "One-on-one consulting – rate x hours.",
+   "prices": {
+    "USD": 150,
+    "GBP": 131,
+    "AUD": 240,
+    "EUR": 140
+   }
+  },
+  {
+   "code": "MB-HW-RDR",
+   "name": "Mobile card reader",
+   "productType": "Hardware",
+   "category": "Hardware",
+   "sellingModels": [
+    "One-Time"
+   ],
+   "unit": "each",
+   "description": "Mobile card reader – shipped from the ERP, never provisioned.",
+   "prices": {
+    "USD": 299,
+    "GBP": 260,
+    "AUD": 478,
+    "EUR": 278
+   }
+  },
+  {
+   "code": "MB-HW-TRM",
+   "name": "Countertop payment terminal",
+   "productType": "Hardware",
+   "category": "Hardware",
+   "sellingModels": [
+    "One-Time"
+   ],
+   "unit": "each",
+   "description": "Countertop payment terminal – shipped from the ERP.",
+   "prices": {
+    "USD": 499,
+    "GBP": 434,
+    "AUD": 798,
+    "EUR": 464
+   }
+  },
+  {
+   "code": "MB-HW-DOOR",
+   "name": "Door access kit",
+   "productType": "Hardware",
+   "category": "Hardware",
+   "sellingModels": [
+    "One-Time"
+   ],
+   "unit": "each",
+   "description": "Door access kit – shipped from the ERP.",
+   "prices": {
+    "USD": 1200,
+    "GBP": 1044,
+    "AUD": 1920,
+    "EUR": 1116
+   }
+  },
+  {
+   "code": "MB-PAY",
+   "name": "Mindbody Payments",
+   "productType": "Usage",
+   "category": "Payments",
+   "sellingModels": [
+    "Evergreen Monthly"
+   ],
+   "unit": "per transaction",
+   "description": "Payment processing – rated monthly from the contract's rate card; no list price on the quote.",
+   "prices": {
+    "USD": 0,
+    "GBP": 0,
+    "AUD": 0,
+    "EUR": 0
+   }
+  },
+  {
+   "code": "MB-MKT",
+   "name": "Marketplace new-client fee",
+   "productType": "Usage",
+   "category": "Marketplace",
+   "sellingModels": [
+    "Evergreen Monthly"
+   ],
+   "unit": "per first purchase",
+   "description": "Marketplace fee – 20% of a new client's first purchase, capped at $30.",
+   "prices": {
+    "USD": 0,
+    "GBP": 0,
+    "AUD": 0,
+    "EUR": 0
+   }
+  },
+  {
+   "code": "MB-SMS",
+   "name": "SMS overage",
+   "productType": "Usage",
+   "category": "Messaging",
+   "sellingModels": [
+    "Evergreen Monthly"
+   ],
+   "unit": "per text beyond allowance",
+   "description": "SMS beyond the included allowance – $0.008 per text, rated monthly.",
+   "prices": {
+    "USD": 0,
+    "GBP": 0,
+    "AUD": 0,
+    "EUR": 0
+   }
+  }
+ ],
+ "features": [
+  {
+   "code": "MB-F-BM",
+   "name": "Business Management",
+   "productType": "Recurring",
+   "sellingModels": [
+    "Evergreen Monthly",
+    "Term 12 Months",
+    "Term 24 Months",
+    "Term 36 Months"
+   ],
+   "unit": "per location / month",
+   "description": "Included feature component (Business Management) – $0, not sold on its own.",
+   "prices": {
+    "USD": 0,
+    "GBP": 0,
+    "AUD": 0,
+    "EUR": 0
+   },
+   "feature": true,
+   "soldOnlyWithOthers": true
+  },
+  {
+   "code": "MB-F-APPL",
+   "name": "Mindbody App Listing",
+   "productType": "Recurring",
+   "sellingModels": [
+    "Evergreen Monthly",
+    "Term 12 Months",
+    "Term 24 Months",
+    "Term 36 Months"
+   ],
+   "unit": "per location / month",
+   "description": "Included feature component (Mindbody App Listing) – $0, not sold on its own.",
+   "prices": {
+    "USD": 0,
+    "GBP": 0,
+    "AUD": 0,
+    "EUR": 0
+   },
+   "feature": true,
+   "soldOnlyWithOthers": true
+  },
+  {
+   "code": "MB-F-POS",
+   "name": "POS and Online Payments",
+   "productType": "Recurring",
+   "sellingModels": [
+    "Evergreen Monthly",
+    "Term 12 Months",
+    "Term 24 Months",
+    "Term 36 Months"
+   ],
+   "unit": "per location / month",
+   "description": "Included feature component (POS and Online Payments) – $0, not sold on its own.",
+   "prices": {
+    "USD": 0,
+    "GBP": 0,
+    "AUD": 0,
+    "EUR": 0
+   },
+   "feature": true,
+   "soldOnlyWithOthers": true
+  },
+  {
+   "code": "MB-F-WEB",
+   "name": "Branded Web Widgets",
+   "productType": "Recurring",
+   "sellingModels": [
+    "Evergreen Monthly",
+    "Term 12 Months",
+    "Term 24 Months",
+    "Term 36 Months"
+   ],
+   "unit": "per location / month",
+   "description": "Included feature component (Branded Web Widgets) – $0, not sold on its own.",
+   "prices": {
+    "USD": 0,
+    "GBP": 0,
+    "AUD": 0,
+    "EUR": 0
+   },
+   "feature": true,
+   "soldOnlyWithOthers": true
+  },
+  {
+   "code": "MB-F-RES",
+   "name": "Resource Management",
+   "productType": "Recurring",
+   "sellingModels": [
+    "Evergreen Monthly",
+    "Term 12 Months",
+    "Term 24 Months",
+    "Term 36 Months"
+   ],
+   "unit": "per location / month",
+   "description": "Included feature component (Resource Management) – $0, not sold on its own.",
+   "prices": {
+    "USD": 0,
+    "GBP": 0,
+    "AUD": 0,
+    "EUR": 0
+   },
+   "feature": true,
+   "soldOnlyWithOthers": true
+  },
+  {
+   "code": "MB-F-PAS",
+   "name": "Pick-a-Spot",
+   "productType": "Recurring",
+   "sellingModels": [
+    "Evergreen Monthly",
+    "Term 12 Months",
+    "Term 24 Months",
+    "Term 36 Months"
+   ],
+   "unit": "per location / month",
+   "description": "Included feature component (Pick-a-Spot) – $0, not sold on its own.",
+   "prices": {
+    "USD": 0,
+    "GBP": 0,
+    "AUD": 0,
+    "EUR": 0
+   },
+   "feature": true,
+   "soldOnlyWithOthers": true
+  },
+  {
+   "code": "MB-F-REP",
+   "name": "Advanced Reporting",
+   "productType": "Recurring",
+   "sellingModels": [
+    "Evergreen Monthly",
+    "Term 12 Months",
+    "Term 24 Months",
+    "Term 36 Months"
+   ],
+   "unit": "per location / month",
+   "description": "Included feature component (Advanced Reporting) – $0, not sold on its own.",
+   "prices": {
+    "USD": 0,
+    "GBP": 0,
+    "AUD": 0,
+    "EUR": 0
+   },
+   "feature": true,
+   "soldOnlyWithOthers": true
+  },
+  {
+   "code": "MB-F-PROMO",
+   "name": "Promo Codes",
+   "productType": "Recurring",
+   "sellingModels": [
+    "Evergreen Monthly",
+    "Term 12 Months",
+    "Term 24 Months",
+    "Term 36 Months"
+   ],
+   "unit": "per location / month",
+   "description": "Included feature component (Promo Codes) – $0, not sold on its own.",
+   "prices": {
+    "USD": 0,
+    "GBP": 0,
+    "AUD": 0,
+    "EUR": 0
+   },
+   "feature": true,
+   "soldOnlyWithOthers": true
+  },
+  {
+   "code": "MB-F-MKTG",
+   "name": "Email and SMS Marketing",
+   "productType": "Recurring",
+   "sellingModels": [
+    "Evergreen Monthly",
+    "Term 12 Months",
+    "Term 24 Months",
+    "Term 36 Months"
+   ],
+   "unit": "per location / month",
+   "description": "Included feature component (Email and SMS Marketing) – $0, not sold on its own.",
+   "prices": {
+    "USD": 0,
+    "GBP": 0,
+    "AUD": 0,
+    "EUR": 0
+   },
+   "feature": true,
+   "soldOnlyWithOthers": true
+  },
+  {
+   "code": "MB-F-LEAD",
+   "name": "Lead Management",
+   "productType": "Recurring",
+   "sellingModels": [
+    "Evergreen Monthly",
+    "Term 12 Months",
+    "Term 24 Months",
+    "Term 36 Months"
+   ],
+   "unit": "per location / month",
+   "description": "Included feature component (Lead Management) – $0, not sold on its own.",
+   "prices": {
+    "USD": 0,
+    "GBP": 0,
+    "AUD": 0,
+    "EUR": 0
+   },
+   "feature": true,
+   "soldOnlyWithOthers": true
+  },
+  {
+   "code": "MB-F-AIC",
+   "name": "AI Concierge",
+   "productType": "Recurring",
+   "sellingModels": [
+    "Evergreen Monthly",
+    "Term 12 Months",
+    "Term 24 Months",
+    "Term 36 Months"
+   ],
+   "unit": "per location / month",
+   "description": "Included feature component (AI Concierge) – $0, not sold on its own.",
+   "prices": {
+    "USD": 0,
+    "GBP": 0,
+    "AUD": 0,
+    "EUR": 0
+   },
+   "feature": true,
+   "soldOnlyWithOthers": true
+  },
+  {
+   "code": "MB-F-CDB",
+   "name": "Corporate Dashboard",
+   "productType": "Recurring",
+   "sellingModels": [
+    "Evergreen Monthly",
+    "Term 12 Months",
+    "Term 24 Months",
+    "Term 36 Months"
+   ],
+   "unit": "per location / month",
+   "description": "Included feature component (Corporate Dashboard) – $0, not sold on its own.",
+   "prices": {
+    "USD": 0,
+    "GBP": 0,
+    "AUD": 0,
+    "EUR": 0
+   },
+   "feature": true,
+   "soldOnlyWithOthers": true
+  }
+ ],
+ "bundles": {
+  "MB-STR": [
+   {
+    "name": "Included Features",
+    "components": [
+     {
+      "code": "MB-F-BM",
+      "required": true,
+      "default": true,
+      "scale": "Proportional"
+     },
+     {
+      "code": "MB-F-APPL",
+      "required": true,
+      "default": true,
+      "scale": "Proportional"
+     },
+     {
+      "code": "MB-F-POS",
+      "required": true,
+      "default": true,
+      "scale": "Proportional"
+     },
+     {
+      "code": "MB-F-WEB",
+      "required": true,
+      "default": true,
+      "scale": "Proportional"
+     }
+    ]
+   }
+  ],
+  "MB-ACC": [
+   {
+    "name": "Included Features",
+    "components": [
+     {
+      "code": "MB-F-BM",
+      "required": true,
+      "default": true,
+      "scale": "Proportional"
+     },
+     {
+      "code": "MB-F-APPL",
+      "required": true,
+      "default": true,
+      "scale": "Proportional"
+     },
+     {
+      "code": "MB-F-POS",
+      "required": true,
+      "default": true,
+      "scale": "Proportional"
+     },
+     {
+      "code": "MB-F-WEB",
+      "required": true,
+      "default": true,
+      "scale": "Proportional"
+     },
+     {
+      "code": "MB-F-RES",
+      "required": true,
+      "default": true,
+      "scale": "Proportional"
+     },
+     {
+      "code": "MB-F-PAS",
+      "required": true,
+      "default": true,
+      "scale": "Proportional"
+     },
+     {
+      "code": "MB-F-REP",
+      "required": true,
+      "default": true,
+      "scale": "Proportional"
+     },
+     {
+      "code": "MB-F-PROMO",
+      "required": true,
+      "default": true,
+      "scale": "Proportional"
+     }
+    ]
+   },
+   {
+    "name": "Add-ons",
+    "min": 0,
+    "max": 2,
+    "components": [
+     {
+      "code": "MB-AIC",
+      "required": false,
+      "default": false,
+      "scale": "Proportional"
+     },
+     {
+      "code": "MB-APP",
+      "required": false,
+      "default": false,
+      "scale": "Constant"
+     }
+    ]
+   }
+  ],
+  "MB-ULT": [
+   {
+    "name": "Included Features",
+    "components": [
+     {
+      "code": "MB-F-BM",
+      "required": true,
+      "default": true,
+      "scale": "Proportional"
+     },
+     {
+      "code": "MB-F-APPL",
+      "required": true,
+      "default": true,
+      "scale": "Proportional"
+     },
+     {
+      "code": "MB-F-POS",
+      "required": true,
+      "default": true,
+      "scale": "Proportional"
+     },
+     {
+      "code": "MB-F-WEB",
+      "required": true,
+      "default": true,
+      "scale": "Proportional"
+     },
+     {
+      "code": "MB-F-RES",
+      "required": true,
+      "default": true,
+      "scale": "Proportional"
+     },
+     {
+      "code": "MB-F-PAS",
+      "required": true,
+      "default": true,
+      "scale": "Proportional"
+     },
+     {
+      "code": "MB-F-REP",
+      "required": true,
+      "default": true,
+      "scale": "Proportional"
+     },
+     {
+      "code": "MB-F-PROMO",
+      "required": true,
+      "default": true,
+      "scale": "Proportional"
+     },
+     {
+      "code": "MB-F-MKTG",
+      "required": true,
+      "default": true,
+      "scale": "Proportional"
+     },
+     {
+      "code": "MB-F-LEAD",
+      "required": true,
+      "default": true,
+      "scale": "Proportional"
+     },
+     {
+      "code": "MB-F-AIC",
+      "required": true,
+      "default": true,
+      "scale": "Proportional"
+     }
+    ]
+   },
+   {
+    "name": "Add-ons",
+    "min": 0,
+    "max": 1,
+    "components": [
+     {
+      "code": "MB-APP",
+      "required": false,
+      "default": false,
+      "scale": "Constant"
+     }
+    ]
+   }
+  ],
+  "MB-ENT": [
+   {
+    "name": "Negotiated Features",
+    "components": [
+     {
+      "code": "MB-F-BM",
+      "required": false,
+      "default": true,
+      "scale": "Proportional"
+     },
+     {
+      "code": "MB-F-APPL",
+      "required": false,
+      "default": true,
+      "scale": "Proportional"
+     },
+     {
+      "code": "MB-F-POS",
+      "required": false,
+      "default": true,
+      "scale": "Proportional"
+     },
+     {
+      "code": "MB-F-WEB",
+      "required": false,
+      "default": true,
+      "scale": "Proportional"
+     },
+     {
+      "code": "MB-F-RES",
+      "required": false,
+      "default": true,
+      "scale": "Proportional"
+     },
+     {
+      "code": "MB-F-PAS",
+      "required": false,
+      "default": true,
+      "scale": "Proportional"
+     },
+     {
+      "code": "MB-F-REP",
+      "required": false,
+      "default": true,
+      "scale": "Proportional"
+     },
+     {
+      "code": "MB-F-PROMO",
+      "required": false,
+      "default": true,
+      "scale": "Proportional"
+     },
+     {
+      "code": "MB-F-MKTG",
+      "required": false,
+      "default": true,
+      "scale": "Proportional"
+     },
+     {
+      "code": "MB-F-LEAD",
+      "required": false,
+      "default": true,
+      "scale": "Proportional"
+     },
+     {
+      "code": "MB-F-AIC",
+      "required": false,
+      "default": true,
+      "scale": "Proportional"
+     },
+     {
+      "code": "MB-F-CDB",
+      "required": false,
+      "default": true,
+      "scale": "Proportional"
+     }
+    ]
+   },
+   {
+    "name": "Add-ons",
+    "min": 0,
+    "max": 1,
+    "components": [
+     {
+      "code": "MB-APP",
+      "required": false,
+      "default": false,
+      "scale": "Constant"
+     }
+    ]
+   }
+  ]
+ },
+ "attributes": [
+  {
+   "name": "Vertical",
+   "code": "MB_Vertical",
+   "type": "Picklist",
+   "values": [
+    "Fitness",
+    "Wellness",
+    "Beauty"
+   ],
+   "usedBy": "Guided selling, quote template"
+  },
+  {
+   "name": "Region",
+   "code": "MB_Region",
+   "type": "Picklist",
+   "values": [
+    "NA",
+    "UK",
+    "AU",
+    "EU"
+   ],
+   "usedBy": "Price book, CR-14, CR-15"
+  },
+  {
+   "name": "Location Count",
+   "code": "MB_Location_Count",
+   "type": "Number",
+   "usedBy": "RLP-01, volume schedule, CR-12"
+  },
+  {
+   "name": "Prior System",
+   "code": "MB_Prior_System",
+   "type": "Picklist",
+   "values": [
+    "None",
+    "WellnessLiving",
+    "Vagaro",
+    "Glofox",
+    "Other"
+   ],
+   "usedBy": "CR-11, SWITCH50"
+  },
+  {
+   "name": "Payments Opted In",
+   "code": "MB_Payments_Opted_In",
+   "type": "Picklist",
+   "values": [
+    "Yes",
+    "No"
+   ],
+   "usedBy": "CR-09, LAUNCH3, rate cards"
+  },
+  {
+   "name": "Branded App Platform",
+   "code": "MB_Branded_App_Platform",
+   "type": "Picklist",
+   "values": [
+    "iOS",
+    "Android",
+    "Both"
+   ],
+   "usedBy": "MB-APP fulfillment"
+  },
+  {
+   "name": "SMS Allowance",
+   "code": "MB_SMS_Allowance",
+   "type": "Number",
+   "usedBy": "CR-03, RLP-05"
+  },
+  {
+   "name": "Card Present",
+   "code": "MB_Card_Present",
+   "type": "Picklist",
+   "values": [
+    "Yes",
+    "No"
+   ],
+   "usedBy": "Payments rating"
+  }
+ ],
+ "productAttributes": [
+  {
+   "product": "MB-STR",
+   "attribute": "Vertical"
+  },
+  {
+   "product": "MB-STR",
+   "attribute": "Region"
+  },
+  {
+   "product": "MB-STR",
+   "attribute": "Location Count"
+  },
+  {
+   "product": "MB-STR",
+   "attribute": "Prior System",
+   "default": "None"
+  },
+  {
+   "product": "MB-STR",
+   "attribute": "Payments Opted In",
+   "default": "No"
+  },
+  {
+   "product": "MB-ACC",
+   "attribute": "Vertical"
+  },
+  {
+   "product": "MB-ACC",
+   "attribute": "Region"
+  },
+  {
+   "product": "MB-ACC",
+   "attribute": "Location Count"
+  },
+  {
+   "product": "MB-ACC",
+   "attribute": "Prior System",
+   "default": "None"
+  },
+  {
+   "product": "MB-ACC",
+   "attribute": "Payments Opted In",
+   "default": "No"
+  },
+  {
+   "product": "MB-ULT",
+   "attribute": "Vertical"
+  },
+  {
+   "product": "MB-ULT",
+   "attribute": "Region"
+  },
+  {
+   "product": "MB-ULT",
+   "attribute": "Location Count"
+  },
+  {
+   "product": "MB-ULT",
+   "attribute": "Prior System",
+   "default": "None"
+  },
+  {
+   "product": "MB-ULT",
+   "attribute": "Payments Opted In",
+   "default": "No"
+  },
+  {
+   "product": "MB-ENT",
+   "attribute": "Vertical"
+  },
+  {
+   "product": "MB-ENT",
+   "attribute": "Region"
+  },
+  {
+   "product": "MB-ENT",
+   "attribute": "Location Count"
+  },
+  {
+   "product": "MB-ENT",
+   "attribute": "Prior System",
+   "default": "None"
+  },
+  {
+   "product": "MB-ENT",
+   "attribute": "Payments Opted In",
+   "default": "No"
+  },
+  {
+   "product": "MB-ULT",
+   "attribute": "SMS Allowance",
+   "default": "1000"
+  },
+  {
+   "product": "MB-APP",
+   "attribute": "Branded App Platform",
+   "default": "Both"
+  },
+  {
+   "product": "MB-PAY",
+   "attribute": "Card Present",
+   "default": "Yes"
+  },
+  {
+   "product": "MB-HW-RDR",
+   "attribute": "Region"
+  },
+  {
+   "product": "MB-HW-TRM",
+   "attribute": "Region"
+  },
+  {
+   "product": "MB-HW-DOOR",
+   "attribute": "Region"
+  }
+ ],
+ "priceBooks": [
+  {
+   "name": "North America & Asia (USD)",
+   "currency": "USD"
+  },
+  {
+   "name": "UK (GBP)",
+   "currency": "GBP"
+  },
+  {
+   "name": "AU (AUD)",
+   "currency": "AUD"
+  },
+  {
+   "name": "EU (EUR)",
+   "currency": "EUR"
+  }
+ ],
+ "accounts": [
+  {
+   "name": "Sunrise Yoga",
+   "level": "Corporate",
+   "payer": "Self-Pay",
+   "parent": null,
+   "currency": "USD",
+   "address": {
+    "street": "120 Ocean Ave",
+    "city": "Santa Cruz",
+    "state": "California",
+    "postalCode": "95060",
+    "country": "United States"
+   },
+   "segment": "SMB",
+   "vertical": "Fitness"
+  },
+  {
+   "name": "Halo Spa Collective",
+   "level": "Corporate",
+   "payer": "Self-Pay",
+   "parent": null,
+   "currency": "USD",
+   "address": {
+    "street": "400 Market St",
+    "city": "San Francisco",
+    "state": "California",
+    "postalCode": "94105",
+    "country": "United States"
+   },
+   "segment": "Mid-market",
+   "vertical": "Wellness"
+  },
+  {
+   "name": "Halo Spa Union Square",
+   "level": "Location",
+   "payer": "Parent-Pay",
+   "parent": "Halo Spa Collective",
+   "currency": "USD",
+   "address": {
+    "street": "10 Main St",
+    "city": "San Francisco",
+    "state": "California",
+    "postalCode": "94108",
+    "country": "United States"
+   },
+   "segment": "Mid-market",
+   "vertical": "Wellness"
+  },
+  {
+   "name": "Halo Spa Mission",
+   "level": "Location",
+   "payer": "Parent-Pay",
+   "parent": "Halo Spa Collective",
+   "currency": "USD",
+   "address": {
+    "street": "11 Main St",
+    "city": "San Francisco",
+    "state": "California",
+    "postalCode": "94110",
+    "country": "United States"
+   },
+   "segment": "Mid-market",
+   "vertical": "Wellness"
+  },
+  {
+   "name": "Halo Spa Oakland",
+   "level": "Location",
+   "payer": "Parent-Pay",
+   "parent": "Halo Spa Collective",
+   "currency": "USD",
+   "address": {
+    "street": "12 Main St",
+    "city": "Oakland",
+    "state": "California",
+    "postalCode": "94612",
+    "country": "United States"
+   },
+   "segment": "Mid-market",
+   "vertical": "Wellness"
+  },
+  {
+   "name": "Halo Spa Berkeley",
+   "level": "Location",
+   "payer": "Parent-Pay",
+   "parent": "Halo Spa Collective",
+   "currency": "USD",
+   "address": {
+    "street": "13 Main St",
+    "city": "Berkeley",
+    "state": "California",
+    "postalCode": "94704",
+    "country": "United States"
+   },
+   "segment": "Mid-market",
+   "vertical": "Wellness"
+  },
+  {
+   "name": "Halo Spa Palo Alto",
+   "level": "Location",
+   "payer": "Parent-Pay",
+   "parent": "Halo Spa Collective",
+   "currency": "USD",
+   "address": {
+    "street": "14 Main St",
+    "city": "Palo Alto",
+    "state": "California",
+    "postalCode": "94301",
+    "country": "United States"
+   },
+   "segment": "Mid-market",
+   "vertical": "Wellness"
+  },
+  {
+   "name": "Halo Spa San Jose",
+   "level": "Location",
+   "payer": "Parent-Pay",
+   "parent": "Halo Spa Collective",
+   "currency": "USD",
+   "address": {
+    "street": "15 Main St",
+    "city": "San Jose",
+    "state": "California",
+    "postalCode": "95113",
+    "country": "United States"
+   },
+   "segment": "Mid-market",
+   "vertical": "Wellness"
+  },
+  {
+   "name": "Pulse Fitness Brands",
+   "level": "Corporate",
+   "payer": "Self-Pay",
+   "parent": null,
+   "currency": "USD",
+   "address": {
+    "street": "1 Pulse Plaza",
+    "city": "Irvine",
+    "state": "California",
+    "postalCode": "92618",
+    "country": "United States"
+   },
+   "segment": "Enterprise",
+   "vertical": "Fitness"
+  },
+  {
+   "name": "Pulse West",
+   "level": "Region",
+   "payer": "Parent-Pay",
+   "parent": "Pulse Fitness Brands",
+   "currency": "USD",
+   "address": null,
+   "segment": "Enterprise",
+   "vertical": "Fitness"
+  },
+  {
+   "name": "Pulse East",
+   "level": "Region",
+   "payer": "Parent-Pay",
+   "parent": "Pulse Fitness Brands",
+   "currency": "USD",
+   "address": null,
+   "segment": "Enterprise",
+   "vertical": "Fitness"
+  },
+  {
+   "name": "Coastal Fitness LLC",
+   "level": "Franchisee",
+   "payer": "Self-Pay",
+   "parent": "Pulse West",
+   "currency": "USD",
+   "address": {
+    "street": "88 Main St",
+    "city": "Santa Monica",
+    "state": "California",
+    "postalCode": "90401",
+    "country": "United States"
+   },
+   "segment": "Enterprise",
+   "vertical": "Fitness"
+  },
+  {
+   "name": "Harbor Fitness Group",
+   "level": "Franchisee",
+   "payer": "Self-Pay",
+   "parent": "Pulse East",
+   "currency": "USD",
+   "address": {
+    "street": "200 Boylston St",
+    "city": "Boston",
+    "state": "Massachusetts",
+    "postalCode": "02116",
+    "country": "United States"
+   },
+   "segment": "Enterprise",
+   "vertical": "Fitness"
+  },
+  {
+   "name": "Pulse Irvine",
+   "level": "Location",
+   "payer": "Parent-Pay",
+   "parent": "Pulse West",
+   "currency": "USD",
+   "address": {
+    "street": "15 Spectrum Center Dr",
+    "city": "Irvine",
+    "state": "California",
+    "postalCode": "92618",
+    "country": "United States"
+   },
+   "segment": "Enterprise",
+   "vertical": "Fitness"
+  },
+  {
+   "name": "Pulse Costa Mesa",
+   "level": "Location",
+   "payer": "Parent-Pay",
+   "parent": "Pulse West",
+   "currency": "USD",
+   "address": {
+    "street": "3333 Bristol St",
+    "city": "Costa Mesa",
+    "state": "California",
+    "postalCode": "92626",
+    "country": "United States"
+   },
+   "segment": "Enterprise",
+   "vertical": "Fitness"
+  },
+  {
+   "name": "Pulse Santa Monica",
+   "level": "Location",
+   "payer": "Parent-Pay",
+   "parent": "Coastal Fitness LLC",
+   "currency": "USD",
+   "address": {
+    "street": "1450 Ocean Ave",
+    "city": "Santa Monica",
+    "state": "California",
+    "postalCode": "90401",
+    "country": "United States"
+   },
+   "segment": "Enterprise",
+   "vertical": "Fitness"
+  },
+  {
+   "name": "Pulse Venice",
+   "level": "Location",
+   "payer": "Self-Pay",
+   "parent": "Coastal Fitness LLC",
+   "currency": "USD",
+   "address": {
+    "street": "1200 Abbot Kinney Blvd",
+    "city": "Venice",
+    "state": "California",
+    "postalCode": "90291",
+    "country": "United States"
+   },
+   "segment": "Enterprise",
+   "vertical": "Fitness"
+  },
+  {
+   "name": "Pulse Marina del Rey",
+   "level": "Location",
+   "payer": "Parent-Pay",
+   "parent": "Coastal Fitness LLC",
+   "currency": "USD",
+   "address": {
+    "street": "4700 Admiralty Way",
+    "city": "Marina del Rey",
+    "state": "California",
+    "postalCode": "90292",
+    "country": "United States"
+   },
+   "segment": "Enterprise",
+   "vertical": "Fitness"
+  },
+  {
+   "name": "Pulse Brooklyn",
+   "level": "Location",
+   "payer": "Parent-Pay",
+   "parent": "Pulse East",
+   "currency": "USD",
+   "address": {
+    "street": "100 Atlantic Ave",
+    "city": "Brooklyn",
+    "state": "New York",
+    "postalCode": "11201",
+    "country": "United States"
+   },
+   "segment": "Enterprise",
+   "vertical": "Fitness"
+  },
+  {
+   "name": "Pulse Hoboken",
+   "level": "Location",
+   "payer": "Parent-Pay",
+   "parent": "Pulse East",
+   "currency": "USD",
+   "address": {
+    "street": "50 Washington St",
+    "city": "Hoboken",
+    "state": "New Jersey",
+    "postalCode": "07030",
+    "country": "United States"
+   },
+   "segment": "Enterprise",
+   "vertical": "Fitness"
+  },
+  {
+   "name": "Pulse Stamford",
+   "level": "Location",
+   "payer": "Parent-Pay",
+   "parent": "Pulse East",
+   "currency": "USD",
+   "address": {
+    "street": "300 Atlantic St",
+    "city": "Stamford",
+    "state": "Connecticut",
+    "postalCode": "06901",
+    "country": "United States"
+   },
+   "segment": "Enterprise",
+   "vertical": "Fitness"
+  },
+  {
+   "name": "Pulse Back Bay",
+   "level": "Location",
+   "payer": "Parent-Pay",
+   "parent": "Harbor Fitness Group",
+   "currency": "USD",
+   "address": {
+    "street": "500 Boylston St",
+    "city": "Boston",
+    "state": "Massachusetts",
+    "postalCode": "02116",
+    "country": "United States"
+   },
+   "segment": "Enterprise",
+   "vertical": "Fitness"
+  },
+  {
+   "name": "Pulse Cambridge",
+   "level": "Location",
+   "payer": "Parent-Pay",
+   "parent": "Harbor Fitness Group",
+   "currency": "USD",
+   "address": {
+    "street": "20 Brattle St",
+    "city": "Cambridge",
+    "state": "Massachusetts",
+    "postalCode": "02138",
+    "country": "United States"
+   },
+   "segment": "Enterprise",
+   "vertical": "Fitness"
+  },
+  {
+   "name": "Pulse Somerville",
+   "level": "Location",
+   "payer": "Parent-Pay",
+   "parent": "Harbor Fitness Group",
+   "currency": "USD",
+   "address": {
+    "street": "90 Holland St",
+    "city": "Somerville",
+    "state": "Massachusetts",
+    "postalCode": "02144",
+    "country": "United States"
+   },
+   "segment": "Enterprise",
+   "vertical": "Fitness"
+  },
+  {
+   "name": "Pulse Quincy",
+   "level": "Location",
+   "payer": "Parent-Pay",
+   "parent": "Harbor Fitness Group",
+   "currency": "USD",
+   "address": {
+    "street": "1500 Hancock St",
+    "city": "Quincy",
+    "state": "Massachusetts",
+    "postalCode": "02169",
+    "country": "United States"
+   },
+   "segment": "Enterprise",
+   "vertical": "Fitness"
+  },
+  {
+   "name": "Reformer Lab Pty",
+   "level": "Corporate",
+   "payer": "Self-Pay",
+   "parent": null,
+   "currency": "AUD",
+   "address": {
+    "street": "1 George St",
+    "city": "Sydney",
+    "state": "New South Wales",
+    "postalCode": "2000",
+    "country": "Australia"
+   },
+   "segment": "Mid-market",
+   "vertical": "Fitness"
+  },
+  {
+   "name": "Reformer Lab Bondi",
+   "level": "Location",
+   "payer": "Parent-Pay",
+   "parent": "Reformer Lab Pty",
+   "currency": "AUD",
+   "address": {
+    "street": "10 Studio Ln",
+    "city": "Bondi",
+    "state": "New South Wales",
+    "postalCode": "2026",
+    "country": "Australia"
+   },
+   "segment": "Mid-market",
+   "vertical": "Fitness"
+  },
+  {
+   "name": "Reformer Lab Surry Hills",
+   "level": "Location",
+   "payer": "Parent-Pay",
+   "parent": "Reformer Lab Pty",
+   "currency": "AUD",
+   "address": {
+    "street": "10 Studio Ln",
+    "city": "Surry Hills",
+    "state": "New South Wales",
+    "postalCode": "2010",
+    "country": "Australia"
+   },
+   "segment": "Mid-market",
+   "vertical": "Fitness"
+  },
+  {
+   "name": "Reformer Lab Fitzroy",
+   "level": "Location",
+   "payer": "Parent-Pay",
+   "parent": "Reformer Lab Pty",
+   "currency": "AUD",
+   "address": {
+    "street": "10 Studio Ln",
+    "city": "Fitzroy",
+    "state": "Victoria",
+    "postalCode": "3065",
+    "country": "Australia"
+   },
+   "segment": "Mid-market",
+   "vertical": "Fitness"
+  },
+  {
+   "name": "Reformer Lab South Yarra",
+   "level": "Location",
+   "payer": "Parent-Pay",
+   "parent": "Reformer Lab Pty",
+   "currency": "AUD",
+   "address": {
+    "street": "10 Studio Ln",
+    "city": "South Yarra",
+    "state": "Victoria",
+    "postalCode": "3141",
+    "country": "Australia"
+   },
+   "segment": "Mid-market",
+   "vertical": "Fitness"
+  }
+ ]
+}

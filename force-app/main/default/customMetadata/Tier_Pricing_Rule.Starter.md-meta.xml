@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomMetadata xmlns="http://soap.sforce.com/2006/04/metadata" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+    <label>Starter</label>
+    <protected>false</protected>
+    <values>
+        <field>Product_Code__c</field>
+        <value xsi:type="xsd:string">MB-STR</value>
+    </values>
+    <values>
+        <field>Floor_Price__c</field>
+        <value xsi:type="xsd:double">59</value>
+    </values>
+    <values>
+        <field>Auto_Approve_Percent__c</field>
+        <value xsi:type="xsd:double">10</value>
+    </values>
+</CustomMetadata>

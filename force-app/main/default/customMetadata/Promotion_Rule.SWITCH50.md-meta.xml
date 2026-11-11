@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomMetadata xmlns="http://soap.sforce.com/2006/04/metadata" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+    <label>SWITCH50</label>
+    <protected>false</protected>
+    <values>
+        <field>Eligible_Products__c</field>
+        <value xsi:type="xsd:string">MB-ACC;MB-ULT</value>
+    </values>
+    <values>
+        <field>Offer__c</field>
+        <value xsi:type="xsd:string">50% off months 1 to 6</value>
+    </values>
+    <values>
+        <field>Promo_Price__c</field>
+        <value xsi:nil="true"/>
+    </values>
+    <values>
+        <field>Promo_Discount_Percent__c</field>
+        <value xsi:type="xsd:double">50</value>
+    </values>
+    <values>
+        <field>Promo_Months__c</field>
+        <value xsi:type="xsd:double">6</value>
+    </values>
+    <values>
+        <field>Min_Term_Months__c</field>
+        <value xsi:type="xsd:double">24</value>
+    </values>
+    <values>
+        <field>Requires_Payments__c</field>
+        <value xsi:type="xsd:boolean">false</value>
+    </values>
+    <values>
+        <field>Requires_Competitor__c</field>
+        <value xsi:type="xsd:boolean">true</value>
+    </values>
+    <values>
+        <field>Requires_Data_Conversion__c</field>
+        <value xsi:type="xsd:boolean">true</value>
+    </values>
+    <values>
+        <field>New_Logos_Only__c</field>
+        <value xsi:type="xsd:boolean">false</value>
+    </values>
+    <values>
+        <field>Existing_Customers_Only__c</field>
+        <value xsi:type="xsd:boolean">false</value>
+    </values>
+</CustomMetadata>

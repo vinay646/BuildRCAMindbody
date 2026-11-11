@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Payer_Type__c</fullName>
+    <label>Payer Type</label>
+    <description>Self-Pay: the account pays its own charges. Parent-Pay: charges bill to the nearest self-pay ancestor (spec 2.3).</description>
+    <inlineHelpText>Self-Pay: the account pays its own charges. Parent-Pay: charges bill to the nearest self-pay ancestor (spec 2.3).</inlineHelpText>
+    <type>Picklist</type>
+    <required>false</required>
+    <valueSet>
+        <restricted>true</restricted>
+        <valueSetDefinition>
+            <sorted>false</sorted>
+            <value>
+                <fullName>Self-Pay</fullName>
+                <default>true</default>
+                <label>Self-Pay</label>
+            </value>
+            <value>
+                <fullName>Parent-Pay</fullName>
+                <default>false</default>
+                <label>Parent-Pay</label>
+            </value>
+        </valueSetDefinition>
+    </valueSet>
+</CustomField>
