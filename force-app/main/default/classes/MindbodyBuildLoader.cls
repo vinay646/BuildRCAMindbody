@@ -718,8 +718,8 @@ public without sharing class MindbodyBuildLoader {
         return v == null ? new List<Object>() : (List<Object>) v;
     }
 
-    static Map<String, Object> address(Id parentId, String type, String name, Map<String, Object> a) {
-        return new Map<String, Object>{ 'ParentId' => parentId, 'AddressType' => type, 'Name' => name,
+    static Map<String, Object> address(Id parentId, String addressType, String name, Map<String, Object> a) {
+        return new Map<String, Object>{ 'ParentId' => parentId, 'AddressType' => addressType, 'Name' => name,
             'IsPrimary' => true, 'Street' => a.get('street'), 'City' => a.get('city'), 'State' => a.get('state'),
             'PostalCode' => a.get('postalCode'), 'Country' => a.get('country') };
     }
