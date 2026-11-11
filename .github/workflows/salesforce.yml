@@ -25,6 +25,7 @@ on:
           - explore-recipe   # read-only: print the org's pricing recipes and their lookup-table mappings
           - explore-rules    # read-only: print a constraint model (CML) and the product qualification setup
           - cleanup-rule-library  # DELETES the leftover Mindbody_Product_Rules rule library definition
+          - explore-cml  # read-only: CML text of the active QuantumBit models and their product links
           - explore-constraints  # read-only: constraint models (CML), their versions, product links and the CML files
           - explore-rule-api  # read-only: configuration-rule permissions, invocable actions and Connect API resources
           - probe-config-rule  # changes nothing: test-insert a configuration rule and roll it back
@@ -227,6 +228,21 @@ jobs:
             --post-destructive-changes manifest/cleanup-rule-library/destructiveChanges.xml \
             --target-org target --ignore-warnings --wait 30 --json > result.json || true
           ./scripts/deploy-summary.sh result.json "Remove leftover rule library definition"
+
+      - name: Explore CML of existing models
+        if: env.ACTION == 'explore-cml'
+        run: |
+          ./scripts/run-apex.sh scripts/apex/explore_cml_links.apex "QuantumBit Bundle links" || true
+          for v in QuantumBitBundle_V1 Server2_V1; do
+            id=$(sf data query --use-tooling-api --query "SELECT Id FROM ExpressionSetDefinitionVersion WHERE DeveloperName = '$v'" \
+              --target-org target --json | jq -r '.result.records[0].Id')
+            echo "===== CML $v ($id)"
+            sf api request rest "/services/data/v$ORG_API/tooling/sobjects/ExpressionSetDefinitionVersion/$id/ConstraintModel" \
+              --target-org target > cml.txt 2>&1 || true
+            wc -c < cml.txt
+            head -c 12000 cml.txt; echo
+            echo "===== END CML $v"
+          done
 
       - name: Explore constraint models
         if: env.ACTION == 'explore-constraints'
