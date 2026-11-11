@@ -169,8 +169,9 @@
     "EUR": 140
    },
    "billingFrequencies": "Monthly;Quarterly;Semiannual;Annual",
-   "soldOnlyWithOthers": true,
-   "allowedTermMonths": "12;24;36"
+   "soldOnlyWithOthers": false,
+   "allowedTermMonths": "12;24;36",
+   "note": "In the Add-ons category, so not 'sell only with other products' (ARM blocks that combination); tier eligibility is enforced by rules CR-04..CR-07."
   },
   {
    "code": "MB-APP",
@@ -190,8 +191,9 @@
     "EUR": 185
    },
    "billingFrequencies": "Monthly;Quarterly;Semiannual;Annual",
-   "soldOnlyWithOthers": true,
-   "allowedTermMonths": "12;24;36"
+   "soldOnlyWithOthers": false,
+   "allowedTermMonths": "12;24;36",
+   "note": "In the Add-ons category, so not 'sell only with other products' (ARM blocks that combination); tier eligibility is enforced by rules CR-04..CR-07."
   },
   {
    "code": "MB-APP-SET",
