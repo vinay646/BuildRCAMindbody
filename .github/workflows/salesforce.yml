@@ -21,6 +21,7 @@ on:
           - explore-picklists  # read-only: print the standard picklists the build extends
           - cleanup          # DELETES the custom pieces replaced by standard features (manifest/cleanup)
           - ids              # read-only: print record Ids the pricing procedure metadata needs
+          - explore-context  # read-only: print the sales transaction context at the org's API version
       path:
         description: "Deploy / validate only this path (default: all of force-app)"
         required: false
@@ -67,7 +68,10 @@ jobs:
           sf org login sfdx-url --sfdx-url-file authurl.txt --alias target --set-default
           rm -f authurl.txt
           info=$(sf org display --target-org target --json)
-          echo "$info" | jq '{username: .result.username, instanceUrl: .result.instanceUrl}'
+          echo "$info" | jq '{username: .result.username, instanceUrl: .result.instanceUrl, apiVersion: .result.apiVersion}'
+          # use the org's own (latest) API version for every retrieve and deploy: older versions do not know the
+          # newest standard context attributes, and deploying an older shape reads as deleting them
+          echo "ORG_API=$(echo "$info" | jq -r .result.apiVersion)" >> "$GITHUB_ENV"
           {
             echo "## Salesforce build – action: \`$ACTION\`"
             echo
@@ -82,13 +86,13 @@ jobs:
       - name: Validate (check-only deploy)
         if: env.ACTION == 'validate'
         run: |
-          sf project deploy start --dry-run --source-dir "$DEPLOY_PATH" --target-org target --test-level NoTestRun --wait 30 --json > result.json || true
+          sf project deploy start --dry-run --api-version "$ORG_API" --source-dir "$DEPLOY_PATH" --target-org target --test-level NoTestRun --wait 30 --json > result.json || true
           ./scripts/deploy-summary.sh result.json "Validate (check-only)"
 
       - name: Deploy
         if: env.ACTION == 'deploy' || env.ACTION == 'deploy-and-load'
         run: |
-          sf project deploy start --source-dir "$DEPLOY_PATH" --target-org target --wait 30 --json > result.json || true
+          sf project deploy start --api-version "$ORG_API" --source-dir "$DEPLOY_PATH" --target-org target --wait 30 --json > result.json || true
           ./scripts/deploy-summary.sh result.json "Deploy"
           sf org assign permset --name Mindbody_ARM_Build --target-org target || echo "Permission set already assigned"
 
@@ -103,7 +107,7 @@ jobs:
         if: env.ACTION == 'retrieve'
         run: |
           mkdir -p retrieved
-          sf project retrieve start --manifest manifest/pricing-procedure.xml --target-org target \
+          sf project retrieve start --api-version "$ORG_API" --manifest manifest/pricing-procedure.xml --target-org target \
             --target-metadata-dir retrieved --unzip --wait 20 --json > retrieve.json || true
           jq -r '.result.messages // [] | .[] | "WARNING \(.fileName // ""): \(.problem)"' retrieve.json
           files=$(find retrieved -type f ! -name '*.zip' | sort)
@@ -128,7 +132,7 @@ jobs:
         run: |
           ./scripts/run-apex.sh scripts/apex/explore_pricing.apex "Standard pricing objects" || true
           mkdir -p explored
-          sf project retrieve start --manifest manifest/explore-pricing.xml --target-org target \
+          sf project retrieve start --api-version "$ORG_API" --manifest manifest/explore-pricing.xml --target-org target \
             --target-metadata-dir explored --unzip --wait 20 --json > explore.json || true
           jq -r '.result.messages // [] | .[] | "WARNING \(.fileName // ""): \(.problem)"' explore.json
           for f in $(find explored -type f ! -name '*.zip' | sort); do
@@ -165,6 +169,19 @@ jobs:
             --post-destructive-changes manifest/cleanup/destructiveChanges.xml \
             --target-org target --ignore-warnings --wait 30 --json > result.json || true
           ./scripts/deploy-summary.sh result.json "Cleanup (delete replaced custom pieces)"
+
+      - name: Explore sales transaction context
+        if: env.ACTION == 'explore-context'
+        run: |
+          mkdir -p explored
+          sf project retrieve start --api-version "$ORG_API" --metadata ContextDefinition:RLM_SalesTransactionContext \
+            --target-org target --target-metadata-dir explored --unzip --wait 20 --json > explore.json || true
+          echo "API version: $ORG_API"
+          for f in $(find explored -type f -name '*.contextDefinition' | sort); do
+            echo "===== FILE $f"
+            sed -e 's/^[[:space:]]*//' "$f" | grep -v '^<?xml' | tr -d '\r\n'
+            echo
+          done
 
       - name: Show record Ids
         if: env.ACTION == 'ids'
