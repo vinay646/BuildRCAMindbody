@@ -21,9 +21,9 @@ for (String o : new List<String>{ 'ExpressionSetDefinition', 'ExpressionSetDefin
     System.debug(LoggingLevel.ERROR, 'OBJECT ' + o + ' create=' + d.isCreateable() + ' update=' + d.isUpdateable() + ' | ' + String.join(fs, ', '));
 }
 // The org's constraint models
-for (SObject es : Database.query('SELECT Id, Name, ApiName, UsageType, InterfaceSourceType FROM ExpressionSet WHERE InterfaceSourceType = \'Constraint\' LIMIT 20')) {
+for (SObject es : Database.query('SELECT FIELDS(STANDARD) FROM ExpressionSet WHERE InterfaceSourceType = \'Constraint\' LIMIT 20')) {
     System.debug(LoggingLevel.ERROR, 'MODEL ' + es);
-    for (SObject v : Database.query('SELECT Id, Name, VersionNumber, IsActive, StartDate FROM ExpressionSetVersion WHERE ExpressionSetId = \'' + es.Id + '\'')) {
+    for (SObject v : Database.query('SELECT FIELDS(STANDARD) FROM ExpressionSetVersion WHERE ExpressionSetId = \'' + es.Id + '\'')) {
         System.debug(LoggingLevel.ERROR, '  VERSION ' + v);
     }
     Map<String, Integer> byType = new Map<String, Integer>();
