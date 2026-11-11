@@ -1,5 +1,11 @@
 #!/usr/bin/env python3
-"""Builds the Mindbody pricing procedure and context change from the org's standard ones (reference/).
+"""Adds the Mindbody pricing steps to the org's default pricing procedure and builds the context change
+(from the org's own files in reference/).
+
+Why the existing procedure is updated instead of a new one: in ExploremoreRCA, creating a NEW pricing procedure
+fails - by deploy and by Setup > Clone alike - with "Ensure that the lookup table in the ListPrice step is valid",
+even after Sync Pricing Data, while an update of the existing procedure deploys. Mindbody's tiers only exist for
+Mindbody products, so other products priced by this procedure are not affected.
 
 Standard steps only. Changes to the standard procedure:
   * Volume Discount step: schedule = Mindbody Hierarchy Volume; tier bounds read the line's
@@ -18,8 +24,8 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent.parent
 REF = ROOT / "reference"
 OUT = ROOT / "force-app/main/default"
-NAME, LABEL = "Mindbody_Recurring_Pricing_Procedure", "Mindbody Recurring Pricing Procedure"
 STD = "RLM_DefaultPricingProcedure"
+NAME = STD  # updated in place (see module docstring)
 VOLUME_STEP = "Calculatenetunitpriceandnettotalpriceaftervolumebaseddiscount"
 VOLUME_GROUP = "Applyvolumebaseddiscountstolineswithoutcontractorlasttrxnpricing"
 # Left out: index-based price revision (consumer price index). Not in the Mindbody spec – renewal uplift (LCM-13)
@@ -121,23 +127,14 @@ def build_procedure(volume_id, term_id, frequency_id):
             sys.exit("cloned step lost its parent group")
     s = s.replace(vol, "".join(new_steps), 1)
 
-    s = drop_group(s, DROP_GROUP)
-
-    # rename definition and version
-    s = s.replace(f"<expressionSetDefinition>{STD}</expressionSetDefinition>", f"<expressionSetDefinition>{NAME}</expressionSetDefinition>")
-    s = s.replace(f"<fullName>{STD}_V1</fullName>", f"<fullName>{NAME}_V1</fullName>")
-    s = s.replace("<label>RLM Revenue Management Default Pricing Procedure</label>", f"<label>{LABEL}</label>")
     s = s.replace("<description>Revenue Management Default Pricing Procedure</description>",
-                  "<description>Mindbody pricing (spec 12.2): standard default procedure plus hierarchy volume, "
-                  "contract term and billing frequency discounts on standard price adjustment schedules.</description>")
+                  "<description>Revenue Management Default Pricing Procedure + Mindbody hierarchy volume, contract term and "
+                  "billing frequency discounts on standard price adjustment schedules (spec 12.2).</description>", 1)
     # schedule constants
     consts = (constant("MbHierarchyVolumePASId", volume_id, "Mindbody Hierarchy Volume schedule")
               + constant("MbContractTermPASId", term_id, "Mindbody Contract Term schedule")
               + constant("MbBillingFrequencyPASId", frequency_id, "Mindbody Billing Frequency schedule"))
     s = s.replace("<variables>", consts + "<variables>", 1)
-    if s.count(f"<name>{NAME}") and STD in s.replace("RLM_DefaultPricingDiscoveryProcedure", ""):
-        leftovers = [m.start() for m in re.finditer(STD, s)]
-        sys.exit(f"standard name still referenced at {leftovers[:5]}")
     path = OUT / "expressionSetDefinition" / f"{NAME}.expressionSetDefinition-meta.xml"
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(XML_HEAD + s + "\n")

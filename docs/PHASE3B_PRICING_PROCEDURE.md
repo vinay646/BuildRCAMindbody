@@ -40,24 +40,29 @@ needs it (RLP-01).
 
 ## Steps 1–4 – built as metadata (no Setup clicks)
 
-`scripts/build_pricing_procedure.py` builds both pieces from the org's standard ones (`reference/`) and they deploy
-with the rest of `force-app`:
+`scripts/build_pricing_procedure.py` builds both pieces from the org's own files (`reference/`, retrieved at the
+org's API version 68.0) and they deploy with the rest of `force-app`:
 
-| Metadata | What changed vs. standard |
+| Metadata | What changed |
 |---|---|
-| `expressionSetDefinition/Mindbody_Recurring_Pricing_Procedure` | Copy of *RLM Revenue Management Default Pricing Procedure*. Its Volume Discount step now uses schedule **Mindbody Hierarchy Volume** with tier bounds = `MbVolumeLocationCount`; two copies of that standard step follow it: **Mindbody Contract Term** (bounds = standard `ItemSubscriptionTerm`) and **Mindbody Billing Frequency** (bounds = `MbBillingPeriodMonths`). Everything else is the standard procedure, except the index-based (CPI) price revision step, which is left out: not in the spec (renewal uplift uses the standard Uplift step) and the metadata API rejects its parameters. |
-| `contextDefinitions/RLM_SalesTransactionContext` | The org's context plus two line attributes, `MbVolumeLocationCount` and `MbBillingPeriodMonths`, hydrated from quote line fields – added the same way the org's own `RLM_Distributor_Unit_Price__c` is |
+| `expressionSetDefinition/RLM_DefaultPricingProcedure` | The org's default procedure, **updated in place**. Its standard Volume Discount step now uses schedule **Mindbody Hierarchy Volume** with tier bounds = `MbVolumeLocationCount`; two copies of that standard step follow it: **Mindbody Contract Term** (bounds = standard `ItemSubscriptionTerm`) and **Mindbody Billing Frequency** (bounds = `MbBillingPeriodMonths`). All other steps unchanged. |
+| `contextDefinitions/RLM_SalesTransactionContext` | Two line attributes, `MbVolumeLocationCount` and `MbBillingPeriodMonths`, hydrated from quote line fields – added the same way as the org's own `RLM_Distributor_Unit_Price__c` |
 | Quote line `Volume_Location_Count__c` (formula) | Quote's Hierarchy Location Count + the line's quantity. Custom because no standard field holds the hierarchy count |
 | Quote line `Billing_Period_Months__c` (formula) | Monthly 1, Quarterly 3, Semi-Annual 6, Annual 12. Custom because tiers need a number and Billing Frequency is text |
 
-Schedule Ids come from the `ids` action; for another org: `explore` → replace `reference/` files → `ids` →
-`python3 scripts/build_pricing_procedure.py VOLUME_ID TERM_ID FREQUENCY_ID`.
+**Why the default procedure is updated instead of a separate Mindbody procedure:** in ExploremoreRCA, creating a
+*new* pricing procedure fails – by deploy and by Setup → Clone alike, also after *Sync Pricing Data* – with
+"Ensure that the lookup table in the ListPrice step is valid", while an update of the existing procedure deploys.
+Other products are not affected: the term and frequency tiers exist only for Mindbody products, and the volume step
+previously pointed at the standard *Price Adjustment Tier* schedule, which was inactive with no tiers.
+After a Salesforce upgrade of the default procedure: `explore-context` → replace `reference/` → re-run the script.
 
-Known limit: the volume count adds **this line's** quantity, not the sum of all core-tier lines on the quote. Quoting
-several locations on one line (CFG-04 single-line mode) is exact; one line group per location counts only that line.
+Schedule Ids come from the `ids` action: `python3 scripts/build_pricing_procedure.py VOLUME_ID TERM_ID FREQUENCY_ID`.
 
-**One Setup step stays manual:** Revenue Settings → default pricing procedure = **Mindbody Recurring Pricing
-Procedure** (it is an org setting, not part of the procedure).
+Known limit: the volume count adds **this line's** quantity, not the sum of all core-tier lines on the quote.
+
+**After every pricing data load** (`pricebooks`, `pricingschedules`): Setup → Salesforce Pricing Setup → **Sync
+Pricing Data**, so quotes see the new prices and tiers.
 
 ## Step 5 – Promotions
 

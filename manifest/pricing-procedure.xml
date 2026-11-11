@@ -2,11 +2,11 @@
 <!-- What the 'retrieve' action pulls after docs/PHASE3B_PRICING_PROCEDURE.md. -->
 <Package xmlns="http://soap.sforce.com/2006/04/metadata">
     <types>
-        <members>Mindbody_Recurring_Pricing_Procedure</members>
+        <members>RLM_DefaultPricingProcedure</members>
         <name>ExpressionSetDefinition</name>
     </types>
     <types>
-        <members>Mindbody_Sales_Transaction_Context</members>
+        <members>RLM_SalesTransactionContext</members>
         <name>ContextDefinition</name>
     </types>
     <version>68.0</version>
