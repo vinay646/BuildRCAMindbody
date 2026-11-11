@@ -43,3 +43,36 @@ if (gd.containsKey('productconfigurationrule')) {
         System.debug(LoggingLevel.ERROR, 'CONFIGRULE-DEFINITION ' + String.valueOf(r.get('ConfigurationRuleDefinition')).replaceAll('[\\r\\n]+', ' '));
     }
 }
+// Rule libraries behind Configuration Rules (Business Rules Engine) and the running user's rule-related permissions
+for (String o : new List<String>{ 'RuleLibrary', 'RuleLibraryVersion', 'RuleLibraryDefinition', 'BusinessRuleLibrary' }) {
+    if (!gd.containsKey(o.toLowerCase())) {
+        System.debug(LoggingLevel.ERROR, 'OBJECT ' + o + ': not available');
+        continue;
+    }
+    Map<String, Schema.SObjectField> f = gd.get(o.toLowerCase()).getDescribe().fields.getMap();
+    List<String> cols = new List<String>();
+    for (String k : f.keySet()) {
+        Schema.DescribeFieldResult d = f.get(k).getDescribe();
+        if (!d.isCustom() && !k.endsWith('byid') && k != 'systemmodstamp' && k != 'isdeleted'
+                && d.getType() != Schema.DisplayType.TEXTAREA && d.getType() != Schema.DisplayType.BASE64) {
+            cols.add(d.getName());
+        }
+    }
+    System.debug(LoggingLevel.ERROR, 'OBJECT ' + o + ' fields: ' + String.join(cols, ', '));
+    for (SObject r : Database.query('SELECT ' + String.join(cols, ', ') + ' FROM ' + o + ' LIMIT 50')) {
+        System.debug(LoggingLevel.ERROR, '  ' + o + ': ' + r);
+    }
+}
+for (PermissionSetAssignment a : [SELECT PermissionSet.Name, PermissionSet.Label FROM PermissionSetAssignment
+        WHERE AssigneeId = :UserInfo.getUserId() ORDER BY PermissionSet.Label]) {
+    System.debug(LoggingLevel.ERROR, 'MY PERMSET ' + a.PermissionSet.Label + ' (' + a.PermissionSet.Name + ')');
+}
+for (PermissionSet p : [SELECT Name, Label FROM PermissionSet WHERE IsOwnedByProfile = false
+        AND (Label LIKE '%Rule%' OR Label LIKE '%Configurat%' OR Label LIKE '%Business Rules%' OR Name LIKE '%Rule%')
+        ORDER BY Label LIMIT 50]) {
+    System.debug(LoggingLevel.ERROR, 'RULE PERMSET AVAILABLE ' + p.Label + ' (' + p.Name + ')');
+}
+for (PermissionSetLicense l : [SELECT MasterLabel, DeveloperName, Status, TotalLicenses, UsedLicenses FROM PermissionSetLicense
+        WHERE MasterLabel LIKE '%Rule%' OR MasterLabel LIKE '%Revenue%' OR MasterLabel LIKE '%Configur%' LIMIT 30]) {
+    System.debug(LoggingLevel.ERROR, 'PSL ' + l.MasterLabel + ' (' + l.DeveloperName + ') ' + l.Status + ' ' + l.UsedLicenses + '/' + l.TotalLicenses);
+}
