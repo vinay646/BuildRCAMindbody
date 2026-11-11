@@ -30,7 +30,7 @@ product links (`ExpressionSetConstraintObj`, loader step `constraints`).
 
 ## Steps
 
-1. **Setup → Constraint Models → New** (Revenue Cloud): Name `Mindbody Plans`, API name `MindbodyPlans`,
+1. **Setup → Constraint Models → New** (Revenue Cloud): Name `Mindbody Plans`, API name `Mindbody_Plans` (Setup adds the underscore),
    context definition `RLM_SalesTransactionContext` (same as the QuantumBit models). Save.
 2. Open the version, switch to the **CML editor**, paste the whole of `cml/MindbodyPlans.cml`, **Save**.
    Do not activate yet.

@@ -343,12 +343,24 @@ public without sharing class MindbodyBuildLoader {
         for (Object o : listOf('constraintModels')) {
             Map<String, Object> m = (Map<String, Object>) o;
             String apiName = (String) m.get('apiName');
-            List<SObject> sets = Database.query('SELECT Id FROM ExpressionSet WHERE ApiName = :apiName LIMIT 1');
-            if (sets.isEmpty()) {
-                fail('Constraint model ' + apiName + ' not found – create it in Setup > Constraint Models (paste cml/' + apiName + '.cml), then run this step again');
+            // match on API name or label, ignoring case, spaces and underscores (Setup may add an underscore)
+            String want = apiName.replaceAll('[\\s_]', '').toLowerCase();
+            Id setId = null;
+            List<String> seen = new List<String>();
+            for (SObject es : Database.query('SELECT Id, Name, ApiName FROM ExpressionSet WHERE InterfaceSourceType = \'Constraint\'')) {
+                seen.add(es.get('Name') + ' (' + es.get('ApiName') + ')');
+                for (String k : new List<String>{ 'ApiName', 'Name' }) {
+                    String v = (String) es.get(k);
+                    if (v != null && v.replaceAll('[\\s_]', '').toLowerCase() == want) {
+                        setId = es.Id;
+                    }
+                }
+            }
+            if (setId == null) {
+                fail('Constraint model ' + apiName + ' not found – constraint models in the org: ' + String.join(seen, ', '));
                 continue;
             }
-            Id setId = sets[0].Id;
+            info('Constraint model ' + apiName + ' = ' + setId);
             List<Map<String, Object>> rows = new List<Map<String, Object>>();
             Map<String, Object> types = (Map<String, Object>) m.get('types');
             for (String tag : types.keySet()) {

@@ -1768,7 +1768,7 @@
  },
  "constraintModels": [
   {
-   "apiName": "MindbodyPlans",
+   "apiName": "Mindbody_Plans",
    "note": "Created in Setup > Constraint Models (CML from cml/MindbodyPlans.cml); the loader adds the product links.",
    "types": {
     "Starter": "MB-STR",
