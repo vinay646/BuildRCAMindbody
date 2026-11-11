@@ -286,9 +286,11 @@ public without sharing class MindbodyBuildLoader {
                         'ProductComponentGroupId' => grpRec == null ? null : grpRec.Id,
                         'ProductRelationshipTypeId' => relType,
                         'IsComponentRequired' => required, 'IsDefaultComponent' => comp.get('default') == true,
-                        'Quantity' => 1, 'MinQuantity' => required ? 1 : 0, 'MaxQuantity' => comp.get('scale') == 'Constant' ? 1 : null,
-                        'QuantityScaleMethod' => comp.get('scale'), 'DoesBundlePriceIncludeChild' => required,
-                        'IsQuantityEditable' => !required, 'Sequence' => seq++ });
+                        // Quantities are never edited by reps: included features and AI Concierge follow the
+                        // tier's location count (Proportional, CR-06), Branded app stays at 1 (Constant, CR-07).
+                        // ARM only accepts Min/MaxQuantity when IsQuantityEditable is true, so they are not set.
+                        'Quantity' => 1, 'QuantityScaleMethod' => comp.get('scale'),
+                        'DoesBundlePriceIncludeChild' => required, 'IsQuantityEditable' => false, 'Sequence' => seq++ });
                 }
             }
         }
@@ -756,7 +758,7 @@ public without sharing class MindbodyBuildLoader {
                 ok++;
             } else {
                 bad++;
-                fail(obj + ' [' + insertKeys[i] + '] insert failed: ' + messages(ins[i].getErrors()));
+                fail(obj + ' [' + insertKeys[i].replace('|', ' / ') + '] insert failed: ' + messages(ins[i].getErrors()));
             }
         }
         Integer upd = 0;
@@ -766,7 +768,7 @@ public without sharing class MindbodyBuildLoader {
                 upd++;
             } else {
                 bad++;
-                fail(obj + ' [' + updateKeys[i] + '] update failed: ' + messages(ups[i].getErrors()));
+                fail(obj + ' [' + updateKeys[i].replace('|', ' / ') + '] update failed: ' + messages(ups[i].getErrors()));
             }
         }
         info(obj + ': ' + ok + ' created, ' + upd + ' updated, ' + (rows.size() - ok - upd - bad) + ' unchanged, ' + bad + ' failed');
