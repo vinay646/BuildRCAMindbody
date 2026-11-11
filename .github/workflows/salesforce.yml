@@ -22,6 +22,7 @@ on:
           - cleanup          # DELETES the custom pieces replaced by standard features (manifest/cleanup)
           - ids              # read-only: print record Ids the pricing procedure metadata needs
           - explore-context  # read-only: print the sales transaction context at the org's API version
+          - explore-recipe   # read-only: print the org's pricing recipes and their lookup-table mappings
       path:
         description: "Deploy / validate only this path (default: all of force-app)"
         required: false
@@ -178,6 +179,20 @@ jobs:
             --target-org target --target-metadata-dir explored --unzip --wait 20 --json > explore.json || true
           echo "API version: $ORG_API"
           for f in $(find explored -type f \( -name '*.contextDefinition' -o -name '*.expressionSetDefinition' \) | sort); do
+            echo "===== FILE $f"
+            sed -e 's/^[[:space:]]*//' "$f" | grep -v '^<?xml' | tr -d '\r\n'
+            echo
+          done
+
+      - name: Explore pricing recipes
+        if: env.ACTION == 'explore-recipe'
+        run: |
+          ./scripts/run-apex.sh scripts/apex/explore_recipe.apex "Pricing recipes" || true
+          mkdir -p explored
+          sf project retrieve start --api-version "$ORG_API" --metadata PricingRecipe \
+            --target-org target --target-metadata-dir explored --unzip --wait 20 --json > explore.json || true
+          jq -r '.result.messages // [] | .[] | "WARNING \(.fileName // ""): \(.problem)"' explore.json
+          for f in $(find explored -type f ! -name '*.zip' ! -name 'package.xml' | sort); do
             echo "===== FILE $f"
             sed -e 's/^[[:space:]]*//' "$f" | grep -v '^<?xml' | tr -d '\r\n'
             echo
