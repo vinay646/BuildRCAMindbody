@@ -38,6 +38,14 @@ needs it (RLP-01).
    line discount fields, Product Type / Unit Of Sale / Core Tier / Vertical fields, the pricing Apex). Run it
    only after steps 1–4 succeeded.
 
+## Status (11 Nov 2026)
+
+**Blocked by the org:** no pricing procedure can be saved in ExploremoreRCA – Setup Clone, builder Save and Metadata
+API deploy all fail with "Ensure that the lookup table in the ListPrice step is valid" (details and reproduction:
+[SUPPORT_CASE_PRICING_PROCEDURE.md](SUPPORT_CASE_PRICING_PROCEDURE.md)). Everything else for phase 3 is in the org:
+schedules and tiers, floor price book, promotions and coupons, quote line inputs, context attributes. The procedure
+change below is ready in `force-app` and deploys once Salesforce fixes the lookup validation.
+
 ## Steps 1–4 – built as metadata (no Setup clicks)
 
 `scripts/build_pricing_procedure.py` builds both pieces from the org's own files (`reference/`, retrieved at the
