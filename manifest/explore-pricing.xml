@@ -23,5 +23,11 @@
         <members>RLM_SalesTransactionContext</members>
         <name>ContextDefinition</name>
     </types>
+    <types>
+        <members>Product2Family</members>
+        <members>Industry</members>
+        <members>QuantityUnitOfMeasure</members>
+        <name>StandardValueSet</name>
+    </types>
     <version>64.0</version>
 </Package>
