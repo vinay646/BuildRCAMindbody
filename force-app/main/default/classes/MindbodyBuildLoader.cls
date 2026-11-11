@@ -632,13 +632,18 @@ public without sharing class MindbodyBuildLoader {
         }
         Set<String> names = wanted.keySet();
         List<SObject> toDelete = new List<SObject>();
-        for (SObject sc : Database.query('SELECT Id, Name, ScheduleType, (SELECT Id FROM PriceAdjustmentTiers LIMIT 1)'
-                + ' FROM PriceAdjustmentSchedule WHERE Name IN :names')) {
+        List<SObject> existing = Database.query('SELECT Id, Name, ScheduleType FROM PriceAdjustmentSchedule WHERE Name IN :names');
+        Set<Id> ids = idsOf(existing);
+        Set<Id> withTiers = new Set<Id>();
+        for (SObject t : Database.query('SELECT PriceAdjustmentScheduleId FROM PriceAdjustmentTier WHERE PriceAdjustmentScheduleId IN :ids')) {
+            withTiers.add((Id) t.get('PriceAdjustmentScheduleId'));
+        }
+        for (SObject sc : existing) {
             String n = (String) sc.get('Name');
             if (sc.get('ScheduleType') == wanted.get(n)) {
                 continue;
             }
-            if (sc.getSObjects('PriceAdjustmentTiers') == null || sc.getSObjects('PriceAdjustmentTiers').isEmpty()) {
+            if (!withTiers.contains(sc.Id)) {
                 info('PriceAdjustmentSchedule ' + n + ': type ' + sc.get('ScheduleType') + ' -> ' + wanted.get(n) + ', recreated');
                 toDelete.add(sc);
             } else {
