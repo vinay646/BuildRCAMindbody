@@ -5,7 +5,7 @@
     <description>CR-13 / CAT-07: the line's subscription term must be one the product allows (Product &gt; Allowed Term Months, e.g. Enterprise 24 or 36). Mindbody term-defined lines only.</description>
     <errorConditionFormula>AND(
   BEGINS(Product2.ProductCode, 'MB-'),
-  ISPICKVAL(SellingModelType, 'TermDefined'),
+  ISPICKVAL(ProductSellingModel.SellingModelType, 'TermDefined'),
   NOT(ISBLANK(Product2.Allowed_Term_Months__c)),
   OR(
     ISBLANK(SubscriptionTerm),
