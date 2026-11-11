@@ -71,7 +71,7 @@ jobs:
       - name: Validate (check-only deploy)
         if: env.ACTION == 'validate'
         run: |
-          sf project deploy validate --source-dir force-app --target-org target --test-level NoTestRun --wait 30 --json > result.json || true
+          sf project deploy start --dry-run --source-dir force-app --target-org target --test-level NoTestRun --wait 30 --json > result.json || true
           ./scripts/deploy-summary.sh result.json "Validate (check-only)"
 
       - name: Deploy
