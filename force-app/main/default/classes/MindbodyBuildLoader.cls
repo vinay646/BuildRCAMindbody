@@ -315,7 +315,7 @@ public without sharing class MindbodyBuildLoader {
         for (Object o : listOf('attributes')) {
             Map<String, Object> a = (Map<String, Object>) o;
             if (a.get('type') == 'Picklist') {
-                picklists.add(new Map<String, Object>{ 'Name' => a.get('name') + ' Values', 'DataType' => 'Text',
+                picklists.add(new Map<String, Object>{ 'Name' => a.get('name') + ' Values', 'Code' => a.get('code') + '_VALUES', 'DataType' => 'Text',
                     'Status' => 'Active', 'Description' => 'Values for the ' + a.get('name') + ' attribute' });
             }
         }
@@ -348,23 +348,91 @@ public without sharing class MindbodyBuildLoader {
         Map<String, SObject> attrDefs = sync('AttributeDefinition', new List<String>{ 'Name' }, defs, null, null,
             new Set<String>{ 'DeveloperName', 'DataType', 'PicklistId' });
 
+        // ARM attaches attributes through product classifications: classification -> attributes,
+        // product.BasedOnId -> classification; product-level defaults override the classification's.
         Map<String, SObject> products = byKey('Product2', 'ProductCode', 'ProductCode LIKE \'MB-%\'', null);
+        List<Map<String, Object>> classRows = new List<Map<String, Object>>();
+        for (Object o : listOf('classifications')) {
+            Map<String, Object> c = (Map<String, Object>) o;
+            // created as Draft so attributes can be added, activated below
+            classRows.add(new Map<String, Object>{ 'Name' => c.get('name'), 'Code' => c.get('code'), 'Status' => 'Draft' });
+        }
+        Map<String, SObject> classes = sync('ProductClassification', new List<String>{ 'Name' }, classRows, null, null,
+            new Set<String>{ 'Status' });
+
+        List<Map<String, Object>> classAttrs = new List<Map<String, Object>>();
+        for (Object o : listOf('classifications')) {
+            Map<String, Object> c = (Map<String, Object>) o;
+            SObject cls = classes.get((String) c.get('name'));
+            if (cls == null) {
+                continue;
+            }
+            Integer seq = 1;
+            for (Object ao : (List<Object>) c.get('attributes')) {
+                Map<String, Object> a = (Map<String, Object>) ao;
+                SObject def = attrDefs.get(resolved(renamed, (String) a.get('attribute')));
+                if (def == null) {
+                    fail('Classification ' + c.get('name') + ': attribute ' + a.get('attribute') + ' missing');
+                    continue;
+                }
+                classAttrs.add(new Map<String, Object>{ 'ProductClassificationId' => cls.Id, 'AttributeDefinitionId' => def.Id,
+                    'Name' => a.get('attribute'), 'DefaultValue' => a.get('default'), 'IsRequired' => false,
+                    'Sequence' => seq++, 'Status' => 'Active' });
+            }
+        }
+        Map<String, SObject> pcas = sync('ProductClassificationAttr',
+            new List<String>{ 'ProductClassificationId', 'AttributeDefinitionId' }, classAttrs,
+            'ProductClassificationId IN :ids', new Map<String, Object>{ 'ids' => idsOf(classes.values()) }, null);
+
+        List<Map<String, Object>> activate = new List<Map<String, Object>>();
+        for (String n : classes.keySet()) {
+            activate.add(new Map<String, Object>{ 'Name' => n, 'Status' => 'Active' });
+        }
+        sync('ProductClassification', new List<String>{ 'Name' }, activate, null, null, null);
+
+        // base each product on its classification
+        Schema.SObjectField basedOnField = fields('Product2').get('basedonid');
+        if (basedOnField == null || !basedOnField.getDescribe().isUpdateable()) {
+            fail('Product2.BasedOnId is missing or not editable – set each product\'s classification in the product record by hand');
+        }
+        List<Map<String, Object>> basedOn = new List<Map<String, Object>>();
+        Map<String, Id> classOfProduct = new Map<String, Id>();
+        for (Object o : listOf('classifications')) {
+            Map<String, Object> c = (Map<String, Object>) o;
+            SObject cls = classes.get((String) c.get('name'));
+            for (Object code : (List<Object>) c.get('products')) {
+                if (cls != null && products.containsKey((String) code)) {
+                    basedOn.add(new Map<String, Object>{ 'ProductCode' => code, 'BasedOnId' => cls.Id });
+                    classOfProduct.put((String) code, cls.Id);
+                }
+            }
+        }
+        sync('Product2', new List<String>{ 'ProductCode' }, basedOn, 'ProductCode LIKE \'MB-%\'', null, null);
+
+        // product-level default overrides (e.g. Ultimate SMS allowance 1000)
         List<Map<String, Object>> pads = new List<Map<String, Object>>();
-        Integer seq = 1;
         for (Object o : listOf('productAttributes')) {
             Map<String, Object> pa = (Map<String, Object>) o;
-            SObject prod = products.get((String) pa.get('product'));
-            String attrName = (String) pa.get('attribute');
-            SObject def = attrDefs.get(renamed.containsKey(attrName) ? renamed.get(attrName) : attrName);
-            if (prod == null || def == null) {
-                fail('Product attribute ' + pa.get('product') + ' / ' + pa.get('attribute') + ': product or attribute missing');
+            String code = (String) pa.get('product');
+            String attrName = resolved(renamed, (String) pa.get('attribute'));
+            SObject prod = products.get(code);
+            SObject def = attrDefs.get(attrName);
+            Id clsId = classOfProduct.get(code);
+            SObject pca = (def == null || clsId == null) ? null : pcas.get(String.valueOf(clsId) + '|' + String.valueOf(def.Id));
+            if (prod == null || pca == null) {
+                fail('Product attribute ' + code + ' / ' + pa.get('attribute') + ': product, attribute or classification attribute missing');
                 continue;
             }
             pads.add(new Map<String, Object>{ 'Product2Id' => prod.Id, 'AttributeDefinitionId' => def.Id,
-                'DefaultValue' => pa.get('default'), 'IsRequired' => false, 'Sequence' => seq++, 'Status' => 'Active' });
+                'ProductClassificationAttributeId' => pca.Id, 'Name' => attrName,
+                'DefaultValue' => pa.get('default'), 'IsRequired' => false, 'Status' => 'Active' });
         }
         sync('ProductAttributeDefinition', new List<String>{ 'Product2Id', 'AttributeDefinitionId' }, pads,
             'Product2Id IN :ids', new Map<String, Object>{ 'ids' => idsOf(products.values()) }, null);
+    }
+
+    static String resolved(Map<String, String> renamed, String name) {
+        return renamed.containsKey(name) ? renamed.get(name) : name;
     }
 
     /** Regional price books; one entry per product x currency x selling model, standard price book first. */

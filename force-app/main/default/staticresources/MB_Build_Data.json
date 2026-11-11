@@ -983,119 +983,10 @@
  ],
  "productAttributes": [
   {
-   "product": "MB-STR",
-   "attribute": "Vertical"
-  },
-  {
-   "product": "MB-STR",
-   "attribute": "Region"
-  },
-  {
-   "product": "MB-STR",
-   "attribute": "Location Count"
-  },
-  {
-   "product": "MB-STR",
-   "attribute": "Prior System",
-   "default": "None"
-  },
-  {
-   "product": "MB-STR",
-   "attribute": "Payments Opted In",
-   "default": "No"
-  },
-  {
-   "product": "MB-ACC",
-   "attribute": "Vertical"
-  },
-  {
-   "product": "MB-ACC",
-   "attribute": "Region"
-  },
-  {
-   "product": "MB-ACC",
-   "attribute": "Location Count"
-  },
-  {
-   "product": "MB-ACC",
-   "attribute": "Prior System",
-   "default": "None"
-  },
-  {
-   "product": "MB-ACC",
-   "attribute": "Payments Opted In",
-   "default": "No"
-  },
-  {
-   "product": "MB-ULT",
-   "attribute": "Vertical"
-  },
-  {
-   "product": "MB-ULT",
-   "attribute": "Region"
-  },
-  {
-   "product": "MB-ULT",
-   "attribute": "Location Count"
-  },
-  {
-   "product": "MB-ULT",
-   "attribute": "Prior System",
-   "default": "None"
-  },
-  {
-   "product": "MB-ULT",
-   "attribute": "Payments Opted In",
-   "default": "No"
-  },
-  {
-   "product": "MB-ENT",
-   "attribute": "Vertical"
-  },
-  {
-   "product": "MB-ENT",
-   "attribute": "Region"
-  },
-  {
-   "product": "MB-ENT",
-   "attribute": "Location Count"
-  },
-  {
-   "product": "MB-ENT",
-   "attribute": "Prior System",
-   "default": "None"
-  },
-  {
-   "product": "MB-ENT",
-   "attribute": "Payments Opted In",
-   "default": "No"
-  },
-  {
    "product": "MB-ULT",
    "attribute": "SMS Allowance",
-   "default": "1000"
-  },
-  {
-   "product": "MB-APP",
-   "attribute": "Branded App Platform",
-   "default": "Both"
-  },
-  {
-   "product": "MB-PAY",
-   "attribute": "Card Present",
-   "default": "Yes"
-  },
-  {
-   "product": "MB-HW-RDR",
-   "attribute": "Region"
-  },
-  {
-   "product": "MB-HW-TRM",
-   "attribute": "Region"
-  },
-  {
-   "product": "MB-HW-DOOR",
-   "attribute": "Region"
+   "default": "1000",
+   "note": "CR-03: 1,000 texts per location per month included in Ultimate"
   }
  ],
  "priceBooks": [
@@ -1584,6 +1475,81 @@
    },
    "segment": "Mid-market",
    "vertical": "Fitness"
+  }
+ ],
+ "classifications": [
+  {
+   "name": "Mindbody Subscription Tier",
+   "code": "MB-PC-TIER",
+   "products": [
+    "MB-STR",
+    "MB-ACC",
+    "MB-ULT",
+    "MB-ENT"
+   ],
+   "attributes": [
+    {
+     "attribute": "Vertical"
+    },
+    {
+     "attribute": "Region"
+    },
+    {
+     "attribute": "Location Count"
+    },
+    {
+     "attribute": "Prior System",
+     "default": "None"
+    },
+    {
+     "attribute": "Payments Opted In",
+     "default": "No"
+    },
+    {
+     "attribute": "SMS Allowance",
+     "default": "0"
+    }
+   ]
+  },
+  {
+   "name": "Mindbody Branded App",
+   "code": "MB-PC-APP",
+   "products": [
+    "MB-APP"
+   ],
+   "attributes": [
+    {
+     "attribute": "Branded App Platform",
+     "default": "Both"
+    }
+   ]
+  },
+  {
+   "name": "Mindbody Payments",
+   "code": "MB-PC-PAY",
+   "products": [
+    "MB-PAY"
+   ],
+   "attributes": [
+    {
+     "attribute": "Card Present",
+     "default": "Yes"
+    }
+   ]
+  },
+  {
+   "name": "Mindbody Hardware",
+   "code": "MB-PC-HW",
+   "products": [
+    "MB-HW-RDR",
+    "MB-HW-TRM",
+    "MB-HW-DOOR"
+   ],
+   "attributes": [
+    {
+     "attribute": "Region"
+    }
+   ]
   }
  ]
 }
