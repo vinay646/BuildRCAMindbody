@@ -55,20 +55,30 @@ jobs:
           echo "$SFDX_AUTH_URL" > authurl.txt
           sf org login sfdx-url --sfdx-url-file authurl.txt --alias target --set-default
           rm -f authurl.txt
-          sf org display --target-org target --json | jq '{username: .result.username, instanceUrl: .result.instanceUrl}'
+          info=$(sf org display --target-org target --json)
+          echo "$info" | jq '{username: .result.username, instanceUrl: .result.instanceUrl}'
+          {
+            echo "## Salesforce build – action: \`$ACTION\`"
+            echo
+            echo "Org: $(echo "$info" | jq -r .result.instanceUrl) as $(echo "$info" | jq -r .result.username)"
+            echo
+          } >> "$GITHUB_STEP_SUMMARY"
 
       - name: Phase 0 readiness check
         if: env.ACTION == 'readiness'
-        run: ./scripts/run-apex.sh scripts/apex/00_org_readiness.apex
+        run: ./scripts/run-apex.sh scripts/apex/00_org_readiness.apex "Phase 0 – org readiness"
 
       - name: Validate (check-only deploy)
         if: env.ACTION == 'validate'
-        run: sf project deploy validate --source-dir force-app --target-org target --test-level NoTestRun --wait 30
+        run: |
+          sf project deploy validate --source-dir force-app --target-org target --test-level NoTestRun --wait 30 --json > result.json || true
+          ./scripts/deploy-summary.sh result.json "Validate (check-only)"
 
       - name: Deploy
         if: env.ACTION == 'deploy' || env.ACTION == 'deploy-and-load'
         run: |
-          sf project deploy start --source-dir force-app --target-org target --wait 30
+          sf project deploy start --source-dir force-app --target-org target --wait 30 --json > result.json || true
+          ./scripts/deploy-summary.sh result.json "Deploy"
           sf org assign permset --name Mindbody_ARM_Build --target-org target || echo "Permission set already assigned"
 
       - name: Load one step
