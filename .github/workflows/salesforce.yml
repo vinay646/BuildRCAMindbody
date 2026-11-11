@@ -25,6 +25,7 @@ on:
           - explore-recipe   # read-only: print the org's pricing recipes and their lookup-table mappings
           - explore-rules    # read-only: print a constraint model (CML) and the product qualification setup
           - cleanup-rule-library  # DELETES the leftover Mindbody_Product_Rules rule library definition
+          - explore-rule-api  # read-only: configuration-rule permissions, invocable actions and Connect API resources
           - probe-config-rule  # changes nothing: test-insert a configuration rule and roll it back
       path:
         description: "Deploy / validate only this path – several paths comma-separated (default: all of force-app)"
@@ -225,6 +226,20 @@ jobs:
             --post-destructive-changes manifest/cleanup-rule-library/destructiveChanges.xml \
             --target-org target --ignore-warnings --wait 30 --json > result.json || true
           ./scripts/deploy-summary.sh result.json "Remove leftover rule library definition"
+
+      - name: Explore configuration rule APIs
+        if: env.ACTION == 'explore-rule-api'
+        run: |
+          ./scripts/run-apex.sh scripts/apex/explore_rule_permissions.apex "Configuration rule permissions" || true
+          echo "===== STANDARD INVOCABLE ACTIONS matching rule/configur"
+          sf api request rest "/services/data/v$ORG_API/actions/standard" --target-org target 2>/dev/null \
+            | jq -r '.actions[]? | "\(.name) | \(.label)"' | grep -iE 'rule|configur' || echo "(none)"
+          echo "===== CONNECT RESOURCES (top level)"
+          sf api request rest "/services/data/v$ORG_API/connect" --target-org target 2>/dev/null | jq -c '.' | head -c 6000; echo
+          for path in "connect/cpq/configurator" "connect/cpq" "connect/revenue-management" "connect/business-rules" "connect/product-configurator"; do
+            echo "===== GET /$path"
+            sf api request rest "/services/data/v$ORG_API/$path" --target-org target 2>&1 | tr -d '\n' | head -c 1500; echo
+          done
 
       - name: Probe configuration rule
         if: env.ACTION == 'probe-config-rule'
