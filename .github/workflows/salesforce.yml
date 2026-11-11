@@ -23,6 +23,7 @@ on:
           - ids              # read-only: print record Ids the pricing procedure metadata needs
           - explore-context  # read-only: print the sales transaction context at the org's API version
           - explore-recipe   # read-only: print the org's pricing recipes and their lookup-table mappings
+          - explore-rules    # read-only: print a constraint model (CML) and the product qualification setup
       path:
         description: "Deploy / validate only this path (default: all of force-app)"
         required: false
@@ -190,6 +191,21 @@ jobs:
           ./scripts/run-apex.sh scripts/apex/explore_recipe.apex "Pricing recipes" || true
           mkdir -p explored
           sf project retrieve start --api-version "$ORG_API" --metadata PricingRecipe \
+            --target-org target --target-metadata-dir explored --unzip --wait 20 --json > explore.json || true
+          jq -r '.result.messages // [] | .[] | "WARNING \(.fileName // ""): \(.problem)"' explore.json
+          for f in $(find explored -type f ! -name '*.zip' ! -name 'package.xml' | sort); do
+            echo "===== FILE $f"
+            sed -e 's/^[[:space:]]*//' "$f" | grep -v '^<?xml' | tr -d '\r\n'
+            echo
+          done
+
+      - name: Explore rules setup
+        if: env.ACTION == 'explore-rules'
+        run: |
+          ./scripts/run-apex.sh scripts/apex/explore_rules.apex "Rules setup" || true
+          mkdir -p explored
+          sf project retrieve start --api-version "$ORG_API" --metadata ExpressionSetDefinition:QuantumBitBundle \
+            --metadata ExpressionSetDefinition:Server2 --metadata DecisionTable:RLM_ProductQualification \
             --target-org target --target-metadata-dir explored --unzip --wait 20 --json > explore.json || true
           jq -r '.result.messages // [] | .[] | "WARNING \(.fileName // ""): \(.problem)"' explore.json
           for f in $(find explored -type f ! -name '*.zip' ! -name 'package.xml' | sort); do
