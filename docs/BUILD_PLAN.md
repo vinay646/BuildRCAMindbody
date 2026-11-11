@@ -124,7 +124,7 @@ Built: `Active_Location_Count__c`, `LocationCountService` (Queueable + Schedulab
 Rule for the whole build: **standard ARM / Salesforce features first; anything custom is listed below with the
 reason.** The pricing waterfall (spec 12.2) is built only from standard pieces – see
 [PHASE3B_PRICING_PROCEDURE.md](PHASE3B_PRICING_PROCEDURE.md):
-volume, term and billing-frequency discounts are standard Price Adjustment Schedules (types Volume, Term, Custom)
+volume, term and billing-frequency discounts are standard Price Adjustment Schedules (types Volume and Term)
 with tiers; promotions are standard Promotions with coupon codes; the floor is a standard price book; the
 waterfall shows in ARM's standard price breakdown. Seed data: loader step `pricingschedules`.
 

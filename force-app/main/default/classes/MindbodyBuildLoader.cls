@@ -473,6 +473,7 @@ public without sharing class MindbodyBuildLoader {
                 'AdjustmentMethod' => 'Range', 'IsActive' => false, 'Description' => sc.get('input'),
                 'EffectiveFrom' => Datetime.newInstanceGmt(2026, 1, 1) });
         }
+        replaceSchedulesWithWrongType(schedRows);
         Map<String, SObject> schedules = sync('PriceAdjustmentSchedule', new List<String>{ 'Name' }, schedRows, null, null,
             new Set<String>{ 'ScheduleType' });
 
@@ -617,6 +618,40 @@ public without sharing class MindbodyBuildLoader {
         sync('PromotionTarget', new List<String>{ 'PromotionId', 'TargetId' }, targetRows, 'PromotionId IN :ids', promoScope, null);
         if (hasObject('Coupon')) {
             sync('Coupon', new List<String>{ 'CouponCode' }, couponRows, 'PromotionId IN :ids', promoScope, null);
+        }
+    }
+
+    /**
+     * A schedule's type cannot change after it is created. When the build data asks for another type and the
+     * schedule has no tiers yet, the old schedule is deleted so it can be recreated; otherwise it is reported.
+     */
+    void replaceSchedulesWithWrongType(List<Map<String, Object>> schedRows) {
+        Map<String, String> wanted = new Map<String, String>();
+        for (Map<String, Object> r : schedRows) {
+            wanted.put((String) r.get('Name'), (String) r.get('ScheduleType'));
+        }
+        Set<String> names = wanted.keySet();
+        List<SObject> toDelete = new List<SObject>();
+        for (SObject sc : Database.query('SELECT Id, Name, ScheduleType, (SELECT Id FROM PriceAdjustmentTiers LIMIT 1)'
+                + ' FROM PriceAdjustmentSchedule WHERE Name IN :names')) {
+            String n = (String) sc.get('Name');
+            if (sc.get('ScheduleType') == wanted.get(n)) {
+                continue;
+            }
+            if (sc.getSObjects('PriceAdjustmentTiers') == null || sc.getSObjects('PriceAdjustmentTiers').isEmpty()) {
+                info('PriceAdjustmentSchedule ' + n + ': type ' + sc.get('ScheduleType') + ' -> ' + wanted.get(n) + ', recreated');
+                toDelete.add(sc);
+            } else {
+                fail('PriceAdjustmentSchedule ' + n + ' is type ' + sc.get('ScheduleType') + ' and has tiers; expected '
+                    + wanted.get(n) + ' – delete it in Setup and re-run');
+            }
+        }
+        if (!toDelete.isEmpty()) {
+            for (Database.DeleteResult r : Database.delete(toDelete, false)) {
+                if (!r.isSuccess()) {
+                    fail('PriceAdjustmentSchedule delete failed: ' + messages(r.getErrors()));
+                }
+            }
         }
     }
 

@@ -1648,8 +1648,8 @@
    },
    {
     "name": "Mindbody Billing Frequency",
-    "scheduleType": "Custom",
-    "input": "Months per billing period: Monthly 1, Quarterly 3, Semi-Annual 6, Annual 12 (PRC-06)",
+    "scheduleType": "Volume",
+    "input": "Months per billing period: Monthly 1, Quarterly 3, Semi-Annual 6, Annual 12 (PRC-06). Volume-type schedule because ARM tiers do not accept Custom schedules.",
     "tiers": [
      [
       1,

@@ -15,7 +15,7 @@ pricing objects' fields and picklist values.
 | 2 Contract price (RLP-07) | Contract Item Price – *Contract Pricing Entries* step | per master agreement (phase 6) |
 | 3 Volume by hierarchy locations (PRC-04, RLP-01) | **Price Adjustment Schedule, type Volume** + Volume Discount step | *Mindbody Hierarchy Volume*: 1–3 0%, 4–10 5%, 11–50 10%, 51–200 15%, 201+ 20% |
 | 4 Term (PRC-06) | **Price Adjustment Schedule, type Term** + Volume Discount step | *Mindbody Contract Term*: 0–23 0%, 24–35 5%, 36+ 10% |
-| 5 Billing frequency (PRC-06) | **Price Adjustment Schedule, type Custom** + Volume Discount step | *Mindbody Billing Frequency* (months per period): 1–2 0%, 3–5 2%, 6–11 4%, 12+ 8% |
+| 5 Billing frequency (PRC-06) | **Price Adjustment Schedule, type Volume** (quantity = months per billing period; ARM tiers do not accept type Custom) + Volume Discount step | *Mindbody Billing Frequency* (months per period): 1–2 0%, 3–5 2%, 6–11 4%, 12+ 8% |
 | 6 Promotion (PRC-07) | **Promotions** (Promotion, Promotion Target, Coupon) | LAUNCH3 ($39 fixed price, Starter), SWITCH50 (50%, Accelerate/Ultimate), GROW2 (100%, any tier) |
 | 7 Manual discount | Manual Discount step | – |
 | 8 Floor (PRC-18) | **Price book** *Mindbody Floor Prices* read by a second price-book step | Starter 59, Accelerate 189, Ultimate 339 (USD; GBP/AUD/EUR converted) |
