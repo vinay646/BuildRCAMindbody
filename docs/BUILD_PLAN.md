@@ -146,7 +146,17 @@ of Measure**; Core Tier flag → **classification** *Mindbody Subscription Tier*
 Apex → **Price Adjustment Schedules / Promotions / floor price book**; custom quote line discount fields →
 **standard price waterfall**. The `cleanup` action deletes the replaced custom pieces from the org.
 
-## 6. Existing ExploremoreRCA setup the build reuses
+## Phase 4 – product and configuration rules (in progress)
+
+| Rule | Standard feature | Status |
+|---|---|---|
+| CR-13 billing frequency and contract term allowed per product | Validation rules on Quote Line (`CR_13_Billing_Frequency_Allowed`, `CR_13_Contract_Term_Allowed`) | ✅ deployed |
+| CR-01 – CR-09, CR-18 (tier per location, included features, add-on eligibility, quantities, Branded app setup, hardware needs Payments, downgrade guard) | **Product Configuration Rules** (standard records, loaded by the loader) | Waiting for one example rule built in Setup, to copy the definition format |
+| CR-15 region availability (Capital, Insurance, hardware) | **Product Qualification / Disqualification** | To do |
+| CR-10 promo conditions, CR-11/12 recommendations | Promotions qualifiers / product recommendations | To do |
+| CR-14 Ship-To vs price book region, CR-16 Enterprise needs master contract, CR-17 payer override reason | Validation rules on quote / line group | Phase 5 (needs Ship-To and payer on line groups) |
+
+
 
 From the `inventory` step (the org is Salesforce's QuantumBit demo org: 314 products, 5 catalogs).
 

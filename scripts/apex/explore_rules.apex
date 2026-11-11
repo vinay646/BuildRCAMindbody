@@ -34,3 +34,12 @@ if (gd.containsKey('expressionsetconstraintobj')) {
         System.debug(LoggingLevel.ERROR, '  CONSTRAINTOBJ ' + r);
     }
 }
+// Product Configuration Rules with their stored definition (the format the loader reproduces)
+if (gd.containsKey('productconfigurationrule')) {
+    for (SObject r : Database.query('SELECT Id, Name, ApiName, RuleType, RuleSubType, ProcessScope, Status, Sequence, Description, '
+            + 'ConfigurationRuleDefinition FROM ProductConfigurationRule ORDER BY CreatedDate LIMIT 20')) {
+        System.debug(LoggingLevel.ERROR, 'CONFIGRULE ' + r.get('Name') + ' | ApiName=' + r.get('ApiName') + ' | ' + r.get('RuleType')
+            + '/' + r.get('RuleSubType') + '/' + r.get('ProcessScope') + ' | ' + r.get('Status') + ' | seq ' + r.get('Sequence'));
+        System.debug(LoggingLevel.ERROR, 'CONFIGRULE-DEFINITION ' + String.valueOf(r.get('ConfigurationRuleDefinition')).replaceAll('[\\r\\n]+', ' '));
+    }
+}
