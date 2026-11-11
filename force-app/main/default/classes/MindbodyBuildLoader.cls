@@ -384,11 +384,11 @@ public without sharing class MindbodyBuildLoader {
             new List<String>{ 'ProductClassificationId', 'AttributeDefinitionId' }, classAttrs,
             'ProductClassificationId IN :ids', new Map<String, Object>{ 'ids' => idsOf(classes.values()) }, null);
 
-        List<Map<String, Object>> activate = new List<Map<String, Object>>();
+        List<Map<String, Object>> toActivate = new List<Map<String, Object>>();
         for (String n : classes.keySet()) {
-            activate.add(new Map<String, Object>{ 'Name' => n, 'Status' => 'Active' });
+            toActivate.add(new Map<String, Object>{ 'Name' => n, 'Status' => 'Active' });
         }
-        sync('ProductClassification', new List<String>{ 'Name' }, activate, null, null, null);
+        sync('ProductClassification', new List<String>{ 'Name' }, toActivate, null, null, null);
 
         // base each product on its classification
         Schema.SObjectField basedOnField = fields('Product2').get('basedonid');
