@@ -2,12 +2,12 @@
 <CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
     <fullName>Hierarchy_Location_Count__c</fullName>
     <label>Hierarchy Location Count</label>
-    <description>Active locations across the customer's whole hierarchy (RLP-01) – drives the volume discount band.</description>
-    <inlineHelpText>Active locations across the customer's whole hierarchy (RLP-01) – drives the volume discount band.</inlineHelpText>
+    <description>Active locations across the whole hierarchy of the opportunity's account (RLP-01) – drives the volume discount band. Quotes are created from opportunities (CFG-10).</description>
+    <inlineHelpText>Active locations across the whole hierarchy of the opportunity's account (RLP-01) – drives the volume discount band. Quotes are created from opportunities (CFG-10).</inlineHelpText>
     <type>Number</type>
     <precision>18</precision>
     <scale>0</scale>
-    <formula>BLANKVALUE(Account.Root_Account__r.Active_Location_Count__c, 0)</formula>
+    <formula>BLANKVALUE(Opportunity.Account.Root_Account__r.Active_Location_Count__c, 0)</formula>
     <formulaTreatBlanksAs>BlankAsZero</formulaTreatBlanksAs>
     <unique>false</unique>
     <externalId>false</externalId>
