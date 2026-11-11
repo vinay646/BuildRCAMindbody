@@ -1169,7 +1169,8 @@ public without sharing class MindbodyBuildLoader {
     static String messages(List<Database.Error> errs) {
         List<String> m = new List<String>();
         for (Database.Error e : errs) {
-            m.add(e.getStatusCode() + ': ' + e.getMessage() + (e.getFields().isEmpty() ? '' : ' ' + e.getFields()));
+            // keep multi-line trigger errors on one line so the whole cause reaches the log
+            m.add(e.getStatusCode() + ': ' + e.getMessage().replaceAll('[\\r\\n]+', ' | ') + (e.getFields().isEmpty() ? '' : ' ' + e.getFields()));
         }
         return String.join(m, '; ');
     }
@@ -1206,6 +1207,6 @@ public without sharing class MindbodyBuildLoader {
     }
     void fail(String m) {
         errors++;
-        log.add('  ERROR ' + m);
+        log.add('  ERROR ' + m.replaceAll('[\\r\\n]+', ' | '));
     }
 }
