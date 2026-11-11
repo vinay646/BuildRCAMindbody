@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Promo_End_Date__c</fullName>
+    <label>Promo End Date</label>
+    <description>Last day of the promo price; the price steps up to standard after it (LCM-15, CFG-20).</description>
+    <inlineHelpText>Last day of the promo price; the price steps up to standard after it (LCM-15, CFG-20).</inlineHelpText>
+    <type>Date</type>
+    <required>false</required>
+</CustomField>

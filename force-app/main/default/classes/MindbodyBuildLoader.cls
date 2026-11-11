@@ -657,7 +657,14 @@ public without sharing class MindbodyBuildLoader {
             'Pricebook2' => new List<String>{ 'IsActive', 'IsStandard' },
             'RateCard' => new List<String>{ 'Type' },
             'UsageResource' => new List<String>{ 'Code', 'Status' },
-            'ExpressionSet' => new List<String>{ 'ApiName', 'UsageType' },
+            'ExpressionSet' => new List<String>{ 'ApiName', 'UsageType', 'ContextDefinitionApiName' },
+            'ExpressionSetDefinitionVersion' => new List<String>{ 'DeveloperName', 'Status', 'IsTemplate' },
+            'ContextDefinition' => new List<String>{ 'DeveloperName', 'IsActive' },
+            'DecisionTable' => new List<String>{ 'DeveloperName', 'Status', 'SourceObject', 'UsageType' },
+            'PriceAdjustmentSchedule' => new List<String>{ 'ScheduleType', 'AdjustmentMethodId', 'IsActive', 'CurrencyIsoCode' },
+            'AttributeBasedAdjRule' => new List<String>{ 'IsActive' },
+            'BundleBasedAdjustment' => new List<String>{ 'AdjustmentType', 'AdjustmentValue' },
+            'PricingProcedureResolution' => new List<String>{ 'Priority', 'IsActive' },
             'BillingPolicy' => new List<String>{ 'Status' },
             'BillingTreatment' => new List<String>{ 'Status' },
             'PaymentTerm' => new List<String>{ 'Status' },
@@ -669,15 +676,19 @@ public without sharing class MindbodyBuildLoader {
                 continue;
             }
             Map<String, Schema.SObjectField> f = fields(obj);
-            List<String> cols = new List<String>{ 'Id', f.containsKey('name') ? 'Name' : 'Id' };
+            String labelField = f.containsKey('name') ? 'Name' : (f.containsKey('masterlabel') ? 'MasterLabel'
+                : (f.containsKey('developername') ? 'DeveloperName' : 'Id'));
+            List<String> cols = labelField == 'Id' ? new List<String>{ 'Id' } : new List<String>{ 'Id', labelField };
+            Integer firstExtra = cols.size();
             for (String c : objs.get(obj)) {
-                if (f.containsKey(c.toLowerCase())) {
+                if (f.containsKey(c.toLowerCase()) && !cols.contains(c)) {
                     cols.add(c);
                 }
             }
             List<SObject> rows;
             try {
-                rows = Database.query('SELECT ' + String.join(cols, ', ') + ' FROM ' + obj + ' ORDER BY CreatedDate LIMIT 50');
+                rows = Database.query('SELECT ' + String.join(cols, ', ') + ' FROM ' + obj
+                    + (f.containsKey('createddate') ? ' ORDER BY CreatedDate' : '') + ' LIMIT 50');
             } catch (Exception e) {
                 log.add('  ' + obj + ': could not read – ' + e.getMessage());
                 continue;
@@ -685,10 +696,10 @@ public without sharing class MindbodyBuildLoader {
             log.add('  ' + obj + ': ' + rows.size() + (rows.size() == 50 ? '+' : '') + ' record(s)');
             for (SObject r : rows) {
                 List<String> parts = new List<String>();
-                for (Integer i = 2; i < cols.size(); i++) {
+                for (Integer i = firstExtra; i < cols.size(); i++) {
                     parts.add(cols[i] + '=' + r.get(cols[i]));
                 }
-                log.add('    - ' + r.get('Name') + (parts.isEmpty() ? '' : ' (' + String.join(parts, ', ') + ')'));
+                log.add('    - ' + r.get(labelField) + (parts.isEmpty() ? '' : ' (' + String.join(parts, ', ') + ')'));
             }
         }
         // the ProrationPolicy fields this release offers, so daily proration (BIL-04) can be set right

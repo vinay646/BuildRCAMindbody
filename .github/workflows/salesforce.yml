@@ -15,6 +15,7 @@ on:
           - load             # run one loader step (pick it below)
           - load-all         # run every loader step in order
           - deploy-and-load  # deploy, then every loader step
+          - test             # run the Mindbody Apex tests in the org (read-only for real data)
       step:
         description: "Loader step (for action = load)"
         type: choice
@@ -80,6 +81,13 @@ jobs:
           sf project deploy start --source-dir force-app --target-org target --wait 30 --json > result.json || true
           ./scripts/deploy-summary.sh result.json "Deploy"
           sf org assign permset --name Mindbody_ARM_Build --target-org target || echo "Permission set already assigned"
+
+      - name: Run Apex tests
+        if: env.ACTION == 'test'
+        run: |
+          sf apex run test --target-org target --class-names MindbodyPricingTest --test-level RunSpecifiedTests \
+            --wait 20 --result-format json > tests.json || true
+          ./scripts/test-summary.sh tests.json
 
       - name: Load one step
         if: env.ACTION == 'load'

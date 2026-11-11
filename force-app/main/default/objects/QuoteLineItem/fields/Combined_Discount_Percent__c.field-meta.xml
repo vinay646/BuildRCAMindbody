@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Combined_Discount_Percent__c</fullName>
+    <label>Combined Discount %</label>
+    <description>Total discount from list to net price; compared with the tier's auto-approve limit (12.2).</description>
+    <inlineHelpText>Total discount from list to net price; compared with the tier's auto-approve limit (12.2).</inlineHelpText>
+    <type>Percent</type>
+    <precision>5</precision>
+    <scale>2</scale>
+    <required>false</required>
+</CustomField>

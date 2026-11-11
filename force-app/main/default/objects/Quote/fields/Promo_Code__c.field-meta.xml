@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Promo_Code__c</fullName>
+    <label>Promo Code</label>
+    <description>Promo code entered for the quote; validated per line by the pricing waterfall (CR-10).</description>
+    <inlineHelpText>Promo code entered for the quote; validated per line by the pricing waterfall (CR-10).</inlineHelpText>
+    <type>Text</type>
+    <length>40</length>
+    <required>false</required>
+    <unique>false</unique>
+    <externalId>false</externalId>
+</CustomField>

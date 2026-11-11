@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Pricing_Notes__c</fullName>
+    <label>Pricing Notes</label>
+    <description>Why a promotion was not applied or why approval is needed, from the pricing waterfall.</description>
+    <inlineHelpText>Why a promotion was not applied or why approval is needed, from the pricing waterfall.</inlineHelpText>
+    <type>LongTextArea</type>
+    <length>4000</length>
+    <visibleLines>3</visibleLines>
+</CustomField>

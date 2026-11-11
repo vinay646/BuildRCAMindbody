@@ -117,7 +117,43 @@ Built: `Active_Location_Count__c`, `LocationCountService` (Queueable + Schedulab
 | PD-09 Selling models and frequencies | Recurring products offer the right terms and billing frequencies | 3 selling models: Evergreen Monthly, Term Monthly, One-Time (ARM allows one per type + pricing term). Contract length is the quote line's term, limited by **Allowed Term Months** (Starter/Accelerate/Ultimate 12/24/36, Enterprise 24/36, TAM 12). Starter billing Monthly/Annual only. Entry per currency × selling model | `catalog`, `products`, `pricebooks` |
 | PD-14 Integration status | Every product shows its ERP sync status | New on create; owned by the integration afterwards | `products` |
 
-## 5. Existing ExploremoreRCA setup the build reuses
+## 5. Phase 3 – pricing
+
+### 3a. Pricing rules (built)
+
+`MindbodyPricing` is the single source of truth for the spec 12.2 waterfall. It reads the custom metadata tables, so
+changing a discount, band, floor or promo is a metadata edit, not code.
+
+| Step | Rule | Table |
+|---|---|---|
+| 1 List | Price book entry, per location per month | – |
+| 2 Contract price | Master price agreement replaces list; steps 3–5 skipped (RLP-07) | Contract.Master_Contract__c |
+| 3 Volume | Active locations in the hierarchy (RLP-01) + new ones: 1–3 0%, 4–10 5%, 11–50 10%, 51–200 15%, 201+ 20% | Volume_Discount_Band__mdt |
+| 4 Term | 12 m 0%, 24 m 5%, 36 m 10% | Term_Discount__mdt |
+| 5 Frequency | Monthly 0%, Quarterly 2%, Semiannual 4%, Annual 8% | Frequency_Discount__mdt |
+| 6 Promotion | LAUNCH3, SWITCH50, GROW2 – only when their conditions hold (CR-10) | Promotion_Rule__mdt |
+| 7 Manual | Rep-entered percent | – |
+| 8 Floor / approval | Below floor → VP Sales then Finance; above auto-approve → sales manager; Enterprise → deal desk | Tier_Pricing_Rule__mdt |
+
+`MindbodyPricingTest` proves the spec numbers, including the Pulse worked example ($499 → $449.10 → $404.19 →
+$371.85, 25.5% combined, sales-manager approval, $8,924.40 annual invoice for 2 locations).
+
+Quote line fields for the waterfall (PRC-17): Volume / Term / Frequency / Promo / Manual / Combined Discount %,
+Net Price, Promo Price, Floor Price, Below Floor, Promo Code, Promo Start / End Date, Pricing Notes.
+Quote: Promo Code, Hierarchy Location Count (from the root account, RLP-01). Contract: Master Contract (RLP-07).
+
+[Assumed] Floor and approval checks use the standard net price, not the time-boxed promo price; otherwise every
+LAUNCH3 quote ($39 < $59 floor) would need VP approval.
+
+### 3b. Wiring into the ARM pricing procedure (next)
+
+ARM prices quotes with a pricing procedure (expression set) over a context definition. Next step: read the org's
+pricing setup with `inventory`, then either extend the org's pricing procedure with the Mindbody steps (volume
+schedule fed by Hierarchy Location Count, term and frequency adjustments, promo, floor) or stamp the waterfall on
+the quote line from `MindbodyPricing` and feed the net price to the procedure. The choice depends on what the
+org's procedure and context definition offer.
+
+## 6. Existing ExploremoreRCA setup the build reuses
 
 From the `inventory` step (the org is Salesforce's QuantumBit demo org: 314 products, 5 catalogs).
 
@@ -132,7 +168,7 @@ From the `inventory` step (the org is Salesforce's QuantumBit demo org: 314 prod
 
 Not reused: QuantumBit catalogs, classifications and attributes (no overlap with Mindbody's names).
 
-## 6. What is drafted so far (Salesforce source, ready to move to the new repo)
+## 7. What is drafted so far (Salesforce source, ready to move to the new repo)
 
 ```
 sfdx-project.json

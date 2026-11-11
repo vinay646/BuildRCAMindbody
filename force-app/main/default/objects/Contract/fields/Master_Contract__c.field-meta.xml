@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Master_Contract__c</fullName>
+    <label>Master Contract</label>
+    <description>Corporate master agreement this franchisee or location contract inherits its price agreement and end date from (RLP-07, PRC-10).</description>
+    <inlineHelpText>Corporate master agreement this franchisee or location contract inherits its price agreement and end date from (RLP-07, PRC-10).</inlineHelpText>
+    <type>Lookup</type>
+    <referenceTo>Contract</referenceTo>
+    <relationshipName>Linked_Contracts</relationshipName>
+    <relationshipLabel>Linked Contracts</relationshipLabel>
+    <deleteConstraint>SetNull</deleteConstraint>
+    <required>false</required>
+</CustomField>
