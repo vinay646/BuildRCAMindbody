@@ -20,6 +20,7 @@ on:
           - explore          # read-only: print the org's standard pricing procedure, decision tables and pricing objects
           - explore-picklists  # read-only: print the standard picklists the build extends
           - cleanup          # DELETES the custom pieces replaced by standard features (manifest/cleanup)
+          - ids              # read-only: print record Ids the pricing procedure metadata needs
       step:
         description: "Loader step (for action = load)"
         type: choice
@@ -159,6 +160,10 @@ jobs:
             --post-destructive-changes manifest/cleanup/destructiveChanges.xml \
             --target-org target --ignore-warnings --wait 30 --json > result.json || true
           ./scripts/deploy-summary.sh result.json "Cleanup (delete replaced custom pieces)"
+
+      - name: Show record Ids
+        if: env.ACTION == 'ids'
+        run: ./scripts/run-apex.sh scripts/apex/show_ids.apex "Record Ids"
 
       - name: Load one step
         if: env.ACTION == 'load'
