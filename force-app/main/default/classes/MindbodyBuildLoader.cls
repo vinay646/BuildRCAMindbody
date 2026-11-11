@@ -337,7 +337,7 @@ public without sharing class MindbodyBuildLoader {
                 Integer seq = 1;
                 for (Object v : (List<Object>) a.get('values')) {
                     values.add(new Map<String, Object>{ 'PicklistId' => pl.Id, 'Name' => v, 'Value' => v,
-                        'Code' => String.valueOf(v).toUpperCase(), 'Sequence' => seq++, 'Status' => 'Active' });
+                        'Code' => valueCode((String) a.get('code'), v), 'Sequence' => seq++, 'Status' => 'Active' });
                 }
             }
             defs.add(d);
@@ -429,6 +429,11 @@ public without sharing class MindbodyBuildLoader {
         }
         sync('ProductAttributeDefinition', new List<String>{ 'Product2Id', 'AttributeDefinitionId' }, pads,
             'Product2Id IN :ids', new Map<String, Object>{ 'ids' => idsOf(products.values()) }, null);
+    }
+
+    /** Picklist value codes are unique across the org, so they carry the attribute: MB_CARD_PRESENT_YES. */
+    static String valueCode(String attributeCode, Object value) {
+        return (attributeCode + '_' + String.valueOf(value)).toUpperCase().replaceAll('[^A-Z0-9]+', '_');
     }
 
     static String resolved(Map<String, String> renamed, String name) {
