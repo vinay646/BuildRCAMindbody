@@ -3,6 +3,10 @@
     {
       "path": "force-app",
       "default": true
+    },
+    {
+      "path": "experiments",
+      "default": false
     }
   ],
   "name": "mindbody-arm-build",
