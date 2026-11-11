@@ -43,7 +43,8 @@
   }
  ],
  "prorationPolicy": {
-  "name": "Mindbody Daily Proration"
+  "name": "Default Proration Policy",
+  "note": "Reuses the org's existing policy (StandardTimePeriods, remainder AddToLast); proration is by days within the period (BIL-04)."
  },
  "sellingModels": [
   {

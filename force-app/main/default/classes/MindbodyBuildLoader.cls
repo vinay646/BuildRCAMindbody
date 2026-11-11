@@ -582,7 +582,7 @@ public without sharing class MindbodyBuildLoader {
             'Pricebook2' => new List<String>{ 'IsActive', 'IsStandard' },
             'RateCard' => new List<String>{ 'Type' },
             'UsageResource' => new List<String>{ 'Code', 'Status' },
-            'ExpressionSetDefinition' => new List<String>{ 'DeveloperName' },
+            'ExpressionSet' => new List<String>{ 'ApiName', 'UsageType' },
             'BillingPolicy' => new List<String>{ 'Status' },
             'BillingTreatment' => new List<String>{ 'Status' },
             'PaymentTerm' => new List<String>{ 'Status' },
@@ -594,7 +594,7 @@ public without sharing class MindbodyBuildLoader {
                 continue;
             }
             Map<String, Schema.SObjectField> f = fields(obj);
-            List<String> cols = new List<String>{ 'Id', 'Name' };
+            List<String> cols = new List<String>{ 'Id', f.containsKey('name') ? 'Name' : 'Id' };
             for (String c : objs.get(obj)) {
                 if (f.containsKey(c.toLowerCase())) {
                     cols.add(c);

@@ -117,7 +117,22 @@ Built: `Active_Location_Count__c`, `LocationCountService` (Queueable + Schedulab
 | PD-09 Selling models and frequencies | Recurring products offer the right terms and billing frequencies | 3 selling models: Evergreen Monthly, Term Monthly, One-Time (ARM allows one per type + pricing term). Contract length is the quote line's term, limited by **Allowed Term Months** (Starter/Accelerate/Ultimate 12/24/36, Enterprise 24/36, TAM 12). Starter billing Monthly/Annual only. Entry per currency × selling model | `catalog`, `products`, `pricebooks` |
 | PD-14 Integration status | Every product shows its ERP sync status | New on create; owned by the integration afterwards | `products` |
 
-## 5. What is drafted so far (Salesforce source, ready to move to the new repo)
+## 5. Existing ExploremoreRCA setup the build reuses
+
+From the `inventory` step (the org is Salesforce's QuantumBit demo org: 314 products, 5 catalogs).
+
+| Org record | Used for |
+|---|---|
+| Selling models *Evergreen Monthly*, *Term Monthly*, *One-Time* | All Mindbody products (PD-09). Contract length 12/24/36 is the quote line term, limited by *Allowed Term Months* |
+| *Default Proration Policy* | Selling model options (BIL-04) |
+| *Bundle to Bundle Component Relationship* | Tier bundle components (PD-02) |
+| *Billing Policy – Advance* / *– Arrears* | Phase 7: subscriptions in advance, usage in arrears (BIL-01) |
+| Billing treatments and legal entities US, Canada, EU, UK | Phase 7 (BIL-13, spec 2.3). **AU legal entity and billing treatment must be added** for Reformer Lab Pty (AUD) |
+| Rate card types Base / Tier, usage resources | Phase 7: Mindbody usage resources (payments, marketplace, SMS) are added; rate card types reused |
+
+Not reused: QuantumBit catalogs, classifications and attributes (no overlap with Mindbody's names).
+
+## 6. What is drafted so far (Salesforce source, ready to move to the new repo)
 
 ```
 sfdx-project.json
