@@ -1,7 +1,7 @@
 # Mindbody on Salesforce ARM – Build
 
-Salesforce source for building the **Mindbody ARM Requirements Spec** in a Revenue Cloud (ARM) org,
-phase by phase. Plan, feasibility and user stories: [docs/BUILD_PLAN.md](docs/BUILD_PLAN.md).
+Salesforce source for building the **Mindbody ARM Requirements Spec** into the **ExploremoreRCA** Revenue Cloud (ARM) org,
+phase by phase. Mindbody is the business being modelled; ExploremoreRCA is the org it is built in. Plan, feasibility and user stories: [docs/BUILD_PLAN.md](docs/BUILD_PLAN.md).
 Requirement checks against the org live in the companion repo `vinay646/mindbody-arm-req-checker`.
 
 ## Status
@@ -18,12 +18,13 @@ Requirement checks against the org live in the companion repo `vinay646/mindbody
 
 1. On your computer, install the Salesforce CLI (`npm install --global @salesforce/cli`) and log in to the new org:
    ```bash
-   sf org login web --alias mindbody-dev --instance-url https://test.salesforce.com
+   sf org login web --alias exploremore-rca --instance-url https://login.salesforce.com
    ```
-   Use `https://login.salesforce.com` for a production or trial org.
+   If ExploremoreRCA is a sandbox, use `https://test.salesforce.com` instead. If it has a My Domain login page,
+   you can use that URL (for example `https://<your-domain>.my.salesforce.com`).
 2. Print the org's auth URL and copy the **Sfdx Auth Url** value (starts with `force://`):
    ```bash
-   sf org display --target-org mindbody-dev --verbose
+   sf org display --target-org exploremore-rca --verbose
    ```
 3. In GitHub: **Settings → Secrets and variables → Actions → New repository secret**, name `SFDX_AUTH_URL`, paste the value.
    Treat it like a password: it logs in as you.
@@ -47,16 +48,16 @@ reports in Setup → `validate` → `deploy` → `load` step by step (`accounts`
 ## Deploy and load from your computer
 
 ```bash
-sf org login web --alias mindbody-dev --instance-url https://test.salesforce.com
-sf project deploy start --target-org mindbody-dev
-sf org assign permset --name Mindbody_ARM_Build --target-org mindbody-dev
+sf org login web --alias exploremore-rca --instance-url https://login.salesforce.com
+sf project deploy start --target-org exploremore-rca
+sf org assign permset --name Mindbody_ARM_Build --target-org exploremore-rca
 ```
 
 Then load the data one step at a time (each step is safe to re-run):
 
 ```bash
 for step in accounts catalog products bundles attributes pricebooks; do
-  echo "MindbodyBuildLoader.run('$step');" | sf apex run --target-org mindbody-dev
+  echo "MindbodyBuildLoader.run('$step');" | sf apex run --target-org exploremore-rca
 done
 ```
 

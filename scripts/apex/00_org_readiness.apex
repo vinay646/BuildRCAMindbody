@@ -1,5 +1,5 @@
 // Phase 0 – org readiness check. Read-only; run BEFORE the first deploy:
-//   sf apex run --target-org mindbody-dev --file scripts/apex/00_org_readiness.apex
+//   sf apex run --target-org exploremore-rca --file scripts/apex/00_org_readiness.apex
 // Every line in the debug log starting with READY / MISSING tells you what to turn on in Setup.
 
 Map<String, Schema.SObjectType> gd = Schema.getGlobalDescribe();
