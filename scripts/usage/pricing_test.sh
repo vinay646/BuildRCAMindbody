@@ -18,6 +18,8 @@ echo "opportunity=$OPP"
 QUOTE=$(sf data create record --sobject Quote --values "Name='P02 Pricing Test' OpportunityId=$OPP Pricebook2Id=$PB BillToContactId=$CON StartDate=$TODAY RLM_TermMonths__c=36" --target-org target --json | jq -r '.result.id // .message')
 echo "quote=$QUOTE"
 L=$(sf data create record --sobject QuoteLineItem --values "QuoteId=$QUOTE Product2Id=$PROD PricebookEntryId=$PBEID Quantity=2 UnitPrice=499 StartDate=$TODAY EndDate=$END PeriodBoundary=Anniversary BillingFrequency=Monthly" --target-org target --json); echo "$L" | jq -c '{status, id: .result.id, message}'
+LID0=$(echo "$L" | jq -r '.result.id')
+echo "set SubscriptionTerm=36: $(sf data update record --sobject QuoteLineItem --record-id "$LID0" --values "SubscriptionTerm=36" --target-org target --json | jq -c '{status, message}')"
 echo "LINE SAVED $(q "SELECT BillingFrequency, Quantity, SubscriptionTerm, Volume_Location_Count__c, Billing_Period_Months__c FROM QuoteLineItem WHERE QuoteId = '$QUOTE'")"
 LID=$(q "SELECT Id FROM QuoteLineItem WHERE QuoteId = '$QUOTE' LIMIT 1" | jq -r '.[0].Id')
 show() { echo "  LINE $(q "SELECT BillingFrequency, Quantity, SubscriptionTerm, Volume_Location_Count__c, Billing_Period_Months__c, ListPrice, UnitPrice, NetUnitPrice, TotalPrice FROM QuoteLineItem WHERE Id = '$LID'")"; echo "  QUOTE $(q "SELECT CalculationStatus, TotalPrice FROM Quote WHERE Id = '$QUOTE'")"; }
