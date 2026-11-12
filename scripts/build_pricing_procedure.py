@@ -4,8 +4,8 @@
 
 One pricing procedure for the org: the default RLM_DefaultPricingProcedure is updated in place, built from the
 org's own version in reference/ (as Salesforce Support left it after fixing the "lookup table in the ListPrice step"
-release issue, Nov 2026). An active version cannot be updated by deploy: deploy the version deactivated first
-(deploy-steps/deactivate), then this file.
+release issue, Nov 2026). An active version cannot be updated by deploy (not even its status), so the Mindbody steps go into
+version 2 of the same procedure; version 1 is redeployed unchanged (assembled after this script, see git history).
 
 Standard steps only. Changes to the standard procedure:
   * Volume Discount step: schedule = Mindbody Hierarchy Volume; tier bounds read the line's
