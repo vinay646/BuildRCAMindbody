@@ -38,6 +38,14 @@ needs it (RLP-01).
    line discount fields, Product Type / Unit Of Sale / Core Tier / Vertical fields, the pricing Apex). Run it
    only after steps 1–4 succeeded.
 
+## Status (13 Nov 2026)
+
+**Unblocked:** Salesforce Support fixed the release issue behind "Ensure that the lookup table in the ListPrice step
+is valid". The org's default procedure now carries their fix (lookup parameter order, `usageSubtype`), so it is kept
+exactly as they left it and an active version cannot be updated by deploy anyway. The Mindbody steps are deployed as a
+**separate procedure, `MB_Pricing_Procedure` (Mindbody Pricing Procedure)**, built by `scripts/build_pricing_procedure.py`
+from the default in `reference/`. Next: Setup → Salesforce Pricing Setup → make it the default, Sync Pricing Data, test P02.
+
 ## Status (11 Nov 2026)
 
 **Blocked by the org:** no pricing procedure can be saved in ExploremoreRCA – Setup Clone, builder Save and Metadata
