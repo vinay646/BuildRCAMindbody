@@ -3,6 +3,10 @@
     {
       "path": "force-app",
       "default": true
+    },
+    {
+      "path": "deploy/pricing-v3",
+      "default": false
     }
   ],
   "name": "mindbody-arm-build",
