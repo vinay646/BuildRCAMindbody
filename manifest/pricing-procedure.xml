@@ -3,11 +3,17 @@
 <Package xmlns="http://soap.sforce.com/2006/04/metadata">
     <types>
         <members>RLM_DefaultPricingProcedure</members>
+        <members>RLM_ProductDiscoveryQualificationProcedure</members>
         <name>ExpressionSetDefinition</name>
     </types>
     <types>
         <members>RLM_SalesTransactionContext</members>
+        <members>RLM_ProductDiscoveryContext</members>
         <name>ContextDefinition</name>
+    </types>
+    <types>
+        <members>RLM_ProductQualification</members>
+        <name>DecisionTable</name>
     </types>
     <version>68.0</version>
 </Package>
