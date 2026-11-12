@@ -38,6 +38,20 @@ needs it (RLP-01).
    line discount fields, Product Type / Unit Of Sale / Core Tier / Vertical fields, the pricing Apex). Run it
    only after steps 1–4 succeeded.
 
+## Status (12 Nov 2026, evening) – version 3 active, Annual tested
+
+- **Version 3** (`RLM_DefaultPricingProcedure_RLM_Revenue_Management_Default_Pricing_Procedure_V30`) is the only active
+  version; versions 1 and 2 are inactive. It reads only values present before a line is saved: billing months from the
+  standard `ItemBillingFrequency` (four standard ListGroup + filter + Assignment groups), the volume bound from the quote's
+  Hierarchy Location Count, the term bound from the quote's Term (Months). Built by `scripts/build_pricing_v3.py`;
+  deployed from `deploy/pricing-v3` (active versions cannot be redeployed). New versions must first be created in the
+  builder (Save As New Version) – a deploy cannot create one ("LatestVersionSnapshotId not found").
+- **Billing:** loader step `billing` – Mindbody Billing Policy (Default selection) → Mindbody Billing Treatment – Advance
+  (Can Change Billing Frequency = on) on every MB- product. A quote line whose frequency differs from the selling model
+  (Term Monthly → Annual) needs that treatment on the line.
+- **Test P02 via Place Sales Transaction (new line, Annual):** $499 → $449.10 → $404.19 → **$371.85**; line total
+  $26,773.55 (quote 00000029). Run: `usage-summary`, path `pricing-place`.
+
 ## Status (12 Nov 2026, tested)
 
 - **One procedure:** the Mindbody steps are version 2 of `RLM_DefaultPricingProcedure`; `MB_Pricing_Procedure` is deleted.

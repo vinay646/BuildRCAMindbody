@@ -473,7 +473,7 @@ public without sharing class MindbodyBuildLoader {
         }
         Map<String, SObject> trt = sync('BillingTreatment', new List<String>{ 'Name' }, new List<Map<String, Object>>{
             new Map<String, Object>{ 'Name' => treatmentName, 'BillingPolicyId' => policy.Id, 'Status' => 'Draft',
-                'ExcludeFromBilling' => 'No', 'IsMilestoneBilling' => false, 'CanChangeBillingFrequency' => false,
+                'ExcludeFromBilling' => 'No', 'IsMilestoneBilling' => false, 'CanChangeBillingFrequency' => true,
                 'Description' => 'Bill in advance; the quote line's billing frequency (Monthly, Quarterly, Semi-Annual, Annual) drives the billing schedule.' } },
             null, null, new Set<String>{ 'Status', 'BillingPolicyId', 'IsMilestoneBilling', 'ExcludeFromBilling' });
         SObject treatment = trt.get(treatmentName);
