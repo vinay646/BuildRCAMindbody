@@ -9,16 +9,17 @@ echo "== 1. versions before"; q "$VERS"
 for id in $(sf data query --query "SELECT Id FROM ExpressionSetVersion WHERE ExpressionSet.ApiName = 'MB_Pricing_Procedure' AND IsActive = true" --target-org target --json | jq -r '.result.records[]?.Id'); do
   echo "deactivate $id:"; sf data update record --sobject ExpressionSetVersion --record-id "$id" --values "IsActive=false" --target-org target --json | jq -c '{status, message}'
 done
-echo "== 2. delete MB_Pricing_Procedure"
+echo "== 2. delete MB_Pricing_Procedure (version first, then the procedure)"
+for id in $(sf data query --query "SELECT Id FROM ExpressionSetVersion WHERE ExpressionSet.ApiName = 'MB_Pricing_Procedure'" --target-org target --json | jq -r '.result.records[]?.Id'); do
+  echo "delete version $id:"; sf data delete record --sobject ExpressionSetVersion --record-id "$id" --target-org target --json | jq -c '{status, message}'
+done
 sf project deploy start --api-version "$ORG_API" --manifest manifest/delete-mb-pricing-procedure/package.xml \
   --post-destructive-changes manifest/delete-mb-pricing-procedure/destructiveChanges.xml \
   --target-org target --ignore-warnings --wait 30 --json > del.json 2>&1 || true
 jq -c '{status: .result.status, errors: [.result.details.componentFailures? | if type=="array" then .[] else . end | select(.!=null) | .problem]}' del.json 2>/dev/null || head -c 800 del.json
 echo "== versions after"; q "$VERS"
 echo "== 3. sync pricing data"
-for p in /connect/core-pricing/sync/syncData /connect/core-pricing/syncPricingData; do echo "POST $p"; rest POST "$p" '{}' | head -c 600; echo; done
+echo "GET /connect/core-pricing/sync/syncData"; rest GET /connect/core-pricing/sync/syncData | head -c 800; echo
 echo "== 4. Pulse demo location count"
-for id in $(sf data query --query "SELECT Id FROM Account WHERE Name = 'Pulse Fitness Brands'" --target-org target --json | jq -r '.result.records[]?.Id'); do
-  sf data update record --sobject Account --record-id "$id" --values "Active_Location_Count__c=12" --target-org target --json | jq -c '{status, message}'
-done
 q "SELECT Name, Active_Location_Count__c FROM Account WHERE Name LIKE 'Pulse%' AND Active_Location_Count__c != null"
+echo "== procedures left"; q "SELECT ApiName, UsageType FROM ExpressionSet WHERE UsageType = 'DefaultPricing'"
