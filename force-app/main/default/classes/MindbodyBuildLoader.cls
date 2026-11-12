@@ -107,6 +107,10 @@ public without sharing class MindbodyBuildLoader {
                     r.put('BillingState', addr.get('state'));
                     r.put('BillingPostalCode', addr.get('postalCode'));
                     r.put('BillingCountry', addr.get('country'));
+                    String region = regionOf((String) addr.get('country'));
+                    if (region != null && hasField('Account', 'MB_Region__c')) {
+                        r.put('MB_Region__c', region);
+                    }
                 }
                 rows.add(r);
             }
@@ -436,52 +440,78 @@ public without sharing class MindbodyBuildLoader {
         }
     }
 
+    /** Mindbody Region (NA, UK, AU, EU) for a country name; null when unknown. */
+    public static String regionOf(String country) {
+        if (String.isBlank(country)) {
+            return null;
+        }
+        switch on country.trim().toUpperCase() {
+            when 'UNITED STATES', 'UNITED STATES OF AMERICA', 'USA', 'US', 'CANADA', 'CA' { return 'NA'; }
+            when 'UNITED KINGDOM', 'UK', 'GB', 'GREAT BRITAIN', 'ENGLAND', 'SCOTLAND', 'WALES', 'NORTHERN IRELAND' { return 'UK'; }
+            when 'AUSTRALIA', 'AU' { return 'AU'; }
+            when else { return 'EU'; }
+        }
+    }
+
     /**
-     * CR-15 product qualification rules: each hardware product is qualified only for accounts whose
-     * Hardware Region is Supported (US, Canada, UK, Australia). The RLM_ProductQualification decision table
-     * matches ProductId and MB_Hardware_Region__c; the discovery context hydrates the account's region.
+     * Product qualification rules by account Region (CR-15: hardware only in NA, UK, AU). One ProductQualification
+     * per product and allowed region; the RLM_ProductQualification decision table matches ProductId and MB_Region__c
+     * against the account's Region from the product discovery context. Rows for other regions are deleted.
      */
     public void loadQualifications() {
-        Set<String> codes = new Set<String>();
-        for (Object o : listOf('products')) {
-            Map<String, Object> p = (Map<String, Object>) o;
-            if (p.get('productType') == 'Hardware') {
-                codes.add((String) p.get('code'));
+        Map<String, Set<String>> wanted = new Map<String, Set<String>>();
+        for (Object o : listOf('productQualifications')) {
+            Map<String, Object> rule = (Map<String, Object>) o;
+            for (Object c : (List<Object>) rule.get('products')) {
+                if (!wanted.containsKey((String) c)) {
+                    wanted.put((String) c, new Set<String>());
+                }
+                for (Object r : (List<Object>) rule.get('regions')) {
+                    wanted.get((String) c).add((String) r);
+                }
             }
         }
-        Map<Id, String> products = new Map<Id, String>();
-        for (Product2 p : [SELECT Id, ProductCode FROM Product2 WHERE ProductCode IN :codes]) {
-            products.put(p.Id, p.ProductCode);
+        Map<Id, String> codeById = new Map<Id, String>();
+        for (Product2 p : [SELECT Id, ProductCode FROM Product2 WHERE ProductCode IN :wanted.keySet()]) {
+            codeById.put(p.Id, p.ProductCode);
         }
-        Set<Id> productIds = products.keySet();
-        Map<Id, SObject> existing = new Map<Id, SObject>();
-        for (SObject q : Database.query('SELECT Id, ProductId, MB_Hardware_Region__c FROM ProductQualification WHERE ProductId IN :productIds AND ParentProductId = null AND RootProductId = null')) {
-            existing.put((Id) q.get('ProductId'), q);
+        Set<Id> productIds = codeById.keySet();
+        Map<String, SObject> existing = new Map<String, SObject>();
+        List<SObject> stale = new List<SObject>();
+        for (SObject q : Database.query('SELECT Id, ProductId, MB_Region__c FROM ProductQualification WHERE ProductId IN :productIds AND ParentProductId = null AND RootProductId = null')) {
+            String code = codeById.get((Id) q.get('ProductId'));
+            String region = (String) q.get('MB_Region__c');
+            String key = code + '|' + region;
+            if (region == null || !wanted.get(code).contains(region) || existing.containsKey(key)) {
+                stale.add(q);
+            } else {
+                existing.put(key, q);
+            }
         }
-        List<SObject> rows = new List<SObject>();
+        List<SObject> inserts = new List<SObject>();
         for (Id pid : productIds) {
-            SObject q = existing.containsKey(pid) ? existing.get(pid) : Schema.getGlobalDescribe().get('ProductQualification').newSObject();
-            if (q.Id == null) {
+            String code = codeById.get(pid);
+            for (String region : wanted.get(code)) {
+                if (existing.containsKey(code + '|' + region)) {
+                    continue;
+                }
+                SObject q = Schema.getGlobalDescribe().get('ProductQualification').newSObject();
                 q.put('ProductId', pid);
                 q.put('EffectiveFromDate', Date.newInstance(2020, 1, 1));
                 q.put('EffectiveToDate', Date.newInstance(2099, 12, 31));
+                q.put('MB_Region__c', region);
+                inserts.add(q);
             }
-            q.put('MB_Hardware_Region__c', 'Supported');
-            rows.add(q);
         }
-        List<SObject> inserts = new List<SObject>();
-        List<SObject> updates = new List<SObject>();
-        for (SObject q : rows) {
-            if (q.Id == null) { inserts.add(q); } else { updates.add(q); }
-        }
-        Integer ok = 0;
+        Integer added = 0;
+        Integer removed = 0;
         for (Database.SaveResult r : Database.insert(inserts, false)) {
-            if (r.isSuccess()) { ok++; } else { fail('Product qualification insert: ' + r.getErrors()[0].getMessage()); }
+            if (r.isSuccess()) { added++; } else { fail('Product qualification insert: ' + r.getErrors()[0].getMessage()); }
         }
-        for (Database.SaveResult r : Database.update(updates, false)) {
-            if (r.isSuccess()) { ok++; } else { fail('Product qualification update: ' + r.getErrors()[0].getMessage()); }
+        for (Database.DeleteResult r : Database.delete(stale, false)) {
+            if (r.isSuccess()) { removed++; } else { fail('Product qualification delete: ' + r.getErrors()[0].getMessage()); }
         }
-        info('Product qualification (CR-15): ' + ok + ' of ' + rows.size() + ' hardware products qualified for Hardware Region = Supported ' + products.values());
+        info('Product qualification: ' + (existing.size() + added) + ' rules (' + added + ' added, ' + removed + ' removed) for ' + wanted);
     }
 
     /** Attribute picklists, values, definitions, and product attribute assignments (spec 12.6). */
@@ -1416,6 +1446,10 @@ public without sharing class MindbodyBuildLoader {
 
     static Boolean hasObject(String obj) {
         return gd().containsKey(obj.toLowerCase());
+    }
+
+    static Boolean hasField(String obj, String field) {
+        return hasObject(obj) && fields(obj).containsKey(field.toLowerCase());
     }
 
     static Map<String, Schema.SObjectField> fields(String obj) {

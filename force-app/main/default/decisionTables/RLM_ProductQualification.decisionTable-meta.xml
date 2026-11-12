@@ -6,8 +6,8 @@
     <dataSourceType>SingleSobject</dataSourceType>
     <decisionTableParameters>
         <dataType>String</dataType>
-        <fieldName>MB_Hardware_Region__c</fieldName>
-        <fieldPath>MB_Hardware_Region__c</fieldPath>
+        <fieldName>MB_Region__c</fieldName>
+        <fieldPath>MB_Region__c</fieldPath>
         <isGroupByField>false</isGroupByField>
         <isRequired>false</isRequired>
         <operator>Equals</operator>
@@ -62,7 +62,7 @@
     <isVersioned>false</isVersioned>
     <setupName>RLM_ProductQualification</setupName>
     <sourceObject>ProductQualification</sourceObject>
-    <status>Active</status>
+    <status>Draft</status>
     <type>LowVolume</type>
     <usageType>ProductQualification</usageType>
 </DecisionTable>

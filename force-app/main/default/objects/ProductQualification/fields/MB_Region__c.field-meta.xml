@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>MB_Region__c</fullName>
+    <label>Region</label>
+    <description>CR-15 and other region rules: the product is qualified when the account's Region equals this value. One record per allowed region.</description>
+    <inlineHelpText>The account Region this qualification applies to. Add one record per allowed region.</inlineHelpText>
+    <type>Picklist</type>
+    <required>false</required>
+    <valueSet>
+        <restricted>true</restricted>
+        <valueSetDefinition>
+            <sorted>false</sorted>
+            <value><fullName>NA</fullName><default>false</default><label>North America (US, Canada)</label></value>
+            <value><fullName>UK</fullName><default>false</default><label>United Kingdom</label></value>
+            <value><fullName>AU</fullName><default>false</default><label>Australia</label></value>
+            <value><fullName>EU</fullName><default>false</default><label>Europe</label></value>
+        </valueSetDefinition>
+    </valueSet>
+</CustomField>

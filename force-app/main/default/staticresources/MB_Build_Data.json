@@ -1519,6 +1519,22 @@
    },
    "segment": "Mid-market",
    "vertical": "Fitness"
+  },
+  {
+   "name": "Kraftwerk Studio Berlin",
+   "level": "Corporate",
+   "payer": "Self-Pay",
+   "parent": null,
+   "currency": "EUR",
+   "address": {
+    "street": "Torstrasse 1",
+    "city": "Berlin",
+    "state": null,
+    "postalCode": "10119",
+    "country": "Germany"
+   },
+   "segment": "SMB",
+   "vertical": "Fitness"
   }
  ],
  "classifications": [
@@ -1995,6 +2011,21 @@
      "parent": "MB-APP",
      "child": "MB-APP-SET"
     }
+   ]
+  }
+ ],
+ "productQualifications": [
+  {
+   "rule": "CR-15",
+   "products": [
+    "MB-HW-RDR",
+    "MB-HW-TRM",
+    "MB-HW-DOOR"
+   ],
+   "regions": [
+    "NA",
+    "UK",
+    "AU"
    ]
   }
  ]

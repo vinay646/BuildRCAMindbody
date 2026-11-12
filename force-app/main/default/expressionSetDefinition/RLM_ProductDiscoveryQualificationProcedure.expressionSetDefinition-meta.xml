@@ -72,13 +72,6 @@
             <customElement>
                 <parameters>
                     <input>true</input>
-                    <name>MB_Hardware_Region__c</name>
-                    <output>false</output>
-                    <type>Parameter</type>
-                    <value>MbHardwareRegion</value>
-                </parameters>
-                <parameters>
-                    <input>true</input>
                     <name>ProductId</name>
                     <output>false</output>
                     <type>Parameter</type>
