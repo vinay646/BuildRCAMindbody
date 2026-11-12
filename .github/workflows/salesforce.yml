@@ -294,6 +294,15 @@ jobs:
           echo "===== STANDARD ACTIONS (usage / rating / journal)"
           sf api request rest "/services/data/v$ORG_API/actions/standard" --target-org target 2>/dev/null \
             | jq -r '.actions[]? | "\(.name) | \(.label)"' | grep -i 'usage\|rating\|rate\|journal\|consum\|entitle' || true
+          echo "===== BATCH JOB DEFINITIONS"
+          for o in BatchProcessJobDefinition BatchCalcJobDefinition BatchJobDefinition; do
+            sf data query --use-tooling-api --query "SELECT DeveloperName, MasterLabel FROM $o" --target-org target --json 2>/dev/null \
+              | jq -r --arg o "$o" '(.result.records // [])[] | "\($o) | \(.DeveloperName) | \(.MasterLabel)"' || true
+          done
+          for o in BatchJob BatchJobPart; do
+            sf data query --query "SELECT Id, Status, CreatedDate FROM $o ORDER BY CreatedDate DESC LIMIT 5" --target-org target --json 2>/dev/null \
+              | jq -r --arg o "$o" '(.result.records // [])[] | "\($o) | \(.Id) | \(.Status) | \(.CreatedDate)"' || true
+          done
           echo "===== CONNECT RESOURCES"
           sf api request rest "/services/data/v$ORG_API/connect" --target-org target 2>/dev/null | jq -r 'to_entries[] | "\(.key) \(.value)"' | grep -i 'usage\|rating\|revenue\|rev' || true
 
