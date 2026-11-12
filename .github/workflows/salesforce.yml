@@ -27,6 +27,7 @@ on:
           - delete           # DELETES what path names: a folder under manifest/ with package.xml + destructiveChanges.xml
           - cleanup-rule-library  # DELETES the leftover Mindbody_Product_Rules rule library definition
           - explore-qualification  # read-only: product qualification procedures, tables, context country attributes
+          - usage-test  # CREATES a QuantumBit test account, quote and activated order (activates QB-DB products)
           - explore-usage  # read-only: usage management setup (usage resources, rate cards, summaries)
           - describe-term  # read-only: term fields on Quote and Quote Line
           - explore-cml  # read-only: CML text of the active QuantumBit models and their product links
@@ -286,6 +287,10 @@ jobs:
           echo "===== CONTEXT country / region attributes"
           grep -o '<name>[^<]*\(Country\|Region\|State\)[^<]*</name>' reference/RLM_SalesTransactionContext.contextDefinition | sort -u | head -40
           grep -o '<contextNodeName>[^<]*</contextNodeName>' reference/RLM_SalesTransactionContext.contextDefinition | sort -u | head -40
+
+      - name: Usage test order
+        if: env.ACTION == 'usage-test'
+        run: ./scripts/usage/usage_test.sh
 
       - name: Explore usage setup
         if: env.ACTION == 'explore-usage'
