@@ -75,7 +75,7 @@
                     <name>MB_Hardware_Region__c</name>
                     <output>false</output>
                     <type>Parameter</type>
-                    <value>MB_Hardware_Region__c</value>
+                    <value>MbHardwareRegion</value>
                 </parameters>
                 <parameters>
                     <input>true</input>
