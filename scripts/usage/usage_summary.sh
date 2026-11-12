@@ -8,7 +8,8 @@ ACC=$(q "SELECT Id FROM Account WHERE Name LIKE 'Usage Test QuantumBit%' AND Bil
 ASSET=$(q "SELECT Id FROM Asset WHERE AccountId = '$ACC' AND Product2.ProductCode = 'QB-DB' ORDER BY CreatedDate DESC LIMIT 1" | jq -r '.[0].Id')
 echo "account=$ACC asset=$ASSET"
 CHECK=""; [ "${DEPLOY_PATH:-}" = "check" ] && CHECK=1
-if [ -z "$CHECK" ]; then
+if [ "${DEPLOY_PATH:-}" = "rerun" ]; then ./scripts/run-apex.sh scripts/usage/fix_policies.apex "Fix usage policies" || true; fi
+if [ -z "$CHECK" ] && [ "${DEPLOY_PATH:-}" != "rerun" ]; then
   echo "===== 1. usage records (Transaction Journals)"
   NOW=$(date -u +%Y-%m-%dT%H:00:00Z); LATER=$(date -u -d '+15 min' +%Y-%m-%dT%H:15:00Z)
   for r in "Compute Time|120" "Data Storage|8"; do
@@ -24,7 +25,7 @@ echo "===== 2. Create Usage Summary job"
 rest GET /actions/custom/dataProcessingEngineAction | jq -c '[.actions[]? | {name, label}]' 2>/dev/null | head -c 1500; echo
 rest GET /actions/custom/dataProcessingEngineAction/Create_Usage_Summary_v4 | jq -c '{inputs: [.inputs[]? | {name, type, required}]}' 2>/dev/null | head -c 1500; echo
 RES=$(rest POST /actions/custom/dataProcessingEngineAction/Create_Usage_Summary_v4 '{"inputs":[{}]}'); echo "$RES" | head -c 1500; echo
-sleep 120
+sleep 240
 fi
 echo "===== 3. results"
 echo "BATCH JOBS $(q "SELECT Id, Status, CreatedDate FROM BatchJob ORDER BY CreatedDate DESC LIMIT 3")"
