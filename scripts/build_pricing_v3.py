@@ -59,12 +59,12 @@ def group(freq, months, seq):
 
 def main():
     s = F.read_text()
-    if "RLM_DefaultPricingProcedure_V3" in s:
+    if "RLM_DefaultPricingProcedure_RLM_Revenue_Management_Default_Pricing_Procedure_V30" in s:
         sys.exit("version 3 already in the file")
     start = s.index("<versions><fullName>RLM_DefaultPricingProcedure_V2</fullName>")
     end = s.index("</versions>", start) + len("</versions>")
     v = s[start:end]
-    v = v.replace("<fullName>RLM_DefaultPricingProcedure_V2</fullName>", "<fullName>RLM_DefaultPricingProcedure_V3</fullName>", 1)
+    v = v.replace("<fullName>RLM_DefaultPricingProcedure_V2</fullName>", "<fullName>RLM_DefaultPricingProcedure_RLM_Revenue_Management_Default_Pricing_Procedure_V30</fullName>", 1)
     v = v.replace("<rank>2</rank>", "<rank>3</rank>", 1).replace("<versionNumber>2</versionNumber>", "<versionNumber>3</versionNumber>", 1)
     # tier bounds
     steps = re.findall(r"<steps>.*?</steps>", v)
