@@ -2,19 +2,18 @@
 <ValidationRule xmlns="http://soap.sforce.com/2006/04/metadata">
     <fullName>CR_13_Contract_Term_Allowed</fullName>
     <active>true</active>
-    <description>CR-13 / CAT-07: the line's subscription term must be one the product allows (Product &gt; Allowed Term Months, e.g. Enterprise 24 or 36). Mindbody term-defined lines only.</description>
+    <description>CR-13 / CAT-07: the quote's term (Quote &gt; Term (Months), RLM_TermMonths__c) must be one the product allows (Product &gt; Allowed Term Months, e.g. Enterprise 24 or 36). Mindbody term-defined lines only; no check while the quote term is still blank.</description>
     <errorConditionFormula>AND(
   BEGINS(Product2.ProductCode, 'MB-'),
   ISPICKVAL(ProductSellingModel.SellingModelType, 'TermDefined'),
   NOT(ISBLANK(Product2.Allowed_Term_Months__c)),
+  NOT(ISBLANK(Quote.RLM_TermMonths__c)),
   OR(
-    ISBLANK(SubscriptionTerm),
-    AND(SubscriptionTerm = 12, NOT(INCLUDES(Product2.Allowed_Term_Months__c, '12'))),
-    AND(SubscriptionTerm = 24, NOT(INCLUDES(Product2.Allowed_Term_Months__c, '24'))),
-    AND(SubscriptionTerm = 36, NOT(INCLUDES(Product2.Allowed_Term_Months__c, '36'))),
-    AND(SubscriptionTerm &lt;&gt; 12, SubscriptionTerm &lt;&gt; 24, SubscriptionTerm &lt;&gt; 36)
+    AND(Quote.RLM_TermMonths__c = 12, NOT(INCLUDES(Product2.Allowed_Term_Months__c, '12'))),
+    AND(Quote.RLM_TermMonths__c = 24, NOT(INCLUDES(Product2.Allowed_Term_Months__c, '24'))),
+    AND(Quote.RLM_TermMonths__c = 36, NOT(INCLUDES(Product2.Allowed_Term_Months__c, '36'))),
+    AND(Quote.RLM_TermMonths__c &lt;&gt; 12, Quote.RLM_TermMonths__c &lt;&gt; 24, Quote.RLM_TermMonths__c &lt;&gt; 36)
   )
 )</errorConditionFormula>
-    <errorDisplayField>SubscriptionTerm</errorDisplayField>
-    <errorMessage>This contract term is not offered for this product. Use 12, 24 or 36 months as allowed by the product (Enterprise: 24 or 36; TAM: 12).</errorMessage>
+    <errorMessage>The quote's Term (Months) is not offered for this product. Set the quote term to 12, 24 or 36 months as allowed by the product (Enterprise: 24 or 36; TAM: 12).</errorMessage>
 </ValidationRule>
