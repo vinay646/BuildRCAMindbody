@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Pricing procedure v3 reads billing months, hierarchy count and term without these quote line formulas. -->
+<Package xmlns="http://soap.sforce.com/2006/04/metadata">
+    <types>
+        <members>QuoteLineItem.Volume_Location_Count__c</members>
+        <members>QuoteLineItem.Billing_Period_Months__c</members>
+        <name>CustomField</name>
+    </types>
+    <version>68.0</version>
+</Package>

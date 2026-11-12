@@ -171,16 +171,6 @@
         <field>Quote.Hierarchy_Location_Count__c</field>
         <readable>true</readable>
     </fieldPermissions>
-    <fieldPermissions>
-        <editable>false</editable>
-        <field>QuoteLineItem.Billing_Period_Months__c</field>
-        <readable>true</readable>
-    </fieldPermissions>
-    <fieldPermissions>
-        <editable>false</editable>
-        <field>QuoteLineItem.Volume_Location_Count__c</field>
-        <readable>true</readable>
-    </fieldPermissions>
     <classAccesses>
         <apexClass>MindbodyBuildLoader</apexClass>
         <enabled>true</enabled>

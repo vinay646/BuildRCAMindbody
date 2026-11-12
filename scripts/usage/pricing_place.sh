@@ -29,5 +29,5 @@ for V in ${VARIANTS:-legal}; do
   sleep 8
   QUOTE=$(q "SELECT Id FROM Quote WHERE OpportunityId = '$OPP' LIMIT 1" | jq -r '.[0].Id // empty')
   echo "QUOTE $(q "SELECT QuoteNumber, CalculationStatus, TotalPrice FROM Quote WHERE Id = '$QUOTE'")"
-  echo "LINE $(q "SELECT BillingFrequency, BillingTreatmentId, Quantity, SubscriptionTerm, Volume_Location_Count__c, Billing_Period_Months__c, ListPrice, NetUnitPrice, TotalPrice FROM QuoteLineItem WHERE QuoteId = '$QUOTE'")"
+  echo "LINE $(q "SELECT BillingFrequency, BillingTreatmentId, Quantity, SubscriptionTerm, ListPrice, NetUnitPrice, TotalPrice FROM QuoteLineItem WHERE QuoteId = '$QUOTE'")"
 done
