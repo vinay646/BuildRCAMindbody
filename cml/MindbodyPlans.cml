@@ -29,6 +29,19 @@ type Quote {
     message(lineitems[BrandedApp] > 1,
         "Branded app is sold once per brand – keep one Branded app on the top account's line group.", "Error");
 
+    // Catalog guidance (Browse Products): grey out add-ons the tier on the quote cannot take
+    rule(lineitems[Ultimate] > 0, "disable", "relation", "lineitems", "type", "AIConciergeAddOn",
+        "message", "AI Concierge is already included in Ultimate.");
+    rule(lineitems[Starter] > 0, "disable", "relation", "lineitems", "type", "AIConciergeAddOn",
+        "message", "Starter can't add AI Concierge – choose Accelerate or Ultimate.");
+    rule(lineitems[Starter] > 0, "disable", "relation", "lineitems", "type", "BrandedApp",
+        "message", "Starter can't add Branded app – choose Accelerate or Ultimate.");
+
+    // Catalog guidance: recommend Mindbody Payments when hardware is on the quote (CR-09)
+    rule(lineitems[MobileCardReader], "recommend", "type", "MindbodyPayments", "message", "Hardware requires Mindbody Payments.");
+    rule(lineitems[CountertopPaymentTerminal], "recommend", "type", "MindbodyPayments", "message", "Hardware requires Mindbody Payments.");
+    rule(lineitems[DoorAccessKit], "recommend", "type", "MindbodyPayments", "message", "Hardware requires Mindbody Payments.");
+
     // CR-09: hardware needs Mindbody Payments on the quote
     message((lineitems[MobileCardReader] + lineitems[CountertopPaymentTerminal] + lineitems[DoorAccessKit]) > 0
             && lineitems[MindbodyPayments] == 0,
