@@ -124,13 +124,13 @@ jobs:
           mkdir -p retrieved
           manifest=manifest/pricing-procedure.xml
           case "$DEPLOY_PATH" in manifest/*.xml) manifest="$DEPLOY_PATH";; esac
-          if [ "$manifest" = manifest/layouts.xml ]; then
+          if [ "$manifest" = manifest/layouts.xml ] || [ "$manifest" = manifest/record-pages.xml ]; then
             echo "===== LAYOUT ASSIGNMENTS (System Administrator)"
             sf data query --use-tooling-api --query "SELECT TableEnumOrId, Layout.Name, RecordTypeId FROM ProfileLayout WHERE Profile.Name = 'System Administrator'" --target-org target --json \
-              | jq -r '(.result.records // [])[] | "\(.TableEnumOrId) | \(.Layout.Name) | \(.RecordTypeId)"' | grep -E '^(Account|Quote|QuoteLineItem|Contract|Product2|ProductQualification|ContactPointAddress) ' || true
+              | jq -r '(.result.records // [])[] | "\(.TableEnumOrId) | \(.Layout.Name) | \(.RecordTypeId)"' | grep -E '^(Account|Opportunity|Quote|QuoteLineItem|Contract|Product2|ProductQualification|ContactPointAddress) ' || true
             echo "===== RECORD PAGES"
             sf data query --use-tooling-api --query "SELECT DeveloperName, EntityDefinitionId, Type FROM FlexiPage WHERE Type = 'RecordPage'" --target-org target --json \
-              | jq -r '(.result.records // [])[] | "\(.EntityDefinitionId) | \(.DeveloperName)"' | grep -E '^(Account|Quote|QuoteLineItem|Contract|Product2|ProductQualification|ContactPointAddress) ' || true
+              | jq -r '(.result.records // [])[] | "\(.EntityDefinitionId) | \(.DeveloperName)"' | grep -E '^(Account|Opportunity|Quote|QuoteLineItem|Contract|Product2|ProductQualification|ContactPointAddress) ' || true
           fi
           sf project retrieve start --api-version "$ORG_API" --manifest "$manifest" --target-org target \
             --target-metadata-dir retrieved --unzip --wait 20 --json > retrieve.json || true

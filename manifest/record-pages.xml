@@ -9,6 +9,8 @@
         <members>RLM_Product_Record_Page</members>
         <members>RLM_Quote_Line_Item_Record_Page</members>
         <members>RLM_Quote_Record_Page</members>
+        <members>RLM_Opportunity_Record_Page</members>
+        <members>Opportunity_Record_Page</members>
         <name>FlexiPage</name>
     </types>
     <version>68.0</version>
