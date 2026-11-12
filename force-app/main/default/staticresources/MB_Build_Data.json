@@ -985,7 +985,7 @@
     "Glofox",
     "Other"
    ],
-   "usedBy": "CR-11, SWITCH50"
+   "usedBy": "Moved to Opportunity > Prior System (CR-11, SWITCH50)"
   },
   {
    "name": "Payments Opted In",
@@ -1012,7 +1012,7 @@
    "name": "SMS Allowance",
    "code": "MB_SMS_Allowance",
    "type": "Number",
-   "usedBy": "CR-03, RLP-05"
+   "usedBy": "CR-03, RLP-05 – on the Email and SMS Marketing feature (MB-F-MKTG)"
   },
   {
    "name": "Card Present",
@@ -1025,14 +1025,7 @@
    "usedBy": "Payments rating"
   }
  ],
- "productAttributes": [
-  {
-   "product": "MB-ULT",
-   "attribute": "SMS Allowance",
-   "default": "1000",
-   "note": "CR-03: 1,000 texts per location per month included in Ultimate"
-  }
- ],
+ "productAttributes": [],
  "priceBooks": [
   {
    "name": "North America & Asia (USD)",
@@ -1547,16 +1540,7 @@
     "MB-ULT",
     "MB-ENT"
    ],
-   "attributes": [
-    {
-     "attribute": "Prior System",
-     "default": "None"
-    },
-    {
-     "attribute": "SMS Allowance",
-     "default": "0"
-    }
-   ]
+   "attributes": []
   },
   {
    "name": "Mindbody Branded App",
@@ -1595,6 +1579,19 @@
    "attributes": [
     {
      "attribute": "Region"
+    }
+   ]
+  },
+  {
+   "name": "Mindbody SMS Bundle",
+   "code": "MB-PC-SMS",
+   "products": [
+    "MB-F-MKTG"
+   ],
+   "attributes": [
+    {
+     "attribute": "SMS Allowance",
+     "default": "1000"
     }
    ]
   }

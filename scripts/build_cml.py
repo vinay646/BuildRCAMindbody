@@ -56,6 +56,10 @@ out.append('''// ===============================================================
 @(contextPath = "SalesTransaction.MbHierarchyLocationCount")
 extern decimal HierarchyLocations;
 
+// CR-11: the customer's prior system (Opportunity > Prior System, via Quote > Prior System)
+@(contextPath = "SalesTransaction.MbPriorSystem")
+extern string PriorSystem;
+
 @(virtual = "true")
 type Quote {
     @(sourceContextNode = "SalesTransaction.SalesTransactionItem")
@@ -110,6 +114,10 @@ type Quote {
     rule(HierarchyLocations >= 25 && lineitems[Enterprise] == 0, "recommend", "type", "Enterprise",
         "message", "25 or more locations in this customer's hierarchy – recommend the Enterprise plan.");
 
+    // CR-11: recommend Custom data conversion when the opportunity's prior system is a competitor
+    rule(PriorSystem != "None" && PriorSystem != "" && lineitems[CustomDataConversion] == 0, "recommend", "type", "CustomDataConversion",
+        "message", "The customer is moving from another system – recommend Custom data conversion.");
+
     // CR-09 fallback message (shown if Payments is removed again)
     message((lineitems[MobileCardReader] + lineitems[CountertopPaymentTerminal] + lineitems[DoorAccessKit]) > 0
             && lineitems[MindbodyPayments] == 0,
@@ -122,13 +130,6 @@ type LineItem;
 for parent in bundles:
     out.append(f'// --- {names[parent]} bundle ({parent}) ---')
     out.append(f'type {tname(parent)} : LineItem {{')
-    if parent in ('MB-STR', 'MB-ACC', 'MB-ULT', 'MB-ENT'):
-        out.append('    // CR-11: Prior System attribute (classification Mindbody Subscription Tier); a competitor -> recommend data conversion')
-        out.append('    @(defaultValue = "None")')
-        out.append('    string MB_Prior_System = ["None", "WellnessLiving", "Vagaro", "Glofox", "Other"];')
-        out.append('    rule(MB_Prior_System != "None", "recommend", "type", "CustomDataConversion",')
-        out.append('        "message", "The customer is moving from another system – recommend Custom data conversion.");')
-        out.append('')
     out.extend(rel_lines[parent])
     out.append('}\n')
 out.append('// --- Products without bundle structure ---')

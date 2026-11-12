@@ -468,6 +468,16 @@
                 <identifier>MbRecordHierarchyLocationCountcField</identifier>
             </fieldInstance>
         </itemInstances>
+        <itemInstances>
+            <fieldInstance>
+                <fieldInstanceProperties>
+                    <name>uiBehavior</name>
+                    <value>readonly</value>
+                </fieldInstanceProperties>
+                <fieldItem>Record.MB_Prior_System__c</fieldItem>
+                <identifier>MbRecordMBPriorSystemcField</identifier>
+            </fieldInstance>
+        </itemInstances>
         <name>Facet-mindbody-fields-2</name>
         <type>Facet</type>
     </flexiPageRegions>

@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>MB_Prior_System__c</fullName>
+    <label>Prior System</label>
+    <description>Prior System from the quote's opportunity; passed to the configurator (context attribute MbPriorSystem) for CR-11.</description>
+    <inlineHelpText>From the opportunity. Change it there.</inlineHelpText>
+    <type>Text</type>
+    <formula>TEXT(Opportunity.MB_Prior_System__c)</formula>
+    <formulaTreatBlanksAs>BlankAsZero</formulaTreatBlanksAs>
+    <unique>false</unique>
+</CustomField>

@@ -82,6 +82,10 @@
                 <behavior>Readonly</behavior>
                 <field>Hierarchy_Location_Count__c</field>
             </layoutItems>
+            <layoutItems>
+                <behavior>Readonly</behavior>
+                <field>MB_Prior_System__c</field>
+            </layoutItems>
         </layoutColumns>
         <style>TwoColumnsTopToBottom</style>
     </layoutSections>

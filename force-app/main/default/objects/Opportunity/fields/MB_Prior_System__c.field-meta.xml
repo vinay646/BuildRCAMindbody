@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>MB_Prior_System__c</fullName>
+    <label>Prior System</label>
+    <description>The system the customer is moving from (spec 12.6). A competitor drives the data conversion recommendation (CR-11) and SWITCH50 eligibility.</description>
+    <inlineHelpText>The system the customer uses today. Choose None for a new business with no prior system.</inlineHelpText>
+    <type>Picklist</type>
+    <required>false</required>
+    <valueSet>
+        <restricted>true</restricted>
+        <valueSetDefinition>
+            <sorted>false</sorted>
+            <value><fullName>None</fullName><default>true</default><label>None</label></value>
+            <value><fullName>WellnessLiving</fullName><default>false</default><label>WellnessLiving</label></value>
+            <value><fullName>Vagaro</fullName><default>false</default><label>Vagaro</label></value>
+            <value><fullName>Glofox</fullName><default>false</default><label>Glofox</label></value>
+            <value><fullName>Other</fullName><default>false</default><label>Other</label></value>
+        </valueSetDefinition>
+    </valueSet>
+</CustomField>
