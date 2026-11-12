@@ -11,16 +11,18 @@ PBE=$(q "SELECT Id, Product2Id FROM PricebookEntry WHERE Product2.ProductCode = 
 PBEID=$(echo "$PBE" | jq -r '.[0].Id'); PROD=$(echo "$PBE" | jq -r '.[0].Product2Id')
 TODAY=$(date -u +%Y-%m-%d); END=$(date -u -d '+36 months -1 day' +%Y-%m-%d); STAMP=$(date -u +%m%d-%H%M)
 T=$(q "SELECT Id FROM BillingTreatment WHERE Name = 'Mindbody Billing Treatment - Advance'" | jq -r '.[0].Id')
-for V in ${VARIANTS:-no-term}; do
+LE=$(q "SELECT Id FROM LegalEntity WHERE Name = 'Default Legal Entity - US'" | jq -r '.[0].Id')
+for V in ${VARIANTS:-legal}; do
   echo "===== variant $V"
   OPP=$(sf data create record --sobject Opportunity --values "Name='P02 $V $STAMP' AccountId=$ACC StageName=Prospecting CloseDate=$TODAY Pricebook2Id=$PB CurrencyIsoCode=USD" --target-org target --json | jq -r '.result.id')
   EXTRA='{}'; [ "$V" = "with-term" ] && EXTRA='{"SubscriptionTerm": 36}'
+  [ "$V" = "legal" ] && EXTRA="{\"LegalEntityId\": \"$LE\"}"
   [ "${V#treatment}" != "$V" ] && EXTRA="{\"BillingTreatmentId\": \"$T\"}"
   [ "$V" = "treatment-change" ] && echo "set CanChangeBillingFrequency=true: $(sf data update record --sobject BillingTreatment --record-id "$T" --values "CanChangeBillingFrequency=true" --target-org target --json | jq -c '{status, message}')"
   BODY=$(jq -nc --arg opp "$OPP" --arg pb "$PB" --arg prod "$PROD" --arg pbe "$PBEID" --arg d "$TODAY" --arg e "$END" --arg con "$CON" --argjson x "$EXTRA" '{
     pricingPref: "System", catalogRatesPref: "Skip", configurationPref: {configurationMethod: "Skip"}, taxPref: "Skip",
     graph: {graphId: "p02", records: [
-      {referenceId: "q1", record: {attributes: {type: "Quote", method: "POST"}, Name: "P02 Pricing Test", OpportunityId: $opp, Pricebook2Id: $pb, BillToContactId: $con, StartDate: $d, RLM_TermMonths__c: 36}},
+      {referenceId: "q1", record: {attributes: {type: "Quote", method: "POST"}, Name: "P02 Pricing Test", OpportunityId: $opp, Pricebook2Id: $pb, BillToContactId: $con, StartDate: $d, RLM_TermMonths__c: 36} + (if $x.LegalEntityId then {LegalEntityId: $x.LegalEntityId} else {} end)},
       {referenceId: "l1", record: ({attributes: {type: "QuoteLineItem", method: "POST"}, QuoteId: "@{q1.id}", Product2Id: $prod,
         PricebookEntryId: $pbe, Quantity: 2, StartDate: $d, EndDate: $e, PeriodBoundary: "Anniversary", BillingFrequency: "Annual"} + $x)}]}}')
   rest POST /connect/rev/sales-transaction/actions/place "$BODY" | jq -c '{isSuccess, errorResponse, salesTransactionId}'
