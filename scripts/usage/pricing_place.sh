@@ -11,7 +11,7 @@ PBE=$(q "SELECT Id, Product2Id FROM PricebookEntry WHERE Product2.ProductCode = 
 PBEID=$(echo "$PBE" | jq -r '.[0].Id'); PROD=$(echo "$PBE" | jq -r '.[0].Product2Id')
 TODAY=$(date -u +%Y-%m-%d); END=$(date -u -d '+36 months -1 day' +%Y-%m-%d); STAMP=$(date -u +%m%d-%H%M)
 T=$(q "SELECT Id FROM BillingTreatment WHERE Name = 'Mindbody Billing Treatment - Advance'" | jq -r '.[0].Id')
-for V in ${VARIANTS:-treatment treatment-change}; do
+for V in ${VARIANTS:-no-term}; do
   echo "===== variant $V"
   OPP=$(sf data create record --sobject Opportunity --values "Name='P02 $V $STAMP' AccountId=$ACC StageName=Prospecting CloseDate=$TODAY Pricebook2Id=$PB CurrencyIsoCode=USD" --target-org target --json | jq -r '.result.id')
   EXTRA='{}'; [ "$V" = "with-term" ] && EXTRA='{"SubscriptionTerm": 36}'
