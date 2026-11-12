@@ -38,6 +38,19 @@ needs it (RLP-01).
    line discount fields, Product Type / Unit Of Sale / Core Tier / Vertical fields, the pricing Apex). Run it
    only after steps 1–4 succeeded.
 
+## Status (12 Nov 2026, tested)
+
+- **One procedure:** the Mindbody steps are version 2 of `RLM_DefaultPricingProcedure`; `MB_Pricing_Procedure` is deleted.
+  Quotes are priced through the standard procedure plan `RLM_Quote_Pricing_Procedure_Plan` (section 1 = this procedure).
+- **Tiers:** one USD tier set serves every currency (the standard Volume Discount step does not pass the currency to the
+  tier lookup; four currency copies made it fail with "Duplicate entries found while looking up VolumeDiscount").
+- **Subscription Term** must be filled on term lines – the contract term step reads it, and a blank value matches every
+  term tier (same duplicate error). The quote line date flows set it from the quote's Term (Months).
+- **Test P02** (Pulse Fitness Brands, 12 active locations, Ultimate x2, 36 months, Monthly): $499 → $449.10 (volume 10%)
+  → $404.19 (term 10%) → $404.19 (Monthly 0%); line total $29,101.68. Run: `usage-summary`, path `pricing-test`.
+- **Open:** Quarterly/Semi-Annual/Annual lines are refused with "Add a Billing Treatment …" – the Mindbody products need a
+  standard billing policy and billing treatment before the billing frequency discount can apply.
+
 ## Status (13 Nov 2026)
 
 **Unblocked:** Salesforce Support fixed the release issue behind "Ensure that the lookup table in the ListPrice step
