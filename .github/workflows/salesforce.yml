@@ -299,6 +299,7 @@ jobs:
           if [ "$DEPLOY_PATH" = "empty-summaries" ]; then ./scripts/usage/empty_summaries.sh
           elif [ "$DEPLOY_PATH" = "billing-check" ]; then ./scripts/usage/billing_check.sh
           elif [ "$DEPLOY_PATH" = "tier-check" ]; then ./scripts/usage/tier_check.sh
+          elif [ "$DEPLOY_PATH" = "pricing-place" ]; then ./scripts/usage/pricing_place.sh
           elif [ "$DEPLOY_PATH" = "pricing-test" ]; then ./scripts/usage/pricing_test.sh
           elif [ "$DEPLOY_PATH" = "pricing-setup" ]; then ./scripts/usage/pricing_setup.sh
           elif [ "$DEPLOY_PATH" = "check-product" ]; then ./scripts/run-apex.sh scripts/usage/check_product.apex "Usage product setup" || true
