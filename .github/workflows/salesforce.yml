@@ -296,7 +296,9 @@ jobs:
       - name: Usage summary test
         if: env.ACTION == 'usage-summary'
         run: |
-          if [ "$DEPLOY_PATH" = "empty-summaries" ]; then ./scripts/usage/empty_summaries.sh; else ./scripts/usage/usage_summary.sh; fi
+          if [ "$DEPLOY_PATH" = "empty-summaries" ]; then ./scripts/usage/empty_summaries.sh
+          elif [ "$DEPLOY_PATH" = "check-product" ]; then ./scripts/run-apex.sh scripts/usage/check_product.apex "Usage product setup" || true
+          else ./scripts/usage/usage_summary.sh; fi
 
       - name: Explore usage setup
         if: env.ACTION == 'explore-usage'
