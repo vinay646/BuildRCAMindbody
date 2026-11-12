@@ -4,6 +4,7 @@ set -uo pipefail
 API="/services/data/v$ORG_API"
 q() { sf data query --query "$1" --target-org target --json | jq -c '.result.records // .message'; }
 rest() { sf api request rest "$API$2" --method "$1" ${3:+--body "$3"} --target-org target 2>&1; }
+echo "sync pricing data: $(rest GET /connect/core-pricing/sync/syncData | tr -d "\n ")"; sleep 20
 ACC=$(q "SELECT Id FROM Account WHERE Name = 'Pulse Fitness Brands' LIMIT 1" | jq -r '.[0].Id')
 CON=$(q "SELECT Id FROM Contact WHERE AccountId = '$ACC' LIMIT 1" | jq -r '.[0].Id // empty')
 [ -z "$CON" ] && CON=$(sf data create record --sobject Contact --values "FirstName=Pricing LastName=Tester Email=pricing.tester@example.com AccountId=$ACC" --target-org target --json | jq -r '.result.id')

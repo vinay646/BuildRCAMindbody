@@ -724,6 +724,11 @@ public without sharing class MindbodyBuildLoader {
         for (Map<String, Object> pd : allProducts()) {
             productData.put((String) pd.get('code'), pd);
         }
+        // Tiers are percentages, so one set in the corporate currency serves every currency: the standard pricing
+        // procedure's Volume Discount step does not pass the currency to the tier lookup, and one set per currency
+        // makes the lookup fail with "Duplicate entries found while looking up VolumeDiscount".
+        String corporate = corporateCurrency();
+        Set<String> tierCurrencies = multiCurrency ? new Set<String>{ corporate } : currencies;
         List<Map<String, Object>> tierRows = new List<Map<String, Object>>();
         for (Object o : (List<Object>) pricing.get('schedules')) {
             Map<String, Object> sc = (Map<String, Object>) o;
@@ -744,7 +749,7 @@ public without sharing class MindbodyBuildLoader {
                     if (psm == null) {
                         continue;
                     }
-                    for (String cur : currencies) {
+                    for (String cur : tierCurrencies) {
                         for (Object b : (List<Object>) sc.get('tiers')) {
                             List<Object> band = (List<Object>) b;
                             Map<String, Object> r = new Map<String, Object>{
@@ -769,6 +774,15 @@ public without sharing class MindbodyBuildLoader {
         }
         sync('PriceAdjustmentTier', tierKey, tierRows, 'PriceAdjustmentScheduleId IN :ids',
             new Map<String, Object>{ 'ids' => idsOf(schedules.values()) }, null);
+        if (multiCurrency) {
+            List<SObject> stale = Database.queryWithBinds(
+                'SELECT Id FROM PriceAdjustmentTier WHERE PriceAdjustmentScheduleId IN :ids AND CurrencyIsoCode != :cur',
+                new Map<String, Object>{ 'ids' => idsOf(schedules.values()), 'cur' => corporate }, AccessLevel.SYSTEM_MODE);
+            if (!stale.isEmpty()) {
+                delete stale;
+                info('PriceAdjustmentTier: deleted ' + stale.size() + ' tiers in other currencies (one ' + corporate + ' set serves all)');
+            }
+        }
 
         List<Map<String, Object>> activateRows = new List<Map<String, Object>>();
         for (String n : schedules.keySet()) {
@@ -1218,6 +1232,16 @@ public without sharing class MindbodyBuildLoader {
             out.add((String) c.get('IsoCode'));
         }
         return out;
+    }
+
+    String corporateCurrency() {
+        if (!hasObject('CurrencyType')) {
+            return UserInfo.getDefaultCurrency();
+        }
+        for (SObject c : Database.query('SELECT IsoCode FROM CurrencyType WHERE IsCorporate = true LIMIT 1')) {
+            return (String) c.get('IsoCode');
+        }
+        return UserInfo.getDefaultCurrency();
     }
 
     // ================================================================== generic, release-tolerant upsert
