@@ -22,7 +22,7 @@ for V in ${VARIANTS:-legal}; do
   BODY=$(jq -nc --arg opp "$OPP" --arg pb "$PB" --arg prod "$PROD" --arg pbe "$PBEID" --arg d "$TODAY" --arg e "$END" --arg con "$CON" --argjson x "$EXTRA" '{
     pricingPref: "System", catalogRatesPref: "Skip", configurationPref: {configurationMethod: "Skip"}, taxPref: "Skip",
     graph: {graphId: "p02", records: [
-      {referenceId: "q1", record: {attributes: {type: "Quote", method: "POST"}, Name: "P02 Pricing Test", OpportunityId: $opp, Pricebook2Id: $pb, BillToContactId: $con, StartDate: $d, RLM_TermMonths__c: 36} + (if $x.LegalEntityId then {LegalEntityId: $x.LegalEntityId} else {} end)},
+      {referenceId: "q1", record: ({attributes: {type: "Quote", method: "POST"}, Name: "P02 Pricing Test", OpportunityId: $opp, Pricebook2Id: $pb, BillToContactId: $con, StartDate: $d, RLM_TermMonths__c: 36} + (if $x.LegalEntityId then {LegalEntityId: $x.LegalEntityId} else {} end))},
       {referenceId: "l1", record: ({attributes: {type: "QuoteLineItem", method: "POST"}, QuoteId: "@{q1.id}", Product2Id: $prod,
         PricebookEntryId: $pbe, Quantity: 2, StartDate: $d, EndDate: $e, PeriodBoundary: "Anniversary", BillingFrequency: "Annual"} + $x)}]}}')
   rest POST /connect/rev/sales-transaction/actions/place "$BODY" | jq -c '{isSuccess, errorResponse, salesTransactionId}'
