@@ -13,7 +13,10 @@ echo "===== 0. before"; show
 echo "===== 1. set Start Date 2026-12-01, Term 24"
 sf data update record --sobject Quote --record-id "$QUOTE" --values "StartDate=2026-12-01 RLM_TermMonths__c=24" --target-org target --json | jq -c '{status, message}'
 show
-echo "===== 2. add Technical Account Management (new line)"
+echo "===== 3. restore Start Date $OS, Term $OT"
+sf data update record --sobject Quote --record-id "$QUOTE" --values "StartDate=$OS RLM_TermMonths__c=$OT" --target-org target --json | jq -c '{status, message}'
+show
+echo "===== 4. add Technical Account Management (new line, quote at its original 12-month term)"
 PB=$(q "SELECT Pricebook2Id FROM Quote WHERE Id = '$QUOTE'" | jq -r '.[0].Pricebook2Id')
 PBE=$(q "SELECT Id, Product2Id FROM PricebookEntry WHERE Pricebook2Id = '$PB' AND Product2.ProductCode = 'MB-TAM' AND CurrencyIsoCode = 'USD' AND IsActive = true LIMIT 1")
 BODY=$(jq -nc --arg q "$QUOTE" --arg p "$(echo "$PBE" | jq -r '.[0].Product2Id')" --arg e "$(echo "$PBE" | jq -r '.[0].Id')" '{pricingPref:"Skip",catalogRatesPref:"Skip",taxPref:"Skip",configurationPref:{configurationMethod:"Skip"},
@@ -21,6 +24,3 @@ BODY=$(jq -nc --arg q "$QUOTE" --arg p "$(echo "$PBE" | jq -r '.[0].Product2Id')
   {referenceId:"l1",record:{attributes:{type:"QuoteLineItem",method:"POST"},QuoteId:$q,Product2Id:$p,PricebookEntryId:$e,Quantity:1,StartDate:"2026-11-12",PeriodBoundary:"Anniversary",BillingFrequency:"Monthly"}}]}}')
 sf api request rest "$API/connect/rev/sales-transaction/actions/place" --method POST --body "$BODY" --target-org target 2>&1 | jq -c '{isSuccess, errorResponse}'
 sleep 8; show
-echo "===== 3. restore Start Date $OS, Term $OT"
-sf data update record --sobject Quote --record-id "$QUOTE" --values "StartDate=$OS RLM_TermMonths__c=$OT" --target-org target --json | jq -c '{status, message}'
-show
