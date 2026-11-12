@@ -13,17 +13,20 @@ PBEID=$(echo "$PBE" | jq -r '.[0].Id'); PSM=$(echo "$PBE" | jq -r '.[0].ProductS
 echo "pricebook=$PB product=$PROD pbe=$PBEID psm=$PSM"
 echo "===== 2. account and opportunity"
 STAMP=$(date -u +%m%d-%H%M)
-ACC=$(sf data create record --sobject Account --values "Name='Usage Test QuantumBit $STAMP' CurrencyIsoCode=USD Payer_Type__c=Self-Pay Account_Level__c=Corporate" --target-org target --json | jq -r '.result.id')
+ACC=$(sf data create record --sobject Account --values "Name='Usage Test QuantumBit $STAMP' CurrencyIsoCode=USD Payer_Type__c=Self-Pay Account_Level__c=Corporate BillingStreet='1 Test Way' BillingCity=Irvine BillingState=California BillingPostalCode=92618 BillingCountry='United States' ShippingStreet='1 Test Way' ShippingCity=Irvine ShippingState=California ShippingPostalCode=92618 ShippingCountry='United States'" --target-org target --json | jq -r '.result.id')
+CON=$(sf data create record --sobject Contact --values "FirstName=Usage LastName=Tester Email=usage.tester@example.com AccountId=$ACC" --target-org target --json | jq -r '.result.id')
 OPP=$(sf data create record --sobject Opportunity --values "Name='Usage Test QuantumBit $STAMP' AccountId=$ACC StageName=Prospecting CloseDate=$(date -u +%Y-%m-%d) Pricebook2Id=$PB CurrencyIsoCode=USD" --target-org target --json | jq -r '.result.id')
-echo "account=$ACC opportunity=$OPP"
+echo "account=$ACC contact=$CON opportunity=$OPP"
 echo "===== 3. quote (Place Sales Transaction)"
-TODAY=$(date -u +%Y-%m-%d)
-BODY=$(jq -nc --arg opp "$OPP" --arg pb "$PB" --arg prod "$PROD" --arg pbe "$PBEID" --arg psm "$PSM" --arg d "$TODAY" '{
+TODAY=$(date -u +%Y-%m-%d); END=$(date -u -d '+1 year -1 day' +%Y-%m-%d)
+BODY=$(jq -nc --arg opp "$OPP" --arg pb "$PB" --arg prod "$PROD" --arg pbe "$PBEID" --arg d "$TODAY" --arg e "$END" --arg con "$CON" '{
   pricingPref: "System", catalogRatesPref: "Skip", configurationPref: {configurationMethod: "Skip"}, taxPref: "Skip",
   graph: {graphId: "usagetest", records: [
-    {referenceId: "q1", record: {attributes: {type: "Quote", method: "POST"}, Name: "Usage Test QuantumBit", OpportunityId: $opp, Pricebook2Id: $pb}},
+    {referenceId: "q1", record: {attributes: {type: "Quote", method: "POST"}, Name: "Usage Test QuantumBit", OpportunityId: $opp, Pricebook2Id: $pb, BillToContactId: $con, ShipToContactId: $con,
+      BillingStreet: "1 Test Way", BillingCity: "Irvine", BillingState: "California", BillingPostalCode: "92618", BillingCountry: "United States",
+      ShippingStreet: "1 Test Way", ShippingCity: "Irvine", ShippingState: "California", ShippingPostalCode: "92618", ShippingCountry: "United States"}},
     {referenceId: "l1", record: {attributes: {type: "QuoteLineItem", method: "POST"}, QuoteId: "@{q1.id}", Product2Id: $prod,
-      PricebookEntryId: $pbe, Quantity: 1, StartDate: $d, PeriodBoundary: "Anniversary", BillingFrequency: "Annual"}}]}}')
+      PricebookEntryId: $pbe, Quantity: 1, StartDate: $d, EndDate: $e, PeriodBoundary: "Anniversary", BillingFrequency: "Annual"}}]}}')
 RES=$(rest POST /connect/rev/sales-transaction/actions/place "$BODY"); echo "$RES" | head -c 1500; echo
 QUOTE=$(q "SELECT Id FROM Quote WHERE OpportunityId = '$OPP' ORDER BY CreatedDate DESC LIMIT 1" | jq -r '.[0].Id // empty')
 echo "quote=$QUOTE"; [ -z "$QUOTE" ] && exit 0
