@@ -6,7 +6,7 @@ for (String o : new List<String>{ 'ProductQualification', 'ProductDisqualificati
     List<String> fs = new List<String>();
     for (Schema.SObjectField sf : d.fields.getMap().values()) {
         Schema.DescribeFieldResult x = sf.getDescribe();
-        if (x.isCreateable()) fs.add(x.getName() + ':' + x.getType() + (x.isNillable() ? '' : '!'));
+        fs.add(x.getName() + ':' + x.getType() + (x.isNillable() ? '' : '!') + (x.isCreateable() ? '' : '(ro)') + (x.isCustom() ? '(custom)' : '') + (x.getDefaultValue() != null ? '=' + x.getDefaultValue() : ''));
     }
     fs.sort();
     System.debug(LoggingLevel.ERROR, 'OBJECT ' + o + ' create=' + d.isCreateable() + ' rows=' + Database.countQuery('SELECT COUNT() FROM ' + o) + ' | ' + String.join(fs, ', '));
