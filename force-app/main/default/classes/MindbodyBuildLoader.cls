@@ -18,7 +18,7 @@ public without sharing class MindbodyBuildLoader {
     public class LoaderException extends Exception {}
 
     public static final String RESOURCE = 'MB_Build_Data';
-    public static final List<String> STEPS = new List<String>{ 'inventory', 'accounts', 'catalog', 'products', 'bundles', 'attributes', 'pricebooks', 'pricingschedules', 'constraints' };
+    public static final List<String> STEPS = new List<String>{ 'inventory', 'accounts', 'catalog', 'products', 'bundles', 'attributes', 'pricebooks', 'pricingschedules', 'constraints', 'constraints-reset' };
 
     public List<String> log = new List<String>();
     public Integer errors = 0;
@@ -57,6 +57,7 @@ public without sharing class MindbodyBuildLoader {
             when 'inventory' { inventory(); }
             when 'pricingschedules' { loadPricingSchedules(); }
             when 'constraints' { loadConstraintLinks(); }
+            when 'constraints-reset' { resetConstraintLinks(); }
             when else { throw new LoaderException('Unknown step "' + step + '". Steps: ' + String.join(STEPS, ', ')); }
         }
     }
@@ -374,6 +375,28 @@ public without sharing class MindbodyBuildLoader {
             }
             sync('ExpressionSetConstraintObj', new List<String>{ 'ExpressionSetId', 'ConstraintModelTag' }, rows,
                 'ExpressionSetId = :sid', new Map<String, Object>{ 'sid' => setId }, null);
+        }
+    }
+
+    /**
+     * Deletes the product links of the Mindbody constraint models. Saving the CML in the constraint model editor
+     * creates the component types itself and fails ("Component Type ... already exists") when links were added first.
+     */
+    public void resetConstraintLinks() {
+        for (Object o : listOf('constraintModels')) {
+            String want = ((String) ((Map<String, Object>) o).get('apiName')).replaceAll('[\\s_]', '').toLowerCase();
+            for (SObject es : Database.query('SELECT Id, ApiName, Name FROM ExpressionSet WHERE InterfaceSourceType = \'Constraint\'')) {
+                String a = ((String) es.get('ApiName')).replaceAll('[\\s_]', '').toLowerCase();
+                if (a != want) {
+                    continue;
+                }
+                List<SObject> links = Database.query('SELECT Id, ConstraintModelTag FROM ExpressionSetConstraintObj WHERE ExpressionSetId = \'' + es.Id + '\'');
+                Integer ok = 0;
+                for (Database.DeleteResult r : Database.delete(links, false)) {
+                    if (r.isSuccess()) { ok++; } else { fail('Delete link ' + r.getId() + ': ' + r.getErrors()[0].getMessage()); }
+                }
+                info(es.get('Name') + ': ' + ok + ' of ' + links.size() + ' product links deleted');
+            }
         }
     }
 
