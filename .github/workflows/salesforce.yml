@@ -123,6 +123,8 @@ jobs:
           jq -r '.result.messages // [] | .[] | "WARNING \(.fileName // ""): \(.problem)"' retrieve.json
           files=$(find retrieved -type f ! -name '*.zip' | sort)
           echo "$files"
+          # the files as one base64 tarball in the log, for sessions that cannot download artifacts
+          echo "BEGIN_RETRIEVED_TGZ"; tar czf - retrieved | base64 -w 0; echo; echo "END_RETRIEVED_TGZ"
           {
             echo "### Retrieved from the org"
             echo
