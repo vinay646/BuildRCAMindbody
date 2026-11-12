@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ValidationRule xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>CR_09_Hardware_Ship_To</fullName>
+    <active>true</active>
+    <description>CR-09: hardware needs a Ship-To address – the quote's shipping address, else the account's.</description>
+    <errorConditionFormula>AND(
+  ISPICKVAL(Product2.Family, 'Hardware'),
+  ISBLANK(Quote.ShippingStreet),
+  ISBLANK(Quote.Opportunity.Account.ShippingStreet)
+)</errorConditionFormula>
+    <errorMessage>Hardware ships to the Ship-To address: add a shipping address to the quote or the account.</errorMessage>
+</ValidationRule>

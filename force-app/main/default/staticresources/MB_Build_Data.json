@@ -1783,6 +1783,7 @@
     "BusinessManagementFeature": "MB-F-BM",
     "CorporateDashboardFeature": "MB-F-CDB",
     "CountertopPaymentTerminal": "MB-HW-TRM",
+    "CustomDataConversion": "MB-DCV",
     "DoorAccessKit": "MB-HW-DOOR",
     "EmailAndSmsMarketingFeature": "MB-F-MKTG",
     "Enterprise": "MB-ENT",

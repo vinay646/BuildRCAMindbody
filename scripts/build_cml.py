@@ -17,7 +17,7 @@ fixed = {'MB-STR': 'Starter', 'MB-ACC': 'Accelerate', 'MB-ULT': 'Ultimate', 'MB-
          'MB-AIC': 'AIConciergeAddOn', 'MB-APP': 'BrandedApp', 'MB-APP-SET': 'BrandedAppSetup',
          'MB-PAY': 'MindbodyPayments', 'MB-HW-RDR': 'MobileCardReader', 'MB-HW-TRM': 'CountertopPaymentTerminal',
          'MB-HW-DOOR': 'DoorAccessKit',
-         'MB-TAM': 'TechnicalAccountManagement', 'MB-MKT': 'MarketplaceFee', 'MB-SMS': 'SmsOverage'}
+         'MB-TAM': 'TechnicalAccountManagement', 'MB-DCV': 'CustomDataConversion', 'MB-MKT': 'MarketplaceFee', 'MB-SMS': 'SmsOverage'}
 def tname(code):
     if code in fixed:
         return fixed[code]
@@ -51,6 +51,10 @@ out.append('''// ===============================================================
 // Design (phase 5): one opportunity and quote per account – every account, location included, can
 // buy; billing follows the account's Payer Type. So "per location" rules are "per quote" here.
 // ----------------------------------------------------------------------------
+
+// CR-12: hierarchy-wide active locations (Quote > Hierarchy Location Count) from the sales transaction context
+@(contextPath = "SalesTransaction.MbHierarchyLocationCount")
+extern decimal HierarchyLocations;
 
 @(virtual = "true")
 type Quote {
@@ -100,6 +104,12 @@ type Quote {
     require(lineitems[CountertopPaymentTerminal], lineitems[MindbodyPayments], "Hardware requires Mindbody Payments – added to the quote.");
     require(lineitems[DoorAccessKit], lineitems[MindbodyPayments], "Hardware requires Mindbody Payments – added to the quote.");
 
+    // CR-12: recommend Technical Account Management at 10+ locations in the hierarchy, Enterprise at 25+
+    rule(HierarchyLocations >= 10 && lineitems[TechnicalAccountManagement] == 0, "recommend", "type", "TechnicalAccountManagement",
+        "message", "10 or more locations in this customer's hierarchy – recommend Technical Account Management.");
+    rule(HierarchyLocations >= 25 && lineitems[Enterprise] == 0, "recommend", "type", "Enterprise",
+        "message", "25 or more locations in this customer's hierarchy – recommend the Enterprise plan.");
+
     // CR-09 fallback message (shown if Payments is removed again)
     message((lineitems[MobileCardReader] + lineitems[CountertopPaymentTerminal] + lineitems[DoorAccessKit]) > 0
             && lineitems[MindbodyPayments] == 0,
@@ -112,6 +122,13 @@ type LineItem;
 for parent in bundles:
     out.append(f'// --- {names[parent]} bundle ({parent}) ---')
     out.append(f'type {tname(parent)} : LineItem {{')
+    if parent in ('MB-STR', 'MB-ACC', 'MB-ULT', 'MB-ENT'):
+        out.append('    // CR-11: Prior System attribute (classification Mindbody Subscription Tier); a competitor -> recommend data conversion')
+        out.append('    @(defaultValue = "None")')
+        out.append('    string MB_Prior_System = ["None", "WellnessLiving", "Vagaro", "Glofox", "Other"];')
+        out.append('    rule(MB_Prior_System != "None", "recommend", "type", "CustomDataConversion",')
+        out.append('        "message", "The customer is moving from another system – recommend Custom data conversion.");')
+        out.append('')
     out.extend(rel_lines[parent])
     out.append('}\n')
 out.append('// --- Products without bundle structure ---')

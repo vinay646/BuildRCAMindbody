@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ValidationRule xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>CR_06_AI_Concierge_Quantity</fullName>
+    <active>true</active>
+    <description>CR-06: the AI Concierge add-on quantity must equal its plan's location quantity.</description>
+    <errorConditionFormula>AND(
+  Product2.ProductCode = 'MB-AIC',
+  NOT(ISBLANK(ParentQuoteLineItemId)),
+  Quantity &lt;&gt; ParentQuoteLineItem.Quantity
+)</errorConditionFormula>
+    <errorDisplayField>Quantity</errorDisplayField>
+    <errorMessage>AI Concierge must be added for every location on the plan: set its quantity to the plan's quantity.</errorMessage>
+</ValidationRule>

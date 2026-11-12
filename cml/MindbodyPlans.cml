@@ -10,6 +10,10 @@
 // buy; billing follows the account's Payer Type. So "per location" rules are "per quote" here.
 // ----------------------------------------------------------------------------
 
+// CR-12: hierarchy-wide active locations (Quote > Hierarchy Location Count) from the sales transaction context
+@(contextPath = "SalesTransaction.MbHierarchyLocationCount")
+extern decimal HierarchyLocations;
+
 @(virtual = "true")
 type Quote {
     @(sourceContextNode = "SalesTransaction.SalesTransactionItem")
@@ -58,6 +62,12 @@ type Quote {
     require(lineitems[CountertopPaymentTerminal], lineitems[MindbodyPayments], "Hardware requires Mindbody Payments – added to the quote.");
     require(lineitems[DoorAccessKit], lineitems[MindbodyPayments], "Hardware requires Mindbody Payments – added to the quote.");
 
+    // CR-12: recommend Technical Account Management at 10+ locations in the hierarchy, Enterprise at 25+
+    rule(HierarchyLocations >= 10 && lineitems[TechnicalAccountManagement] == 0, "recommend", "type", "TechnicalAccountManagement",
+        "message", "10 or more locations in this customer's hierarchy – recommend Technical Account Management.");
+    rule(HierarchyLocations >= 25 && lineitems[Enterprise] == 0, "recommend", "type", "Enterprise",
+        "message", "25 or more locations in this customer's hierarchy – recommend the Enterprise plan.");
+
     // CR-09 fallback message (shown if Payments is removed again)
     message((lineitems[MobileCardReader] + lineitems[CountertopPaymentTerminal] + lineitems[DoorAccessKit]) > 0
             && lineitems[MindbodyPayments] == 0,
@@ -69,6 +79,12 @@ type LineItem;
 
 // --- Starter bundle (MB-STR) ---
 type Starter : LineItem {
+    // CR-11: Prior System attribute (classification Mindbody Subscription Tier); a competitor -> recommend data conversion
+    @(defaultValue = "None")
+    string MB_Prior_System = ["None", "WellnessLiving", "Vagaro", "Glofox", "Other"];
+    rule(MB_Prior_System != "None", "recommend", "type", "CustomDataConversion",
+        "message", "The customer is moving from another system – recommend Custom data conversion.");
+
     // Included Features
     relation str_businessmanagementfeature : BusinessManagementFeature[0..9999];
     relation str_mindbodyapplistingfeature : MindbodyAppListingFeature[0..9999];
@@ -78,6 +94,12 @@ type Starter : LineItem {
 
 // --- Accelerate bundle (MB-ACC) ---
 type Accelerate : LineItem {
+    // CR-11: Prior System attribute (classification Mindbody Subscription Tier); a competitor -> recommend data conversion
+    @(defaultValue = "None")
+    string MB_Prior_System = ["None", "WellnessLiving", "Vagaro", "Glofox", "Other"];
+    rule(MB_Prior_System != "None", "recommend", "type", "CustomDataConversion",
+        "message", "The customer is moving from another system – recommend Custom data conversion.");
+
     // Included Features
     relation acc_businessmanagementfeature : BusinessManagementFeature[0..9999];
     relation acc_mindbodyapplistingfeature : MindbodyAppListingFeature[0..9999];
@@ -94,6 +116,12 @@ type Accelerate : LineItem {
 
 // --- Ultimate bundle (MB-ULT) ---
 type Ultimate : LineItem {
+    // CR-11: Prior System attribute (classification Mindbody Subscription Tier); a competitor -> recommend data conversion
+    @(defaultValue = "None")
+    string MB_Prior_System = ["None", "WellnessLiving", "Vagaro", "Glofox", "Other"];
+    rule(MB_Prior_System != "None", "recommend", "type", "CustomDataConversion",
+        "message", "The customer is moving from another system – recommend Custom data conversion.");
+
     // Included Features
     relation ult_businessmanagementfeature : BusinessManagementFeature[0..9999];
     relation ult_mindbodyapplistingfeature : MindbodyAppListingFeature[0..9999];
@@ -112,6 +140,12 @@ type Ultimate : LineItem {
 
 // --- Enterprise bundle (MB-ENT) ---
 type Enterprise : LineItem {
+    // CR-11: Prior System attribute (classification Mindbody Subscription Tier); a competitor -> recommend data conversion
+    @(defaultValue = "None")
+    string MB_Prior_System = ["None", "WellnessLiving", "Vagaro", "Glofox", "Other"];
+    rule(MB_Prior_System != "None", "recommend", "type", "CustomDataConversion",
+        "message", "The customer is moving from another system – recommend Custom data conversion.");
+
     // Negotiated Features
     relation ent_businessmanagementfeature : BusinessManagementFeature[0..9999];
     relation ent_mindbodyapplistingfeature : MindbodyAppListingFeature[0..9999];
@@ -144,6 +178,7 @@ type BrandedWebWidgetsFeature : LineItem;   // MB-F-WEB Branded Web Widgets
 type BusinessManagementFeature : LineItem;   // MB-F-BM Business Management
 type CorporateDashboardFeature : LineItem;   // MB-F-CDB Corporate Dashboard
 type CountertopPaymentTerminal : LineItem;   // MB-HW-TRM Countertop payment terminal
+type CustomDataConversion : LineItem;   // MB-DCV Custom data conversion
 type DoorAccessKit : LineItem;   // MB-HW-DOOR Door access kit
 type EmailAndSmsMarketingFeature : LineItem;   // MB-F-MKTG Email and SMS Marketing
 type LeadManagementFeature : LineItem;   // MB-F-LEAD Lead Management
