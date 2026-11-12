@@ -31,8 +31,8 @@
                         <objectName>Account</objectName>
                         <queryAttribute>MB_Hardware_Region__c</queryAttribute>
                     </contextAttrHydrationDetails>
-                    <contextAttribute>MbHardwareRegion</contextAttribute>
-                    <contextInputAttributeName>MbHardwareRegion</contextInputAttributeName>
+                    <contextAttribute>MB_Hardware_Region__c</contextAttribute>
+                    <contextInputAttributeName>MB_Hardware_Region__c</contextInputAttributeName>
                 </contextAttributeMappings>
                 <contextAttributeMappings>
                     <contextAttribute>AccountId</contextAttribute>
@@ -455,7 +455,7 @@
                 <fieldType>inputoutput</fieldType>
                 <key>false</key>
                 <localizationDisabled>false</localizationDisabled>
-                <title>MbHardwareRegion</title>
+                <title>MB_Hardware_Region__c</title>
                 <transient>false</transient>
                 <value>false</value>
             </contextAttributes>
