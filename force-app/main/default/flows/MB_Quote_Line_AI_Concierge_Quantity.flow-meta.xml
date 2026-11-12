@@ -1,0 +1,97 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Flow xmlns="http://soap.sforce.com/2006/04/metadata">
+    <apiVersion>62.0</apiVersion>
+    <customErrors>
+        <name>Error_Quantity</name>
+        <label>Error quantity</label>
+        <locationX>50</locationX>
+        <locationY>539</locationY>
+        <customErrorMessages>
+            <errorMessage>AI Concierge must be added for every location on the plan: set its quantity to the plan's quantity ({!Get_Plan_Line.Quantity}). (CR-06)</errorMessage>
+            <isFieldError>false</isFieldError>
+        </customErrorMessages>
+    </customErrors>
+    <decisions>
+        <name>Is_AI_Concierge</name>
+        <label>Is AI Concierge</label>
+        <locationX>182</locationX>
+        <locationY>323</locationY>
+        <defaultConnectorLabel>Other product</defaultConnectorLabel>
+        <rules>
+            <name>AI_Concierge</name>
+            <conditionLogic>and</conditionLogic>
+            <conditions>
+                <leftValueReference>$Record.Product2.ProductCode</leftValueReference>
+                <operator>EqualTo</operator>
+                <rightValue><stringValue>MB-AIC</stringValue></rightValue>
+            </conditions>
+            <connector><targetReference>Get_Plan_Line</targetReference></connector>
+            <label>AI Concierge</label>
+        </rules>
+    </decisions>
+    <decisions>
+        <name>Quantity_Differs</name>
+        <label>Quantity differs</label>
+        <locationX>182</locationX>
+        <locationY>539</locationY>
+        <defaultConnectorLabel>Same</defaultConnectorLabel>
+        <rules>
+            <name>Differs</name>
+            <conditionLogic>and</conditionLogic>
+            <conditions>
+                <leftValueReference>Get_Plan_Line.Quantity</leftValueReference>
+                <operator>NotEqualTo</operator>
+                <rightValue><elementReference>$Record.Quantity</elementReference></rightValue>
+            </conditions>
+            <connector><targetReference>Error_Quantity</targetReference></connector>
+            <label>Differs</label>
+        </rules>
+    </decisions>
+    <description>CR-06: the AI Concierge add-on quantity must equal its plan's location quantity (validation rules cannot read the parent quote line).</description>
+    <environments>Default</environments>
+    <interviewLabel>MB Quote Line AI Concierge Quantity {!$Flow.CurrentDateTime}</interviewLabel>
+    <label>MB Quote Line AI Concierge Quantity</label>
+    <processMetadataValues>
+        <name>BuilderType</name>
+        <value><stringValue>LightningFlowBuilder</stringValue></value>
+    </processMetadataValues>
+    <processMetadataValues>
+        <name>CanvasMode</name>
+        <value><stringValue>AUTO_LAYOUT_CANVAS</stringValue></value>
+    </processMetadataValues>
+    <processType>AutoLaunchedFlow</processType>
+    <recordLookups>
+        <name>Get_Plan_Line</name>
+        <label>Get plan line</label>
+        <locationX>182</locationX>
+        <locationY>431</locationY>
+        <assignNullValuesIfNoRecordsFound>false</assignNullValuesIfNoRecordsFound>
+        <connector><targetReference>Quantity_Differs</targetReference></connector>
+        <filterLogic>and</filterLogic>
+        <filters>
+            <field>Id</field>
+            <operator>EqualTo</operator>
+            <value><elementReference>$Record.ParentQuoteLineItemId</elementReference></value>
+        </filters>
+        <getFirstRecordOnly>true</getFirstRecordOnly>
+        <object>QuoteLineItem</object>
+        <queriedFields>Id</queriedFields>
+        <queriedFields>Quantity</queriedFields>
+        <storeOutputAutomatically>true</storeOutputAutomatically>
+    </recordLookups>
+    <start>
+        <locationX>56</locationX>
+        <locationY>0</locationY>
+        <connector><targetReference>Is_AI_Concierge</targetReference></connector>
+        <filterLogic>and</filterLogic>
+        <filters>
+            <field>ParentQuoteLineItemId</field>
+            <operator>IsNull</operator>
+            <value><booleanValue>false</booleanValue></value>
+        </filters>
+        <object>QuoteLineItem</object>
+        <recordTriggerType>CreateAndUpdate</recordTriggerType>
+        <triggerType>RecordAfterSave</triggerType>
+    </start>
+    <status>Active</status>
+</Flow>
