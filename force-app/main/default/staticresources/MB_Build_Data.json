@@ -2016,5 +2016,11 @@
     "AU"
    ]
   }
- ]
+ ],
+ "billing": {
+  "_about": "Standard billing policy and treatment for every MB- product (billing frequency changeable on the quote line).",
+  "policy": "Mindbody Billing Policy",
+  "treatment": "Mindbody Billing Treatment - Advance",
+  "description": "Mindbody subscriptions and one-time items bill in advance; reps choose Monthly, Quarterly, Semi-Annual or Annual on the quote line."
+ }
 }

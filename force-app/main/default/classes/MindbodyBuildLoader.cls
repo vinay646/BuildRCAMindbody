@@ -18,7 +18,7 @@ public without sharing class MindbodyBuildLoader {
     public class LoaderException extends Exception {}
 
     public static final String RESOURCE = 'MB_Build_Data';
-    public static final List<String> STEPS = new List<String>{ 'inventory', 'accounts', 'catalog', 'products', 'bundles', 'attributes', 'pricebooks', 'pricingschedules', 'constraints', 'constraints-reset', 'qualification' };
+    public static final List<String> STEPS = new List<String>{ 'inventory', 'accounts', 'catalog', 'products', 'bundles', 'attributes', 'pricebooks', 'pricingschedules', 'constraints', 'constraints-reset', 'qualification', 'billing' };
 
     public List<String> log = new List<String>();
     public Integer errors = 0;
@@ -59,6 +59,7 @@ public without sharing class MindbodyBuildLoader {
             when 'constraints' { loadConstraintLinks(); }
             when 'constraints-reset' { resetConstraintLinks(); }
             when 'qualification' { loadQualifications(); }
+            when 'billing' { loadBilling(); }
             when else { throw new LoaderException('Unknown step "' + step + '". Steps: ' + String.join(STEPS, ', ')); }
         }
     }
@@ -451,6 +452,59 @@ public without sharing class MindbodyBuildLoader {
             when 'AUSTRALIA', 'AU' { return 'AU'; }
             when else { return 'EU'; }
         }
+    }
+
+    /**
+     * Standard billing setup for Mindbody products: one billing policy whose default billing treatment bills in advance
+     * and lets the rep change the billing frequency (without it, quote lines cannot be Quarterly, Semi-Annual or Annual:
+     * "Add a Billing Treatment to make sure that you can change the Billing Frequency"). Every MB- product gets the
+     * policy, and the org's tax policy when it has none.
+     */
+    public void loadBilling() {
+        Map<String, Object> b = (Map<String, Object>) data.get('billing');
+        String policyName = (String) b.get('policy');
+        String treatmentName = (String) b.get('treatment');
+        Map<String, SObject> pol = sync('BillingPolicy', new List<String>{ 'Name' }, new List<Map<String, Object>>{
+            new Map<String, Object>{ 'Name' => policyName, 'Status' => 'Draft', 'BillingTreatmentSelection' => 'Default',
+                'Description' => b.get('description') } }, null, null, new Set<String>{ 'Status', 'BillingTreatmentSelection' });
+        SObject policy = pol.get(policyName);
+        if (policy == null) {
+            return;
+        }
+        Map<String, SObject> trt = sync('BillingTreatment', new List<String>{ 'Name' }, new List<Map<String, Object>>{
+            new Map<String, Object>{ 'Name' => treatmentName, 'BillingPolicyId' => policy.Id, 'Status' => 'Draft',
+                'ExcludeFromBilling' => 'No', 'IsMilestoneBilling' => false, 'CanChangeBillingFrequency' => true,
+                'Description' => 'Bill in advance; billing frequency can be changed on the quote line (Monthly, Quarterly, Semi-Annual, Annual).' } },
+            null, null, new Set<String>{ 'Status', 'BillingPolicyId', 'IsMilestoneBilling', 'ExcludeFromBilling', 'CanChangeBillingFrequency' });
+        SObject treatment = trt.get(treatmentName);
+        if (treatment == null) {
+            return;
+        }
+        sync('BillingTreatmentItem', new List<String>{ 'Name', 'BillingTreatmentId' }, new List<Map<String, Object>>{
+            new Map<String, Object>{ 'Name' => treatmentName + ' – Advance', 'BillingTreatmentId' => treatment.Id,
+                'Status' => 'Active', 'ProcessingOrder' => 1, 'Type' => 'Remainder', 'BillingType' => 'Advance',
+                'Sequencing' => 'Manual', 'Controller' => 'BillingScheduleGroup', 'Handling0Amount' => 'CreateInvoice' } },
+            'BillingTreatmentId = :t', new Map<String, Object>{ 't' => treatment.Id },
+            new Set<String>{ 'Status', 'ProcessingOrder', 'Type', 'BillingType', 'Sequencing', 'Controller', 'Handling0Amount' });
+        sync('BillingTreatment', new List<String>{ 'Name' }, new List<Map<String, Object>>{
+            new Map<String, Object>{ 'Name' => treatmentName, 'Status' => 'Active' } }, null, null, null);
+        sync('BillingPolicy', new List<String>{ 'Name' }, new List<Map<String, Object>>{
+            new Map<String, Object>{ 'Name' => policyName, 'DefaultBillingTreatmentId' => treatment.Id, 'Status' => 'Active' } },
+            null, null, null);
+
+        Id taxPolicy = null;
+        for (SObject p : Database.query('SELECT TaxPolicyId FROM Product2 WHERE TaxPolicyId != null AND (NOT ProductCode LIKE \'MB-%\') LIMIT 1')) {
+            taxPolicy = (Id) p.get('TaxPolicyId');
+        }
+        List<Map<String, Object>> prodRows = new List<Map<String, Object>>();
+        for (SObject p : Database.query('SELECT ProductCode, TaxPolicyId FROM Product2 WHERE ProductCode LIKE \'MB-%\'')) {
+            Map<String, Object> r = new Map<String, Object>{ 'ProductCode' => p.get('ProductCode'), 'BillingPolicyId' => policy.Id };
+            if (p.get('TaxPolicyId') == null && taxPolicy != null) {
+                r.put('TaxPolicyId', taxPolicy);
+            }
+            prodRows.add(r);
+        }
+        sync('Product2', new List<String>{ 'ProductCode' }, prodRows, 'ProductCode LIKE \'MB-%\'', null, null);
     }
 
     /**
