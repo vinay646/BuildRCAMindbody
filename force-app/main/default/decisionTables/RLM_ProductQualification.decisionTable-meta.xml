@@ -62,7 +62,7 @@
     <isVersioned>false</isVersioned>
     <setupName>RLM_ProductQualification</setupName>
     <sourceObject>ProductQualification</sourceObject>
-    <status>Active</status>
+    <status>Draft</status>
     <type>LowVolume</type>
     <usageType>ProductQualification</usageType>
 </DecisionTable>
