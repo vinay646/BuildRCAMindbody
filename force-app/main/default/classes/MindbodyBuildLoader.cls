@@ -373,6 +373,24 @@ public without sharing class MindbodyBuildLoader {
                 rows.add(new Map<String, Object>{ 'ExpressionSetId' => setId, 'ConstraintModelTag' => tag,
                     'ConstraintModelTagType' => 'Type', 'ReferenceObjectId' => p.Id });
             }
+            // Port links: one per bundle component, tag = the relation name in the CML
+            Map<String, Id> prcs = new Map<String, Id>();
+            for (SObject r : Database.query('SELECT Id, ParentProduct.ProductCode, ChildProduct.ProductCode FROM ProductRelatedComponent'
+                    + ' WHERE ParentProduct.ProductCode LIKE \'MB-%\' AND ChildProductId != null')) {
+                prcs.put(r.getSObject('ParentProduct').get('ProductCode') + '|' + r.getSObject('ChildProduct').get('ProductCode'), r.Id);
+            }
+            if (m.containsKey('ports')) {
+                for (Object po : (List<Object>) m.get('ports')) {
+                    Map<String, Object> port = (Map<String, Object>) po;
+                    Id prc = prcs.get(port.get('parent') + '|' + port.get('child'));
+                    if (prc == null) {
+                        fail(apiName + ': bundle component ' + port.get('parent') + ' -> ' + port.get('child') + ' not found (run the bundles step)');
+                        continue;
+                    }
+                    rows.add(new Map<String, Object>{ 'ExpressionSetId' => setId, 'ConstraintModelTag' => port.get('tag'),
+                        'ConstraintModelTagType' => 'Port', 'ReferenceObjectId' => prc });
+                }
+            }
             sync('ExpressionSetConstraintObj', new List<String>{ 'ExpressionSetId', 'ConstraintModelTag' }, rows,
                 'ExpressionSetId = :sid', new Map<String, Object>{ 'sid' => setId }, null);
         }

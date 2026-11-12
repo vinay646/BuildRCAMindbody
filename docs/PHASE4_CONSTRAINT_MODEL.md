@@ -3,7 +3,10 @@
 # Phase 4 – Mindbody Plans constraint model (CML)
 
 Standard ARM constraint model, built the same way as the org's own *QuantumBit Bundle* model: a virtual `Quote`
-type that sees every quote line, and one CML type per product. The CML is in [`cml/MindbodyPlans.cml`](../cml/MindbodyPlans.cml).
+type that sees every quote line, one CML type per product, and in every bundle type one relation per bundle
+component (the engine walks bundle components; without the relation it stops with "Unable to find a relation in
+type ... for product ..."). The CML and the link list are generated from the bundle data by
+`scripts/build_cml.py` (23 types, 40 relations); the loader links products as Type and components as Port. The CML is in [`cml/MindbodyPlans.cml`](../cml/MindbodyPlans.cml).
 
 ## What the model checks
 
