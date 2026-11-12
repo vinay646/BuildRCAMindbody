@@ -295,7 +295,8 @@ jobs:
 
       - name: Usage summary test
         if: env.ACTION == 'usage-summary'
-        run: ./scripts/usage/usage_summary.sh
+        run: |
+          if [ "$DEPLOY_PATH" = "empty-summaries" ]; then ./scripts/usage/empty_summaries.sh; else ./scripts/usage/usage_summary.sh; fi
 
       - name: Explore usage setup
         if: env.ACTION == 'explore-usage'
