@@ -24,6 +24,7 @@ on:
           - explore-context  # read-only: print the sales transaction context at the org's API version
           - explore-recipe   # read-only: print the org's pricing recipes and their lookup-table mappings
           - explore-rules    # read-only: print a constraint model (CML) and the product qualification setup
+          - delete           # DELETES what path names: a folder under manifest/ with package.xml + destructiveChanges.xml
           - cleanup-rule-library  # DELETES the leftover Mindbody_Product_Rules rule library definition
           - explore-qualification  # read-only: product qualification procedures, tables, context country attributes
           - describe-term  # read-only: term fields on Quote and Quote Line
@@ -39,7 +40,7 @@ on:
         description: "Loader step (for action = load)"
         type: choice
         default: inventory
-        options: [inventory, accounts, catalog, products, bundles, attributes, pricebooks, pricingschedules, constraints, constraints-reset]
+        options: [inventory, accounts, catalog, products, bundles, attributes, pricebooks, pricingschedules, constraints, constraints-reset, qualification]
   pull_request:
     paths: ["force-app/**", "sfdx-project.json"]
 
@@ -174,6 +175,15 @@ jobs:
           name: explored-pricing-setup
           path: explored
           if-no-files-found: warn
+
+      - name: Delete metadata listed in a manifest folder
+        if: env.ACTION == 'delete'
+        run: |
+          case "$DEPLOY_PATH" in manifest/*) ;; *) echo "::error::path must be a folder under manifest/"; exit 1;; esac
+          sf project deploy start --api-version "$ORG_API" --manifest "$DEPLOY_PATH/package.xml" \
+            --post-destructive-changes "$DEPLOY_PATH/destructiveChanges.xml" \
+            --target-org target --ignore-warnings --wait 30 --json > result.json || true
+          ./scripts/deploy-summary.sh result.json "Delete ($DEPLOY_PATH)"
 
       - name: Remove custom pieces replaced by standard features
         if: env.ACTION == 'cleanup'

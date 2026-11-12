@@ -27,6 +27,14 @@
                     <inheritedFrom>ProductDiscoveryContext__stdctx/version/ProductDiscoveryMapping/Account/CurrencyIsoCode</inheritedFrom>
                 </contextAttributeMappings>
                 <contextAttributeMappings>
+                    <contextAttrHydrationDetails>
+                        <objectName>Account</objectName>
+                        <queryAttribute>MB_Hardware_Region__c</queryAttribute>
+                    </contextAttrHydrationDetails>
+                    <contextAttribute>MB_Hardware_Region__c</contextAttribute>
+                    <contextInputAttributeName>MB_Hardware_Region__c</contextInputAttributeName>
+                </contextAttributeMappings>
+                <contextAttributeMappings>
                     <contextAttribute>AccountId</contextAttribute>
                     <contextInputAttributeName>AccountId</contextInputAttributeName>
                     <inheritedFrom>ProductDiscoveryContext__stdctx/version/ProductDiscoveryMapping/Account/AccountId</inheritedFrom>
@@ -435,6 +443,19 @@
                 <key>false</key>
                 <localizationDisabled>false</localizationDisabled>
                 <title>id</title>
+                <transient>false</transient>
+                <value>false</value>
+            </contextAttributes>
+            <contextAttributes>
+                <contextTags>
+                    <title>MB_Hardware_Region__c</title>
+                </contextTags>
+                <customMappingAllowed>false</customMappingAllowed>
+                <dataType>string</dataType>
+                <fieldType>inputoutput</fieldType>
+                <key>false</key>
+                <localizationDisabled>false</localizationDisabled>
+                <title>MB_Hardware_Region__c</title>
                 <transient>false</transient>
                 <value>false</value>
             </contextAttributes>

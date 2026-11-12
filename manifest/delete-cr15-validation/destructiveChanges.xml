@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- CR-15 moved from a quote line validation rule to a product qualification rule (Browse Products). -->
+<Package xmlns="http://soap.sforce.com/2006/04/metadata">
+    <types>
+        <members>QuoteLineItem.CR_15_Hardware_Region</members>
+        <name>ValidationRule</name>
+    </types>
+    <version>68.0</version>
+</Package>
