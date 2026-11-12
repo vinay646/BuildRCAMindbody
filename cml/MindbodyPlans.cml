@@ -71,10 +71,17 @@ type Quote {
         "message", "10 or more locations in this customer's hierarchy – recommend Technical Account Management.");
     rule(HierarchyLocations >= 25 && lineitems[Enterprise] == 0, "recommend", "type", "Enterprise",
         "message", "25 or more locations in this customer's hierarchy – recommend the Enterprise plan.");
+    // ... and the same advice as a banner on the quote (Quote Lines tab), until the product is added
+    message(HierarchyLocations >= 10 && lineitems[TechnicalAccountManagement] == 0,
+        "Recommended: Technical Account Management – this customer has 10 or more locations.", "Warning");
+    message(HierarchyLocations >= 25 && lineitems[Enterprise] == 0,
+        "Recommended: the Enterprise plan – this customer has 25 or more locations.", "Warning");
 
     // CR-11: recommend Custom data conversion when the opportunity's prior system is a competitor
     rule(PriorSystem != "None" && PriorSystem != "" && lineitems[CustomDataConversion] == 0, "recommend", "type", "CustomDataConversion",
         "message", "The customer is moving from another system – recommend Custom data conversion.");
+    message(PriorSystem != "None" && PriorSystem != "" && lineitems[CustomDataConversion] == 0,
+        "Recommended: Custom data conversion – the customer is moving from another system (Opportunity > Prior System).", "Warning");
 
     // CR-09 fallback message (shown if Payments is removed again)
     message((lineitems[MobileCardReader] + lineitems[CountertopPaymentTerminal] + lineitems[DoorAccessKit]) > 0
