@@ -1,0 +1,105 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Flow xmlns="http://soap.sforce.com/2006/04/metadata">
+    <apiVersion>62.0</apiVersion>
+    <assignments>
+        <name>Set_Line_Dates</name>
+        <label>Set line dates</label>
+        <locationX>264</locationX>
+        <locationY>539</locationY>
+        <assignmentItems>
+            <assignToReference>Loop_Lines.StartDate</assignToReference>
+            <operator>Assign</operator>
+            <value><elementReference>$Record.StartDate</elementReference></value>
+        </assignmentItems>
+        <assignmentItems>
+            <assignToReference>Loop_Lines.EndDate</assignToReference>
+            <operator>Assign</operator>
+            <value><elementReference>fLineEndDate</elementReference></value>
+        </assignmentItems>
+        <assignmentItems>
+            <assignToReference>linesToUpdate</assignToReference>
+            <operator>Add</operator>
+            <value><elementReference>Loop_Lines</elementReference></value>
+        </assignmentItems>
+        <connector><targetReference>Loop_Lines</targetReference></connector>
+    </assignments>
+    <description>When the quote's Start Date or Term (Months) changes, every quote line (except ramp segments) gets the quote Start Date; term lines also get End Date = Start + Term - 1 day; evergreen and one-time lines keep no end date.</description>
+    <environments>Default</environments>
+    <formulas>
+        <name>fLineEndDate</name>
+        <dataType>Date</dataType>
+        <expression>IF(AND(TEXT({!Loop_Lines.SellingModelType}) = 'TermDefined', NOT(ISBLANK({!$Record.RLM_TermMonths__c}))), ADDMONTHS({!$Record.StartDate}, {!$Record.RLM_TermMonths__c}) - 1, NULL)</expression>
+    </formulas>
+    <interviewLabel>MB Quote Dates To Lines {!$Flow.CurrentDateTime}</interviewLabel>
+    <label>MB Quote Dates To Lines</label>
+    <loops>
+        <name>Loop_Lines</name>
+        <label>Loop lines</label>
+        <locationX>176</locationX>
+        <locationY>431</locationY>
+        <collectionReference>Get_Lines</collectionReference>
+        <iterationOrder>Asc</iterationOrder>
+        <nextValueConnector><targetReference>Set_Line_Dates</targetReference></nextValueConnector>
+        <noMoreValuesConnector><targetReference>Update_Lines</targetReference></noMoreValuesConnector>
+    </loops>
+    <processMetadataValues>
+        <name>BuilderType</name>
+        <value><stringValue>LightningFlowBuilder</stringValue></value>
+    </processMetadataValues>
+    <processMetadataValues>
+        <name>CanvasMode</name>
+        <value><stringValue>AUTO_LAYOUT_CANVAS</stringValue></value>
+    </processMetadataValues>
+    <processType>AutoLaunchedFlow</processType>
+    <recordLookups>
+        <name>Get_Lines</name>
+        <label>Get lines</label>
+        <locationX>176</locationX>
+        <locationY>323</locationY>
+        <assignNullValuesIfNoRecordsFound>false</assignNullValuesIfNoRecordsFound>
+        <connector><targetReference>Loop_Lines</targetReference></connector>
+        <filterLogic>and</filterLogic>
+        <filters>
+            <field>QuoteId</field>
+            <operator>EqualTo</operator>
+            <value><elementReference>$Record.Id</elementReference></value>
+        </filters>
+        <filters>
+            <field>RampIdentifier</field>
+            <operator>IsNull</operator>
+            <value><booleanValue>true</booleanValue></value>
+        </filters>
+        <getFirstRecordOnly>false</getFirstRecordOnly>
+        <object>QuoteLineItem</object>
+        <queriedFields>Id</queriedFields>
+        <queriedFields>StartDate</queriedFields>
+        <queriedFields>EndDate</queriedFields>
+        <queriedFields>SellingModelType</queriedFields>
+        <storeOutputAutomatically>true</storeOutputAutomatically>
+    </recordLookups>
+    <recordUpdates>
+        <name>Update_Lines</name>
+        <label>Update lines</label>
+        <locationX>176</locationX>
+        <locationY>731</locationY>
+        <inputReference>linesToUpdate</inputReference>
+    </recordUpdates>
+    <start>
+        <locationX>50</locationX>
+        <locationY>0</locationY>
+        <connector><targetReference>Get_Lines</targetReference></connector>
+        <filterFormula>AND(NOT(ISBLANK({!$Record.StartDate})), OR(ISCHANGED({!$Record.StartDate}), ISCHANGED({!$Record.RLM_TermMonths__c})))</filterFormula>
+        <object>Quote</object>
+        <recordTriggerType>Update</recordTriggerType>
+        <triggerType>RecordAfterSave</triggerType>
+    </start>
+    <status>Active</status>
+    <variables>
+        <name>linesToUpdate</name>
+        <dataType>SObject</dataType>
+        <isCollection>true</isCollection>
+        <isInput>false</isInput>
+        <isOutput>false</isOutput>
+        <objectType>QuoteLineItem</objectType>
+    </variables>
+</Flow>

@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Flow xmlns="http://soap.sforce.com/2006/04/metadata">
+    <apiVersion>62.0</apiVersion>
+    <assignments>
+        <name>Set_Dates</name>
+        <label>Set dates</label>
+        <locationX>176</locationX>
+        <locationY>287</locationY>
+        <assignmentItems>
+            <assignToReference>$Record.StartDate</assignToReference>
+            <operator>Assign</operator>
+            <value><elementReference>$Record.Quote.StartDate</elementReference></value>
+        </assignmentItems>
+        <assignmentItems>
+            <assignToReference>$Record.EndDate</assignToReference>
+            <operator>Assign</operator>
+            <value><elementReference>fEndDate</elementReference></value>
+        </assignmentItems>
+    </assignments>
+    <description>New quote lines (except ramp segments) take the quote's Start Date; term lines also take End Date = Start + Term (Months) - 1 day.</description>
+    <environments>Default</environments>
+    <formulas>
+        <name>fEndDate</name>
+        <dataType>Date</dataType>
+        <expression>IF(AND(TEXT({!$Record.SellingModelType}) = 'TermDefined', NOT(ISBLANK({!$Record.Quote.RLM_TermMonths__c}))), ADDMONTHS({!$Record.Quote.StartDate}, {!$Record.Quote.RLM_TermMonths__c}) - 1, {!$Record.EndDate})</expression>
+    </formulas>
+    <interviewLabel>MB Quote Line Default Dates {!$Flow.CurrentDateTime}</interviewLabel>
+    <label>MB Quote Line Default Dates</label>
+    <processMetadataValues>
+        <name>BuilderType</name>
+        <value><stringValue>LightningFlowBuilder</stringValue></value>
+    </processMetadataValues>
+    <processMetadataValues>
+        <name>CanvasMode</name>
+        <value><stringValue>AUTO_LAYOUT_CANVAS</stringValue></value>
+    </processMetadataValues>
+    <processType>AutoLaunchedFlow</processType>
+    <start>
+        <locationX>50</locationX>
+        <locationY>0</locationY>
+        <connector><targetReference>Set_Dates</targetReference></connector>
+        <filterFormula>AND(ISBLANK({!$Record.RampIdentifier}), NOT(ISBLANK({!$Record.Quote.StartDate})))</filterFormula>
+        <object>QuoteLineItem</object>
+        <recordTriggerType>Create</recordTriggerType>
+        <triggerType>RecordBeforeSave</triggerType>
+    </start>
+    <status>Active</status>
+</Flow>
