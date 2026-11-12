@@ -28,6 +28,7 @@ on:
           - cleanup-rule-library  # DELETES the leftover Mindbody_Product_Rules rule library definition
           - explore-qualification  # read-only: product qualification procedures, tables, context country attributes
           - usage-test  # CREATES a QuantumBit test account, quote and activated order (activates QB-DB products)
+          - usage-summary  # CREATES usage records on the test asset and runs Create Usage Summary (step summary-only: job only)
           - explore-usage  # read-only: usage management setup (usage resources, rate cards, summaries)
           - describe-term  # read-only: term fields on Quote and Quote Line
           - explore-cml  # read-only: CML text of the active QuantumBit models and their product links
@@ -291,6 +292,10 @@ jobs:
       - name: Usage test order
         if: env.ACTION == 'usage-test'
         run: ./scripts/usage/usage_test.sh
+
+      - name: Usage summary test
+        if: env.ACTION == 'usage-summary'
+        run: ./scripts/usage/usage_summary.sh
 
       - name: Explore usage setup
         if: env.ACTION == 'explore-usage'
