@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- CR-15 now uses the account Region picklist (MB_Region__c) instead of the country formula. -->
+<Package xmlns="http://soap.sforce.com/2006/04/metadata">
+    <types>
+        <members>Account.MB_Hardware_Region__c</members>
+        <members>ProductQualification.MB_Hardware_Region__c</members>
+        <name>CustomField</name>
+    </types>
+    <version>68.0</version>
+</Package>
