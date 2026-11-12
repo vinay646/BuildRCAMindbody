@@ -1,22 +1,7 @@
-// Read-only: QuantumBit Database usage setup and the usage records an earlier activation created
-Set<Id> ids = new Set<Id>();
-for (UsageResource u : [SELECT UsageDefinitionProductId FROM UsageResource]) ids.add(u.UsageDefinitionProductId);
-for (Product2 p : [SELECT Id, ProductCode, Name, IsActive, UsageModelType, Type, ConfigureDuringSale FROM Product2 WHERE ProductCode = 'QB-DB' OR Id IN :ids]) {
-    ids.add(p.Id);
-    System.debug(LoggingLevel.ERROR, 'PROD ' + p.Id + ' | ' + p.ProductCode + ' | ' + p.Name + ' | active=' + p.IsActive + ' | ' + p.UsageModelType + ' | ' + p.Type);
-}
-for (ProductSellingModelOption o : [SELECT Product2.ProductCode, ProductSellingModel.Name, ProductSellingModel.Status, ProductSellingModelId FROM ProductSellingModelOption WHERE Product2Id IN :ids]) {
-    System.debug(LoggingLevel.ERROR, 'PSMO ' + o.Product2.ProductCode + ' | ' + o.ProductSellingModel.Name + ' ' + o.ProductSellingModelId + ' | ' + o.ProductSellingModel.Status);
-}
-for (PricebookEntry e : [SELECT Product2.ProductCode, Pricebook2.Name, Pricebook2Id, Pricebook2.IsActive, IsActive, UnitPrice, CurrencyIsoCode, ProductSellingModel.Name FROM PricebookEntry WHERE Product2Id IN :ids]) {
-    System.debug(LoggingLevel.ERROR, 'PBE ' + e.Product2.ProductCode + ' | ' + e.Pricebook2.Name + ' ' + e.Pricebook2Id + ' active=' + e.Pricebook2.IsActive + ' | entry active=' + e.IsActive + ' | ' + e.UnitPrice + ' ' + e.CurrencyIsoCode + ' | ' + e.ProductSellingModel.Name);
-}
-for (ProductUsageResource r : [SELECT Product.ProductCode, UsageResource.Name, UsageResource.Status, Status FROM ProductUsageResource WHERE Product.ProductCode = 'QB-DB']) {
-    System.debug(LoggingLevel.ERROR, 'PUR ' + r.UsageResource.Name + ' | ' + r.Status + ' | resource ' + r.UsageResource.Status);
-}
-for (String o : new List<String>{ 'UsageEntitlementAccount', 'UsageEntitlementBucket', 'TransactionUsageEntitlement', 'AssetRateCardEntry', 'TransactionJournal', 'UsagePrdGrantBindingPolicy', 'ProductUsageGrant' }) {
-    for (SObject r : Database.query('SELECT FIELDS(STANDARD) FROM ' + o + ' LIMIT 4')) System.debug(LoggingLevel.ERROR, 'ROW ' + o + ' ' + r);
-}
-for (Order o : [SELECT Id, OrderNumber, Status, Account.Name, CreatedDate FROM Order WHERE Id IN (SELECT OrderId FROM OrderItem WHERE Product2.ProductCode LIKE 'QB-%') ORDER BY CreatedDate DESC LIMIT 5]) {
-    System.debug(LoggingLevel.ERROR, 'ORDER ' + o.OrderNumber + ' | ' + o.Status + ' | ' + o.Account.Name + ' | ' + o.CreatedDate);
-}
+// Read-only: the pending usage journal, usage settings, and the jobs/actions that process usage
+for (SObject r : Database.query('SELECT FIELDS(ALL) FROM TransactionJournal LIMIT 1')) System.debug(LoggingLevel.ERROR, 'TJ ' + JSON.serialize(r));
+for (SObject r : Database.query('SELECT FIELDS(ALL) FROM UsageEntitlementAccount LIMIT 1')) System.debug(LoggingLevel.ERROR, 'UEA ' + JSON.serialize(r));
+for (AsyncApexJob j : [SELECT ApexClass.Name, JobType, Status, CreatedDate FROM AsyncApexJob WHERE CreatedDate = LAST_N_DAYS:5 ORDER BY CreatedDate DESC LIMIT 10]) System.debug(LoggingLevel.ERROR, 'JOB ' + j.ApexClass.Name + ' ' + j.JobType + ' ' + j.Status);
+for (CronTrigger c : [SELECT CronJobDetail.Name, CronJobDetail.JobType, State, NextFireTime FROM CronTrigger LIMIT 30]) System.debug(LoggingLevel.ERROR, 'CRON ' + c.CronJobDetail.Name + ' | ' + c.CronJobDetail.JobType + ' | ' + c.State + ' | ' + c.NextFireTime);
+Map<String, Schema.SObjectType> gd = Schema.getGlobalDescribe();
+for (String k : gd.keySet()) if (k.contains('usage') && (k.contains('setting') || k.contains('batch') || k.contains('job') || k.contains('rating'))) System.debug(LoggingLevel.ERROR, 'OBJNAME ' + k);

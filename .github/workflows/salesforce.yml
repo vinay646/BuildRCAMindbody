@@ -289,7 +289,13 @@ jobs:
 
       - name: Explore usage setup
         if: env.ACTION == 'explore-usage'
-        run: ./scripts/run-apex.sh scripts/apex/explore_usage.apex "Usage setup" || true
+        run: |
+          ./scripts/run-apex.sh scripts/apex/explore_usage.apex "Usage setup" || true
+          echo "===== STANDARD ACTIONS (usage / rating / journal)"
+          sf api request rest "/services/data/v$ORG_API/actions/standard" --target-org target 2>/dev/null \
+            | jq -r '.actions[]? | "\(.name) | \(.label)"' | grep -i 'usage\|rating\|rate\|journal\|consum\|entitle' || true
+          echo "===== CONNECT RESOURCES"
+          sf api request rest "/services/data/v$ORG_API/connect" --target-org target 2>/dev/null | jq -r 'to_entries[] | "\(.key) \(.value)"' | grep -i 'usage\|rating\|revenue\|rev' || true
 
       - name: Describe term fields
         if: env.ACTION == 'describe-term'
