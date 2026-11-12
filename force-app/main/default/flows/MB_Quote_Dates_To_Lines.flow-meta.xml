@@ -23,8 +23,28 @@
         </assignmentItems>
         <connector><targetReference>Loop_Lines</targetReference></connector>
     </assignments>
+    <customErrors>
+        <name>Show_Validation_Message</name>
+        <label>Show validation message</label>
+        <locationX>440</locationX>
+        <locationY>839</locationY>
+        <customErrorMessages>
+            <errorMessage>{!fCleanError}</errorMessage>
+            <isFieldError>false</isFieldError>
+        </customErrorMessages>
+    </customErrors>
     <description>When the quote's Start Date or Term (Months) changes, every quote line (except ramp segments) gets the quote Start Date; term lines also get End Date = Start + Term - 1 day; evergreen and one-time lines keep no end date.</description>
     <environments>Default</environments>
+    <formulas>
+        <name>fCleanError</name>
+        <dataType>String</dataType>
+        <expression>IF(CONTAINS({!$Flow.FaultMessage}, 'FIELD_CUSTOM_VALIDATION_EXCEPTION: '),
+  IF(CONTAINS(MID({!$Flow.FaultMessage}, FIND('FIELD_CUSTOM_VALIDATION_EXCEPTION: ', {!$Flow.FaultMessage}) + 35, 4000), '. You can look up'),
+    LEFT(MID({!$Flow.FaultMessage}, FIND('FIELD_CUSTOM_VALIDATION_EXCEPTION: ', {!$Flow.FaultMessage}) + 35, 4000),
+         FIND('. You can look up', MID({!$Flow.FaultMessage}, FIND('FIELD_CUSTOM_VALIDATION_EXCEPTION: ', {!$Flow.FaultMessage}) + 35, 4000)) - 1),
+    MID({!$Flow.FaultMessage}, FIND('FIELD_CUSTOM_VALIDATION_EXCEPTION: ', {!$Flow.FaultMessage}) + 35, 4000)),
+  {!$Flow.FaultMessage})</expression>
+    </formulas>
     <formulas>
         <name>fLineEndDate</name>
         <dataType>Date</dataType>
@@ -82,6 +102,7 @@
         <label>Update lines</label>
         <locationX>176</locationX>
         <locationY>731</locationY>
+        <faultConnector><targetReference>Show_Validation_Message</targetReference></faultConnector>
         <inputReference>linesToUpdate</inputReference>
     </recordUpdates>
     <start>
