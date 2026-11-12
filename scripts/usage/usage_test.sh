@@ -22,7 +22,7 @@ TODAY=$(date -u +%Y-%m-%d); END=$(date -u -d '+1 year -1 day' +%Y-%m-%d)
 BODY=$(jq -nc --arg opp "$OPP" --arg pb "$PB" --arg prod "$PROD" --arg pbe "$PBEID" --arg d "$TODAY" --arg e "$END" --arg con "$CON" '{
   pricingPref: "System", catalogRatesPref: "Skip", configurationPref: {configurationMethod: "Skip"}, taxPref: "Skip",
   graph: {graphId: "usagetest", records: [
-    {referenceId: "q1", record: {attributes: {type: "Quote", method: "POST"}, Name: "Usage Test QuantumBit", OpportunityId: $opp, Pricebook2Id: $pb, BillToContactId: $con, ShipToContactId: $con,
+    {referenceId: "q1", record: {attributes: {type: "Quote", method: "POST"}, Name: "Usage Test QuantumBit", OpportunityId: $opp, Pricebook2Id: $pb, BillToContactId: $con,
       BillingStreet: "1 Test Way", BillingCity: "Irvine", BillingState: "California", BillingPostalCode: "92618", BillingCountry: "United States",
       ShippingStreet: "1 Test Way", ShippingCity: "Irvine", ShippingState: "California", ShippingPostalCode: "92618", ShippingCountry: "United States"}},
     {referenceId: "l1", record: {attributes: {type: "QuoteLineItem", method: "POST"}, QuoteId: "@{q1.id}", Product2Id: $prod,
