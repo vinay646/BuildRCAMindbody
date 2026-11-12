@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Flow xmlns="http://soap.sforce.com/2006/04/metadata">
+    <apiVersion>62.0</apiVersion>
+    <assignments>
+        <name>Set_Billing_Treatment</name>
+        <label>Set billing treatment</label>
+        <locationX>176</locationX>
+        <locationY>287</locationY>
+        <assignmentItems>
+            <assignToReference>$Record.BillingTreatmentId</assignToReference>
+            <operator>Assign</operator>
+            <value><elementReference>$Record.Product2.BillingPolicy.DefaultBillingTreatmentId</elementReference></value>
+        </assignmentItems>
+    </assignments>
+    <description>A quote line without a billing treatment takes the default treatment of its product's billing policy, so reps can change the billing frequency (e.g. Term Monthly product billed Annual). The standard quote line editor does not fill it.</description>
+    <environments>Default</environments>
+    <interviewLabel>MB Quote Line Billing Treatment {!$Flow.CurrentDateTime}</interviewLabel>
+    <label>MB Quote Line Billing Treatment</label>
+    <processMetadataValues>
+        <name>BuilderType</name>
+        <value><stringValue>LightningFlowBuilder</stringValue></value>
+    </processMetadataValues>
+    <processMetadataValues>
+        <name>CanvasMode</name>
+        <value><stringValue>AUTO_LAYOUT_CANVAS</stringValue></value>
+    </processMetadataValues>
+    <processType>AutoLaunchedFlow</processType>
+    <start>
+        <locationX>50</locationX>
+        <locationY>0</locationY>
+        <connector><targetReference>Set_Billing_Treatment</targetReference></connector>
+        <filterFormula>AND(ISBLANK({!$Record.BillingTreatmentId}), NOT(ISBLANK({!$Record.Product2.BillingPolicy.DefaultBillingTreatmentId})))</filterFormula>
+        <object>QuoteLineItem</object>
+        <recordTriggerType>CreateAndUpdate</recordTriggerType>
+        <triggerType>RecordBeforeSave</triggerType>
+    </start>
+    <status>Active</status>
+</Flow>
