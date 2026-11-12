@@ -12,9 +12,6 @@ for (String o : new List<String>{ 'ProductQualification', 'ProductDisqualificati
     System.debug(LoggingLevel.ERROR, 'OBJECT ' + o + ' create=' + d.isCreateable() + ' rows=' + Database.countQuery('SELECT COUNT() FROM ' + o) + ' | ' + String.join(fs, ', '));
     for (SObject r : Database.query('SELECT FIELDS(STANDARD) FROM ' + o + ' LIMIT 3')) System.debug(LoggingLevel.ERROR, '  ROW ' + r);
 }
-for (SObject es : Database.query('SELECT Id, Name, ApiName, UsageType, InterfaceSourceType FROM ExpressionSet WHERE UsageType LIKE \'%Qualif%\' OR Name LIKE \'%Qualif%\'')) {
-    System.debug(LoggingLevel.ERROR, 'PROCEDURE ' + es);
-}
-for (SObject dt : Database.query('SELECT Id, DeveloperName, MasterLabel, UsageType, Status, SourceObject FROM DecisionTable WHERE UsageType LIKE \'%Qualif%\' OR DeveloperName LIKE \'%Qualif%\'')) {
-    System.debug(LoggingLevel.ERROR, 'DECISIONTABLE ' + dt);
+for (SObject es : Database.query('SELECT Id, Name, ApiName, UsageType, InterfaceSourceType FROM ExpressionSet')) {
+    System.debug(LoggingLevel.ERROR, 'PROCEDURE ' + es.get('UsageType') + ' | ' + es.get('Name') + ' (' + es.get('ApiName') + ')');
 }

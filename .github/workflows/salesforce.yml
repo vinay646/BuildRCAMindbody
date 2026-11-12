@@ -235,7 +235,11 @@ jobs:
         if: env.ACTION == 'explore-qualification'
         run: |
           ./scripts/run-apex.sh scripts/apex/explore_qualification.apex "Product qualification" || true
-          names=$(sf data query --query "SELECT ApiName FROM ExpressionSet WHERE UsageType LIKE '%Qualif%' OR Name LIKE '%Qualif%'" --target-org target --json | jq -r '[.result.records[].ApiName] | join(" ")')
+          names=$(sf data query --query "SELECT ApiName, UsageType, Name FROM ExpressionSet" --target-org target --json \
+            | jq -r '[(.result.records // [])[] | select(((.UsageType // "") + " " + (.Name // "")) | test("ualif")) | .ApiName] | join(" ")')
+          echo "===== DECISION TABLES"
+          sf data query --use-tooling-api --query "SELECT DeveloperName, UsageType, Status FROM DecisionTable" --target-org target --json \
+            | jq -r '(.result.records // [])[] | "\(.DeveloperName) | \(.UsageType) | \(.Status)"' || true
           echo "===== QUALIFICATION PROCEDURES: $names"
           rm -rf explored; mkdir -p explored
           args=""; for n in $names; do args="$args --metadata ExpressionSetDefinition:$n"; done
