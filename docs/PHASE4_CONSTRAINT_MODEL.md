@@ -36,6 +36,11 @@ product links (`ExpressionSetConstraintObj`, loader step `constraints`).
    Do not activate yet.
 3. GitHub → Actions → Salesforce build → `load`, step `constraints` – links the 9 types to the Mindbody products.
 4. Back in the model: **Activate** the version.
+
+Order matters. Each product may be linked **once**: by the loader *or* in the Visual Builder, never both
+(otherwise saving fails with "Component Type with name '<Type>_<productId>' already exists"). Activating with no
+links fails with "We couldn't find any associations for constraint version". To start over: `load` step
+`constraints-reset` deletes all links of the model, then run `constraints` again.
 5. Test on a quote: Ultimate + AI Concierge add-on → error; Starter + Branded app → error; card reader without
    Mindbody Payments → error; Accelerate + AI Concierge + Branded app → no error.
 
