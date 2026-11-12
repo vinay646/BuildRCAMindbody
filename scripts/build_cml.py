@@ -16,7 +16,8 @@ for f in d.get('features', []):
 fixed = {'MB-STR': 'Starter', 'MB-ACC': 'Accelerate', 'MB-ULT': 'Ultimate', 'MB-ENT': 'Enterprise',
          'MB-AIC': 'AIConciergeAddOn', 'MB-APP': 'BrandedApp', 'MB-APP-SET': 'BrandedAppSetup',
          'MB-PAY': 'MindbodyPayments', 'MB-HW-RDR': 'MobileCardReader', 'MB-HW-TRM': 'CountertopPaymentTerminal',
-         'MB-HW-DOOR': 'DoorAccessKit'}
+         'MB-HW-DOOR': 'DoorAccessKit',
+         'MB-TAM': 'TechnicalAccountManagement', 'MB-MKT': 'MarketplaceFee', 'MB-SMS': 'SmsOverage'}
 def tname(code):
     if code in fixed:
         return fixed[code]
@@ -47,8 +48,8 @@ out.append('''// ===============================================================
 //   * a virtual Quote container that sees every quote line (cart-level rules),
 //   * every product is one CML type (Type link), every bundle declares one relation per
 //     bundle component (Port link to the ProductRelatedComponent) – loader step `constraints`.
-// Line-group (per location) rules – CR-01 one tier per location, CFG-13 no duplicate product
-// per Ship-To – are added with phase 5 (one quote line group per location, CFG-12).
+// Design (phase 5): one opportunity and quote per account – every account, location included, can
+// buy; billing follows the account's Payer Type. So "per location" rules are "per quote" here.
 // ----------------------------------------------------------------------------
 
 @(virtual = "true")
@@ -66,9 +67,20 @@ type Quote {
     message(lineitems[Starter] > 0 && lineitems[BrandedApp] > 0,
         "Starter can't add Branded app – choose Accelerate or Ultimate.", "Error");
 
-    // CR-07: one Branded app per brand (on the top account's line group, not per location)
-    message(lineitems[BrandedApp] > 1,
-        "Branded app is sold once per brand – keep one Branded app on the top account's line group.", "Error");
+    // CR-01: one tier per location = one plan per quote (the quote's account is the location)
+    constraint(lineitems[Starter] + lineitems[Accelerate] + lineitems[Ultimate] + lineitems[Enterprise] <= 1,
+        "Only one plan (Starter, Accelerate, Ultimate or Enterprise) per quote – quote each location on its own account.");
+
+    // CFG-13: no duplicate product per Ship-To = per quote. Tiers are covered by CR-01; add-ons sit in the
+    // bundles (max 1); hardware and services may repeat (quantity). Recurring and usage products once only:
+    constraint(lineitems[MindbodyPayments] <= 1, "Mindbody Payments is already on this quote – add it once per location.");
+    constraint(lineitems[TechnicalAccountManagement] <= 1, "Technical Account Management is already on this quote – add it once per location.");
+    constraint(lineitems[MarketplaceFee] <= 1, "Marketplace new-client fee is already on this quote – add it once per location.");
+    constraint(lineitems[SmsOverage] <= 1, "SMS overage is already on this quote – add it once per location.");
+
+    // CR-07: one Branded app per brand – once per quote here (across a brand's quotes: checked on assets, phase 6)
+    constraint(lineitems[BrandedApp] <= 1,
+        "Branded app is sold once per brand – keep one Branded app.");
 
     // Catalog guidance (Browse Products): grey out add-ons the tier on the quote cannot take
     rule(lineitems[Ultimate] > 0, "disable", "relation", "lineitems", "type", "AIConciergeAddOn",

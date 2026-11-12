@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ValidationRule xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>CR_16_Enterprise_Master_Contract</fullName>
+    <active>true</active>
+    <description>CR-16: Enterprise needs an Activated master contract on the quote's account or on its top account (Account > Master Contract).</description>
+    <errorConditionFormula>AND(
+  Product2.ProductCode = 'MB-ENT',
+  NOT(ISPICKVAL(Quote.Opportunity.Account.Master_Contract__r.Status, 'Activated')),
+  NOT(ISPICKVAL(Quote.Opportunity.Account.Root_Account__r.Master_Contract__r.Status, 'Activated'))
+)</errorConditionFormula>
+    <errorMessage>Enterprise needs an activated master contract. Set Master Contract on this account (or its top account) to an activated contract first.</errorMessage>
+</ValidationRule>

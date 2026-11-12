@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ValidationRule xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>CR_17_Payer_Override_Reason</fullName>
+    <active>true</active>
+    <description>CR-17: a payer override needs a reason (approval follows with the approval matrix, phase 5b).</description>
+    <errorConditionFormula>AND(NOT(ISBLANK(Payer_Override__c)), ISBLANK(Payer_Override_Reason__c))</errorConditionFormula>
+    <errorDisplayField>Payer_Override_Reason__c</errorDisplayField>
+    <errorMessage>Give a reason for billing this quote to a different payer.</errorMessage>
+</ValidationRule>

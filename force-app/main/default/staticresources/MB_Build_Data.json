@@ -1800,6 +1800,7 @@
     "EmailAndSmsMarketingFeature": "MB-F-MKTG",
     "Enterprise": "MB-ENT",
     "LeadManagementFeature": "MB-F-LEAD",
+    "MarketplaceFee": "MB-MKT",
     "MindbodyAppListingFeature": "MB-F-APPL",
     "MindbodyPayments": "MB-PAY",
     "MobileCardReader": "MB-HW-RDR",
@@ -1807,7 +1808,9 @@
     "PosAndOnlinePaymentsFeature": "MB-F-POS",
     "PromoCodesFeature": "MB-F-PROMO",
     "ResourceManagementFeature": "MB-F-RES",
+    "SmsOverage": "MB-SMS",
     "Starter": "MB-STR",
+    "TechnicalAccountManagement": "MB-TAM",
     "Ultimate": "MB-ULT"
    },
    "ports": [

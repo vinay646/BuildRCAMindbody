@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ValidationRule xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>CR_14_Region_Price_Book</fullName>
+    <active>true</active>
+    <description>CR-14: quote currency and regional price book must match the account Region (NA USD, UK GBP, AU AUD, EU EUR). Skipped when the Region is blank.</description>
+    <errorConditionFormula>AND(
+  NOT(ISBLANK(TEXT(Opportunity.Account.MB_Region__c))),
+  OR(
+    TEXT(CurrencyIsoCode) &lt;&gt; CASE(TEXT(Opportunity.Account.MB_Region__c), 'NA', 'USD', 'UK', 'GBP', 'AU', 'AUD', 'EU', 'EUR', TEXT(CurrencyIsoCode)),
+    AND(
+      NOT(ISBLANK(Pricebook2Id)),
+      CONTAINS(Pricebook2.Name, '('),
+      NOT(CONTAINS(Pricebook2.Name, '(' &amp; CASE(TEXT(Opportunity.Account.MB_Region__c), 'NA', 'USD', 'UK', 'GBP', 'AU', 'AUD', 'EU', 'EUR', '') &amp; ')'))
+    )
+  )
+)</errorConditionFormula>
+    <errorMessage>The quote's currency and price book must match the account's Region: NA = USD, UK = GBP, AU = AUD, EU = EUR.</errorMessage>
+</ValidationRule>

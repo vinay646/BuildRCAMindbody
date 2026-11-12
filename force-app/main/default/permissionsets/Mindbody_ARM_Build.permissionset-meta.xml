@@ -3,6 +3,21 @@
     <description>Access to the Mindbody ARM build fields, the build loader and the hierarchy services. Assign to admins, the build team and the integration user.</description>
     <fieldPermissions>
         <editable>true</editable>
+        <field>Account.Master_Contract__c</field>
+        <readable>true</readable>
+    </fieldPermissions>
+    <fieldPermissions>
+        <editable>true</editable>
+        <field>Quote.Payer_Override__c</field>
+        <readable>true</readable>
+    </fieldPermissions>
+    <fieldPermissions>
+        <editable>true</editable>
+        <field>Quote.Payer_Override_Reason__c</field>
+        <readable>true</readable>
+    </fieldPermissions>
+    <fieldPermissions>
+        <editable>true</editable>
         <field>Account.MB_Region__c</field>
         <readable>true</readable>
     </fieldPermissions>

@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Master_Contract__c</fullName>
+    <label>Master Contract</label>
+    <description>CR-16: the account's master agreement. Enterprise can be quoted only when this account or its top account has an Activated master contract.</description>
+    <inlineHelpText>Master agreement for this account. Needed (here or on the top account) before Enterprise can be quoted.</inlineHelpText>
+    <type>Lookup</type>
+    <referenceTo>Contract</referenceTo>
+    <relationshipName>Master_Contract_Accounts</relationshipName>
+    <relationshipLabel>Accounts Using This Master Contract</relationshipLabel>
+    <deleteConstraint>SetNull</deleteConstraint>
+    <required>false</required>
+</CustomField>
