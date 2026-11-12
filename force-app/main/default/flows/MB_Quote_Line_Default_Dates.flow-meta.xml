@@ -22,7 +22,7 @@
     <formulas>
         <name>fEndDate</name>
         <dataType>Date</dataType>
-        <expression>IF(AND(TEXT({!$Record.SellingModelType}) = 'TermDefined', NOT(ISBLANK({!$Record.Quote.RLM_TermMonths__c}))), ADDMONTHS({!$Record.Quote.StartDate}, {!$Record.Quote.RLM_TermMonths__c}) - 1, {!$Record.EndDate})</expression>
+        <expression>IF(AND(TEXT({!$Record.PricebookEntry.ProductSellingModel.SellingModelType}) = 'TermDefined', NOT(ISBLANK({!$Record.Quote.RLM_TermMonths__c}))), ADDMONTHS({!$Record.Quote.StartDate}, {!$Record.Quote.RLM_TermMonths__c}) - 1, {!$Record.EndDate})</expression>
     </formulas>
     <interviewLabel>MB Quote Line Default Dates {!$Flow.CurrentDateTime}</interviewLabel>
     <label>MB Quote Line Default Dates</label>
