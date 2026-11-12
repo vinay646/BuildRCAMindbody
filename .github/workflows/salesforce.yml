@@ -301,6 +301,7 @@ jobs:
           elif [ "$DEPLOY_PATH" = "esv-check" ]; then ./scripts/usage/esv_check.sh
           elif [ "$DEPLOY_PATH" = "activate-v3" ]; then ./scripts/usage/activate_v3.sh
           elif [ "$DEPLOY_PATH" = "treatment-check" ]; then ./scripts/usage/treatment_check.sh
+          elif [ "$DEPLOY_PATH" = "treatment-fix" ]; then ./scripts/usage/treatment_fix.sh
           elif [ "$DEPLOY_PATH" = "tier-check" ]; then ./scripts/usage/tier_check.sh
           elif [ "$DEPLOY_PATH" = "pricing-place" ]; then ./scripts/usage/pricing_place.sh
           elif [ "$DEPLOY_PATH" = "pricing-test" ]; then ./scripts/usage/pricing_test.sh
