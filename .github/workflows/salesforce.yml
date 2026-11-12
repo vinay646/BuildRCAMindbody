@@ -25,6 +25,7 @@ on:
           - explore-recipe   # read-only: print the org's pricing recipes and their lookup-table mappings
           - explore-rules    # read-only: print a constraint model (CML) and the product qualification setup
           - cleanup-rule-library  # DELETES the leftover Mindbody_Product_Rules rule library definition
+          - explore-qualification  # read-only: product qualification procedures, tables, context country attributes
           - describe-term  # read-only: term fields on Quote and Quote Line
           - explore-cml  # read-only: CML text of the active QuantumBit models and their product links
           - explore-constraints  # read-only: constraint models (CML), their versions, product links and the CML files
@@ -229,6 +230,22 @@ jobs:
             --post-destructive-changes manifest/cleanup-rule-library/destructiveChanges.xml \
             --target-org target --ignore-warnings --wait 30 --json > result.json || true
           ./scripts/deploy-summary.sh result.json "Remove leftover rule library definition"
+
+      - name: Explore product qualification
+        if: env.ACTION == 'explore-qualification'
+        run: |
+          ./scripts/run-apex.sh scripts/apex/explore_qualification.apex "Product qualification" || true
+          names=$(sf data query --query "SELECT ApiName FROM ExpressionSet WHERE UsageType LIKE '%Qualif%' OR Name LIKE '%Qualif%'" --target-org target --json | jq -r '[.result.records[].ApiName] | join(" ")')
+          echo "===== QUALIFICATION PROCEDURES: $names"
+          rm -rf explored; mkdir -p explored
+          args=""; for n in $names; do args="$args --metadata ExpressionSetDefinition:$n"; done
+          [ -n "$args" ] && sf project retrieve start --api-version "$ORG_API" $args --target-org target --target-metadata-dir explored --unzip --wait 20 --json > explore.json || true
+          for f in $(find explored -type f ! -name '*.zip' ! -name package.xml | sort); do
+            echo "===== FILE $f"; sed -e 's/^[[:space:]]*//' "$f" | grep -v '^<?xml' | tr -d '\r\n' | head -c 8000; echo
+          done
+          echo "===== CONTEXT country / region attributes"
+          grep -o '<name>[^<]*\(Country\|Region\|State\)[^<]*</name>' reference/RLM_SalesTransactionContext.contextDefinition | sort -u | head -40
+          grep -o '<contextNodeName>[^<]*</contextNodeName>' reference/RLM_SalesTransactionContext.contextDefinition | sort -u | head -40
 
       - name: Describe term fields
         if: env.ACTION == 'describe-term'
