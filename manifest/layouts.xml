@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- What the 'retrieve' action pulls with path=manifest/layouts.xml: every page layout (read-only). -->
+<Package xmlns="http://soap.sforce.com/2006/04/metadata">
+    <types>
+        <members>*</members>
+        <name>Layout</name>
+    </types>
+    <version>68.0</version>
+</Package>
