@@ -1,32 +1,21 @@
-// Read-only: usage management setup in the org (which products are usage-enabled, rate cards, summaries)
-Map<String, Schema.SObjectType> gd = Schema.getGlobalDescribe();
-List<String> objs = new List<String>{ 'UsageResource', 'ProductUsageResource', 'ProductUsageGrant', 'UsageResourceBillingPolicy', 'UsagePrdGrantBindingPolicy',
-    'RateCard', 'RateCardEntry', 'PriceBookRateCard', 'UsageSummary', 'UsageEntitlementAccount', 'UsageEntitlementBucket', 'AssetRateCardEntry', 'TransactionUsageEntitlement',
-    'UsageRatableSummary', 'UsageBillingPeriodItem', 'TransactionJournal', 'UsageType', 'UnitOfMeasure', 'UnitOfMeasureClass', 'UsageCommitmentPolicy', 'UsageGrantRenewalPolicy',
-    'UsageGrantRolloverPolicy', 'UsageOveragePolicy', 'ProductUsageResourcePolicy', 'UsageResourcePolicy', 'RatingRequestBatchJob', 'BindingObjectRateAdjustment', 'BindingObjUsageRsrcPlcy' };
-for (String o : objs) {
-    if (!gd.containsKey(o.toLowerCase())) { System.debug(LoggingLevel.ERROR, 'OBJ ' + o + ': n/a'); continue; }
-    Integer n = 0;
-    try { n = Database.countQuery('SELECT COUNT() FROM ' + o); } catch (Exception e) { System.debug(LoggingLevel.ERROR, 'OBJ ' + o + ': ' + e.getMessage()); continue; }
-    List<String> fs = new List<String>();
-    for (Schema.SObjectField f : gd.get(o.toLowerCase()).getDescribe().fields.getMap().values()) {
-        Schema.DescribeFieldResult d = f.getDescribe();
-        if (d.isCreateable() && !d.isNillable() && !d.isDefaultedOnCreate()) fs.add(d.getName() + '!');
-        else if (d.isCreateable() && (d.getType() == Schema.DisplayType.REFERENCE || d.getType() == Schema.DisplayType.PICKLIST)) fs.add(d.getName());
-    }
-    fs.sort();
-    System.debug(LoggingLevel.ERROR, 'OBJ ' + o + ' rows=' + n + ' | ' + String.join(fs, ', '));
+// Read-only: QuantumBit Database usage setup and the usage records an earlier activation created
+Set<Id> ids = new Set<Id>();
+for (Product2 p : [SELECT Id, ProductCode, Name, IsActive, UsageModelType, Type, ConfigureDuringSale FROM Product2 WHERE ProductCode IN ('QB-DB') OR Id IN (SELECT UsageDefinitionProductId FROM UsageResource)]) {
+    ids.add(p.Id);
+    System.debug(LoggingLevel.ERROR, 'PROD ' + p.Id + ' | ' + p.ProductCode + ' | ' + p.Name + ' | active=' + p.IsActive + ' | ' + p.UsageModelType + ' | ' + p.Type);
 }
-// usage-enabled products and a sample of each record
-if (gd.containsKey('productusageresource')) {
-    for (SObject r : Database.query('SELECT Product.ProductCode, Product.Name, UsageResource.Name FROM ProductUsageResource LIMIT 15')) {
-        System.debug(LoggingLevel.ERROR, 'PUR ' + r.getSObject('Product').get('ProductCode') + ' ' + r.getSObject('Product').get('Name') + ' -> ' + r.getSObject('UsageResource').get('Name'));
-    }
+for (ProductSellingModelOption o : [SELECT Product2.ProductCode, ProductSellingModel.Name, ProductSellingModel.Status, ProductSellingModelId FROM ProductSellingModelOption WHERE Product2Id IN :ids]) {
+    System.debug(LoggingLevel.ERROR, 'PSMO ' + o.Product2.ProductCode + ' | ' + o.ProductSellingModel.Name + ' ' + o.ProductSellingModelId + ' | ' + o.ProductSellingModel.Status);
 }
-for (String o : new List<String>{ 'UsageResource', 'RateCard', 'RateCardEntry', 'UsageSummary', 'UsageResourceBillingPolicy', 'PriceBookRateCard' }) {
-    if (!gd.containsKey(o.toLowerCase())) continue;
-    try { for (SObject r : Database.query('SELECT FIELDS(STANDARD) FROM ' + o + ' LIMIT 3')) System.debug(LoggingLevel.ERROR, 'ROW ' + o + ' ' + r); } catch (Exception e) { System.debug(LoggingLevel.ERROR, 'ROW ' + o + ' ' + e.getMessage()); }
+for (PricebookEntry e : [SELECT Product2.ProductCode, Pricebook2.Name, Pricebook2Id, Pricebook2.IsActive, IsActive, UnitPrice, CurrencyIsoCode, ProductSellingModel.Name FROM PricebookEntry WHERE Product2Id IN :ids]) {
+    System.debug(LoggingLevel.ERROR, 'PBE ' + e.Product2.ProductCode + ' | ' + e.Pricebook2.Name + ' ' + e.Pricebook2Id + ' active=' + e.Pricebook2.IsActive + ' | entry active=' + e.IsActive + ' | ' + e.UnitPrice + ' ' + e.CurrencyIsoCode + ' | ' + e.ProductSellingModel.Name);
 }
-for (Product2 p : [SELECT ProductCode, Name, Type, UsageModelType FROM Product2 WHERE UsageModelType != null LIMIT 15]) {
-    System.debug(LoggingLevel.ERROR, 'USAGEPROD ' + p.ProductCode + ' | ' + p.Name + ' | ' + p.Type + ' | ' + p.UsageModelType);
+for (ProductUsageResource r : [SELECT Product.ProductCode, UsageResource.Name, UsageResource.Status, Status FROM ProductUsageResource WHERE Product.ProductCode = 'QB-DB']) {
+    System.debug(LoggingLevel.ERROR, 'PUR ' + r.UsageResource.Name + ' | ' + r.Status + ' | resource ' + r.UsageResource.Status);
+}
+for (String o : new List<String>{ 'UsageEntitlementAccount', 'UsageEntitlementBucket', 'TransactionUsageEntitlement', 'AssetRateCardEntry', 'TransactionJournal', 'UsagePrdGrantBindingPolicy', 'ProductUsageGrant' }) {
+    for (SObject r : Database.query('SELECT FIELDS(STANDARD) FROM ' + o + ' LIMIT 4')) System.debug(LoggingLevel.ERROR, 'ROW ' + o + ' ' + r);
+}
+for (Order o : [SELECT Id, OrderNumber, Status, Account.Name, CreatedDate FROM Order WHERE Id IN (SELECT OrderId FROM OrderItem WHERE Product2.ProductCode LIKE 'QB-%') ORDER BY CreatedDate DESC LIMIT 5]) {
+    System.debug(LoggingLevel.ERROR, 'ORDER ' + o.OrderNumber + ' | ' + o.Status + ' | ' + o.Account.Name + ' | ' + o.CreatedDate);
 }
