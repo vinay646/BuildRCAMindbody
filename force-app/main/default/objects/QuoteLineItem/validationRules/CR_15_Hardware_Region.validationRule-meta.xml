@@ -2,7 +2,7 @@
 <ValidationRule xmlns="http://soap.sforce.com/2006/04/metadata">
     <fullName>CR_15_Hardware_Region</fullName>
     <active>true</active>
-    <description>CR-15: Mindbody hardware (Product Family = Hardware) is sold only in the US, Canada, the UK and Australia. Country = the quote's Ship-To country, else the customer account's shipping, else billing country. Ship-To per line group replaces the quote country in phase 5.</description>
+    <description>CR-15: Mindbody hardware only for US, Canada, UK, Australia. Country = quote Ship-To, else account shipping, else billing country (line group Ship-To in phase 5).</description>
     <errorConditionFormula>AND(
   BEGINS(Product2.ProductCode, 'MB-'),
   ISPICKVAL(Product2.Family, 'Hardware'),
