@@ -10,10 +10,13 @@ PB=$(q "SELECT Id FROM Pricebook2 WHERE Name = 'North America & Asia (USD)'" | j
 PBE=$(q "SELECT Id, Product2Id FROM PricebookEntry WHERE Product2.ProductCode = 'MB-ULT' AND Pricebook2Id = '$PB' AND CurrencyIsoCode = 'USD' AND IsActive = true LIMIT 1")
 PBEID=$(echo "$PBE" | jq -r '.[0].Id'); PROD=$(echo "$PBE" | jq -r '.[0].Product2Id')
 TODAY=$(date -u +%Y-%m-%d); END=$(date -u -d '+36 months -1 day' +%Y-%m-%d); STAMP=$(date -u +%m%d-%H%M)
-for V in no-term with-term; do
+T=$(q "SELECT Id FROM BillingTreatment WHERE Name = 'Mindbody Billing Treatment - Advance'" | jq -r '.[0].Id')
+for V in ${VARIANTS:-treatment treatment-change}; do
   echo "===== variant $V"
   OPP=$(sf data create record --sobject Opportunity --values "Name='P02 $V $STAMP' AccountId=$ACC StageName=Prospecting CloseDate=$TODAY Pricebook2Id=$PB CurrencyIsoCode=USD" --target-org target --json | jq -r '.result.id')
   EXTRA='{}'; [ "$V" = "with-term" ] && EXTRA='{"SubscriptionTerm": 36}'
+  [ "${V#treatment}" != "$V" ] && EXTRA="{\"BillingTreatmentId\": \"$T\"}"
+  [ "$V" = "treatment-change" ] && echo "set CanChangeBillingFrequency=true: $(sf data update record --sobject BillingTreatment --record-id "$T" --values "CanChangeBillingFrequency=true" --target-org target --json | jq -c '{status, message}')"
   BODY=$(jq -nc --arg opp "$OPP" --arg pb "$PB" --arg prod "$PROD" --arg pbe "$PBEID" --arg d "$TODAY" --arg e "$END" --arg con "$CON" --argjson x "$EXTRA" '{
     pricingPref: "System", catalogRatesPref: "Skip", configurationPref: {configurationMethod: "Skip"}, taxPref: "Skip",
     graph: {graphId: "p02", records: [
