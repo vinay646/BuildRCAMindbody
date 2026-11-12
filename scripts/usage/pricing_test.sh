@@ -20,17 +20,21 @@ BODY=$(jq -nc --arg opp "$OPP" --arg pb "$PB" --arg prod "$PROD" --arg pbe "$PBE
   graph: {graphId: "p02", records: [
     {referenceId: "q1", record: {attributes: {type: "Quote", method: "POST"}, Name: "P02 Pricing Test", OpportunityId: $opp, Pricebook2Id: $pb, BillToContactId: $con, CurrencyIsoCode: "USD", StartDate: $d, RLM_TermMonths__c: 36}},
     {referenceId: "l1", record: {attributes: {type: "QuoteLineItem", method: "POST"}, QuoteId: "@{q1.id}", Product2Id: $prod,
-      PricebookEntryId: $pbe, Quantity: 2, StartDate: $d, EndDate: $e, PeriodBoundary: "Anniversary", BillingFrequency: "Annual"}}]}}')
+      PricebookEntryId: $pbe, Quantity: 2, StartDate: $d, EndDate: $e, PeriodBoundary: "Anniversary"}}]}}')
 RES=$(rest POST /connect/rev/sales-transaction/actions/place "$BODY"); echo "$RES" | head -c 1500; echo
 sleep 8
 QUOTE=$(q "SELECT Id FROM Quote WHERE OpportunityId = '$OPP' ORDER BY CreatedDate DESC LIMIT 1" | jq -r '.[0].Id // empty')
 echo "quote=$QUOTE"; [ -z "$QUOTE" ] && exit 0
 echo "LINE BEFORE PRICING $(q "SELECT Quantity, SubscriptionTerm, Volume_Location_Count__c, Billing_Period_Months__c FROM QuoteLineItem WHERE QuoteId = '$QUOTE'")"
-echo "===== reprice the saved quote"
-RB=$(jq -nc --arg id "$QUOTE" '{pricingPref: "Force", catalogRatesPref: "Skip", configurationPref: {configurationMethod: "Skip"}, taxPref: "Skip",
-  graph: {graphId: "p02r", records: [{referenceId: "q1", record: {attributes: {type: "Quote", method: "PATCH", id: $id}, Description: "P02 reprice"}}]}}')
-rest POST /connect/rev/sales-transaction/actions/place "$RB" | head -c 1500; echo
-sleep 10
+LID=$(q "SELECT Id FROM QuoteLineItem WHERE QuoteId = '$QUOTE' LIMIT 1" | jq -r '.[0].Id')
+show() { echo "  LINE $(q "SELECT BillingFrequency, Quantity, SubscriptionTerm, Volume_Location_Count__c, Billing_Period_Months__c, ListPrice, UnitPrice, NetUnitPrice, TotalPrice FROM QuoteLineItem WHERE Id = '$LID'")"; echo "  QUOTE $(q "SELECT CalculationStatus, TotalPrice FROM Quote WHERE Id = '$QUOTE'")"; }
+place() { local line="$1"; RB=$(jq -nc --arg id "$QUOTE" --arg lid "$LID" --argjson line "$line" '{pricingPref: "Force", catalogRatesPref: "Skip", configurationPref: {configurationMethod: "Skip"}, taxPref: "Skip",
+  graph: {graphId: "p02r", records: [{referenceId: "q1", record: {attributes: {type: "Quote", method: "PATCH", id: $id}, Description: "P02 reprice"}},
+    {referenceId: "l1", record: ({attributes: {type: "QuoteLineItem", method: "PATCH", id: $lid}} + $line)}]}}')
+  rest POST /connect/rev/sales-transaction/actions/place "$RB" | jq -c '{isSuccess, errorResponse}'; sleep 8; show; }
+echo "===== A. reprice saved quote (Monthly)"; place '{"Quantity": 2}'
+echo "===== B. change to Annual and price in the same call"; place '{"BillingFrequency": "Annual"}'
+echo "===== C. reprice again (Annual already saved)"; place '{"Quantity": 2}'
 echo "QUOTE $(q "SELECT Name, QuoteNumber, Hierarchy_Location_Count__c, StartDate, RLM_TermMonths__c, TotalPrice, CalculationStatus FROM Quote WHERE Id = '$QUOTE'")"
 echo "LINE $(q "SELECT Id, Quantity, ListPrice, UnitPrice, NetUnitPrice, TotalPrice, Discount, SubscriptionTerm, SubscriptionTermUnit, BillingFrequency, Volume_Location_Count__c, Billing_Period_Months__c, StartDate, EndDate FROM QuoteLineItem WHERE QuoteId = '$QUOTE'")"
 LINE=$(q "SELECT Id FROM QuoteLineItem WHERE QuoteId = '$QUOTE' LIMIT 1" | jq -r '.[0].Id')
