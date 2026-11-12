@@ -17,6 +17,7 @@ echo "===== 3. restore Start Date $OS, Term $OT"
 sf data update record --sobject Quote --record-id "$QUOTE" --values "StartDate=$OS RLM_TermMonths__c=$OT" --target-org target --json | jq -c '{status, message}'
 show
 echo "===== 4. add Technical Account Management (new line, quote at its original 12-month term)"
+for id in $(q "SELECT Id FROM QuoteLineItem WHERE QuoteId = '$QUOTE' AND Product2.ProductCode = 'MB-TAM'" | jq -r '.[].Id'); do sf data delete record --sobject QuoteLineItem --record-id "$id" --target-org target --json | jq -c '{deleted: .status}'; done
 PB=$(q "SELECT Pricebook2Id FROM Quote WHERE Id = '$QUOTE'" | jq -r '.[0].Pricebook2Id')
 PBE=$(q "SELECT Id, Product2Id FROM PricebookEntry WHERE Pricebook2Id = '$PB' AND Product2.ProductCode = 'MB-TAM' AND CurrencyIsoCode = 'USD' AND IsActive = true LIMIT 1")
 BODY=$(jq -nc --arg q "$QUOTE" --arg p "$(echo "$PBE" | jq -r '.[0].Product2Id')" --arg e "$(echo "$PBE" | jq -r '.[0].Id')" '{pricingPref:"Skip",catalogRatesPref:"Skip",taxPref:"Skip",configurationPref:{configurationMethod:"Skip"},
