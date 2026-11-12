@@ -25,6 +25,7 @@ on:
           - explore-recipe   # read-only: print the org's pricing recipes and their lookup-table mappings
           - explore-rules    # read-only: print a constraint model (CML) and the product qualification setup
           - cleanup-rule-library  # DELETES the leftover Mindbody_Product_Rules rule library definition
+          - describe-term  # read-only: term fields on Quote and Quote Line
           - explore-cml  # read-only: CML text of the active QuantumBit models and their product links
           - explore-constraints  # read-only: constraint models (CML), their versions, product links and the CML files
           - explore-rule-api  # read-only: configuration-rule permissions, invocable actions and Connect API resources
@@ -228,6 +229,10 @@ jobs:
             --post-destructive-changes manifest/cleanup-rule-library/destructiveChanges.xml \
             --target-org target --ignore-warnings --wait 30 --json > result.json || true
           ./scripts/deploy-summary.sh result.json "Remove leftover rule library definition"
+
+      - name: Describe term fields
+        if: env.ACTION == 'describe-term'
+        run: ./scripts/run-apex.sh scripts/apex/describe_term_fields.apex "Term fields"
 
       - name: Explore CML of existing models
         if: env.ACTION == 'explore-cml'
