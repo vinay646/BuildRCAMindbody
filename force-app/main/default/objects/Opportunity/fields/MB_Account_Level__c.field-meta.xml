@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>MB_Account_Level__c</fullName>
+    <label>Account Level</label>
+    <description>Hierarchy level of the account: Corporate, Region, Franchisee or Location.</description>
+    <inlineHelpText>From the account – change it on the account.</inlineHelpText>
+    <type>Text</type>
+    <formula>TEXT(Account.Account_Level__c)</formula>
+    <formulaTreatBlanksAs>BlankAsZero</formulaTreatBlanksAs>
+    <unique>false</unique>
+</CustomField>

@@ -203,7 +203,81 @@
                 <identifier>MbRecordMBPriorSystemcField</identifier>
             </fieldInstance>
         </itemInstances>
+        <itemInstances>
+            <fieldInstance>
+                <fieldInstanceProperties>
+                    <name>uiBehavior</name>
+                    <value>readonly</value>
+                </fieldInstanceProperties>
+                <fieldItem>Record.MB_Vertical__c</fieldItem>
+                <identifier>MbRecordMBVerticalcField</identifier>
+            </fieldInstance>
+        </itemInstances>
+        <itemInstances>
+            <fieldInstance>
+                <fieldInstanceProperties>
+                    <name>uiBehavior</name>
+                    <value>readonly</value>
+                </fieldInstanceProperties>
+                <fieldItem>Record.MB_Region__c</fieldItem>
+                <identifier>MbRecordMBRegioncField</identifier>
+            </fieldInstance>
+        </itemInstances>
+        <itemInstances>
+            <fieldInstance>
+                <fieldInstanceProperties>
+                    <name>uiBehavior</name>
+                    <value>readonly</value>
+                </fieldInstanceProperties>
+                <fieldItem>Record.MB_Segment__c</fieldItem>
+                <identifier>MbRecordMBSegmentcField</identifier>
+            </fieldInstance>
+        </itemInstances>
         <name>Facet-mindbody-fields-1</name>
+        <type>Facet</type>
+    </flexiPageRegions>
+    <flexiPageRegions>
+        <itemInstances>
+            <fieldInstance>
+                <fieldInstanceProperties>
+                    <name>uiBehavior</name>
+                    <value>readonly</value>
+                </fieldInstanceProperties>
+                <fieldItem>Record.MB_Account_Level__c</fieldItem>
+                <identifier>MbRecordMBAccountLevelcField</identifier>
+            </fieldInstance>
+        </itemInstances>
+        <itemInstances>
+            <fieldInstance>
+                <fieldInstanceProperties>
+                    <name>uiBehavior</name>
+                    <value>readonly</value>
+                </fieldInstanceProperties>
+                <fieldItem>Record.MB_Payer_Type__c</fieldItem>
+                <identifier>MbRecordMBPayerTypecField</identifier>
+            </fieldInstance>
+        </itemInstances>
+        <itemInstances>
+            <fieldInstance>
+                <fieldInstanceProperties>
+                    <name>uiBehavior</name>
+                    <value>readonly</value>
+                </fieldInstanceProperties>
+                <fieldItem>Record.MB_Paying_Account__c</fieldItem>
+                <identifier>MbRecordMBPayingAccountcField</identifier>
+            </fieldInstance>
+        </itemInstances>
+        <itemInstances>
+            <fieldInstance>
+                <fieldInstanceProperties>
+                    <name>uiBehavior</name>
+                    <value>readonly</value>
+                </fieldInstanceProperties>
+                <fieldItem>Record.MB_Hierarchy_Location_Count__c</fieldItem>
+                <identifier>MbRecordMBHierarchyLocationCountcField</identifier>
+            </fieldInstance>
+        </itemInstances>
+        <name>Facet-mindbody-fields-2</name>
         <type>Facet</type>
     </flexiPageRegions>
     <flexiPageRegions>
@@ -215,6 +289,16 @@
                 </componentInstanceProperties>
                 <componentName>flexipage:column</componentName>
                 <identifier>mindbody_column1</identifier>
+            </componentInstance>
+        </itemInstances>
+        <itemInstances>
+            <componentInstance>
+                <componentInstanceProperties>
+                    <name>body</name>
+                    <value>Facet-mindbody-fields-2</value>
+                </componentInstanceProperties>
+                <componentName>flexipage:column</componentName>
+                <identifier>mindbody_column2</identifier>
             </componentInstance>
         </itemInstances>
         <name>Facet-mindbody-columns</name>

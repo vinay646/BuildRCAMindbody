@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>MB_Hierarchy_Location_Count__c</fullName>
+    <label>Hierarchy Location Count</label>
+    <description>Active locations across the whole customer hierarchy: volume discount band (RLP-01) and TAM / Enterprise recommendations (CR-12).</description>
+    <inlineHelpText>From the account – change it on the account.</inlineHelpText>
+    <type>Number</type>
+    <precision>18</precision>
+    <scale>0</scale>
+    <formula>BLANKVALUE(IF(ISBLANK(Account.Root_Account__c), Account.Active_Location_Count__c, Account.Root_Account__r.Active_Location_Count__c), 0)</formula>
+    <formulaTreatBlanksAs>BlankAsZero</formulaTreatBlanksAs>
+    <unique>false</unique>
+</CustomField>

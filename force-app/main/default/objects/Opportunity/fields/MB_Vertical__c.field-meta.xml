@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>MB_Vertical__c</fullName>
+    <label>Vertical</label>
+    <description>Account vertical (Account > Industry: Fitness, Wellness, Beauty). Guided selling and quote template.</description>
+    <inlineHelpText>From the account – change it on the account.</inlineHelpText>
+    <type>Text</type>
+    <formula>TEXT(Account.Industry)</formula>
+    <formulaTreatBlanksAs>BlankAsZero</formulaTreatBlanksAs>
+    <unique>false</unique>
+</CustomField>

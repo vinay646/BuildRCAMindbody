@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>MB_Paying_Account__c</fullName>
+    <label>Paying Account</label>
+    <description>The account that will be invoiced: the account itself when Self-Pay, else its resolved payer.</description>
+    <inlineHelpText>From the account – change it on the account.</inlineHelpText>
+    <type>Text</type>
+    <formula>IF(ISBLANK(Account.Resolved_Payer__c), Account.Name, Account.Resolved_Payer__r.Name)</formula>
+    <formulaTreatBlanksAs>BlankAsZero</formulaTreatBlanksAs>
+    <unique>false</unique>
+</CustomField>
