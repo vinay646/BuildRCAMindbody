@@ -2,10 +2,10 @@
 """Adds the Mindbody pricing steps to the org's default pricing procedure and builds the context change
 (from the org's own files in reference/).
 
-Why the existing procedure is updated instead of a new one: in ExploremoreRCA, creating a NEW pricing procedure
-fails - by deploy and by Setup > Clone alike - with "Ensure that the lookup table in the ListPrice step is valid",
-even after Sync Pricing Data, while an update of the existing procedure deploys. Mindbody's tiers only exist for
-Mindbody products, so other products priced by this procedure are not affected.
+Builds a separate procedure, MB_Pricing_Procedure (label Mindbody Pricing Procedure), from the org's default
+procedure in reference/: the default stays untouched (an active version cannot be updated by deploy). The earlier
+"Ensure that the lookup table in the ListPrice step is valid" error on new procedures was a Salesforce release issue,
+fixed by Salesforce Support (Nov 2026). Make it the default in Setup > Salesforce Pricing Setup.
 
 Standard steps only. Changes to the standard procedure:
   * Volume Discount step: schedule = Mindbody Hierarchy Volume; tier bounds read the line's
@@ -25,7 +25,7 @@ ROOT = Path(__file__).resolve().parent.parent
 REF = ROOT / "reference"
 OUT = ROOT / "force-app/main/default"
 STD = "RLM_DefaultPricingProcedure"
-NAME = STD  # updated in place (see module docstring)
+NAME = "MB_Pricing_Procedure"  # separate procedure: the default stays as Salesforce ships it
 VOLUME_STEP = "Calculatenetunitpriceandnettotalpriceaftervolumebaseddiscount"
 VOLUME_GROUP = "Applyvolumebaseddiscountstolineswithoutcontractorlasttrxnpricing"
 # Left out: index-based price revision (consumer price index). Not in the Mindbody spec – renewal uplift (LCM-13)
@@ -135,6 +135,9 @@ def build_procedure(volume_id, term_id, frequency_id):
               + constant("MbContractTermPASId", term_id, "Mindbody Contract Term schedule")
               + constant("MbBillingFrequencyPASId", frequency_id, "Mindbody Billing Frequency schedule"))
     s = s.replace("<variables>", consts + "<variables>", 1)
+    s = s.replace("<label>RLM Revenue Management Default Pricing Procedure</label>", "<label>Mindbody Pricing Procedure</label>")
+    s = s.replace(f"<fullName>{STD}_V1</fullName>", f"<fullName>{NAME}_V1</fullName>")
+    s = s.replace(f"<expressionSetDefinition>{STD}</expressionSetDefinition>", f"<expressionSetDefinition>{NAME}</expressionSetDefinition>")
     path = OUT / "expressionSetDefinition" / f"{NAME}.expressionSetDefinition-meta.xml"
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(XML_HEAD + s + "\n")
