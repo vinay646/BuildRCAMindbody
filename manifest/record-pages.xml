@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Read-only retrieve of the Lightning record pages of the objects with Mindbody fields. -->
+<Package xmlns="http://soap.sforce.com/2006/04/metadata">
+    <types>
+        <members>RLM_Account_Record_Page</members>
+        <members>RLM_Collections_Account_Record_Page</members>
+        <members>Account_Record_Page</members>
+        <members>RLM_Contract_Record_Page</members>
+        <members>RLM_Product_Record_Page</members>
+        <members>RLM_Quote_Line_Item_Record_Page</members>
+        <members>RLM_Quote_Record_Page</members>
+        <name>FlexiPage</name>
+    </types>
+    <version>68.0</version>
+</Package>
