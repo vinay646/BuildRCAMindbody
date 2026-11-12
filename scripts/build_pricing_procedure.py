@@ -2,10 +2,10 @@
 """Adds the Mindbody pricing steps to the org's default pricing procedure and builds the context change
 (from the org's own files in reference/).
 
-Builds a separate procedure, MB_Pricing_Procedure (label Mindbody Pricing Procedure), from the org's default
-procedure in reference/: the default stays untouched (an active version cannot be updated by deploy). The earlier
-"Ensure that the lookup table in the ListPrice step is valid" error on new procedures was a Salesforce release issue,
-fixed by Salesforce Support (Nov 2026). Make it the default in Setup > Salesforce Pricing Setup.
+One pricing procedure for the org: the default RLM_DefaultPricingProcedure is updated in place, built from the
+org's own version in reference/ (as Salesforce Support left it after fixing the "lookup table in the ListPrice step"
+release issue, Nov 2026). An active version cannot be updated by deploy: deploy the version deactivated first
+(deploy-steps/deactivate), then this file.
 
 Standard steps only. Changes to the standard procedure:
   * Volume Discount step: schedule = Mindbody Hierarchy Volume; tier bounds read the line's
@@ -25,7 +25,7 @@ ROOT = Path(__file__).resolve().parent.parent
 REF = ROOT / "reference"
 OUT = ROOT / "force-app/main/default"
 STD = "RLM_DefaultPricingProcedure"
-NAME = "MB_Pricing_Procedure"  # separate procedure: the default stays as Salesforce ships it
+NAME = STD  # one pricing procedure for the org: the default, updated in place
 VOLUME_STEP = "Calculatenetunitpriceandnettotalpriceaftervolumebaseddiscount"
 VOLUME_GROUP = "Applyvolumebaseddiscountstolineswithoutcontractorlasttrxnpricing"
 # Left out: index-based price revision (consumer price index). Not in the Mindbody spec – renewal uplift (LCM-13)
