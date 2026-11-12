@@ -38,6 +38,24 @@ needs it (RLP-01).
    line discount fields, Product Type / Unit Of Sale / Core Tier / Vertical fields, the pricing Apex). Run it
    only after steps 1–4 succeeded.
 
+## Billing by legal entity (12 Nov 2026, tested end to end)
+
+| Level | Field | Set by |
+|---|---|---|
+| Account | `MB_Legal_Entity__c` (lookup to Legal Entity) | flow `MB_Account_Legal_Entity` from Region: NA = US, UK, EU, AU (loader fills existing accounts) |
+| Opportunity | `MB_Legal_Entity__c` (formula, read-only) | Account |
+| Quote | standard Legal Entity | flow `MB_Quote_Legal_Entity` on create |
+| Quote Line | standard Legal Entity + Billing Treatment | flow `MB_Quote_Line_Billing_Treatment`: quote's legal entity, then the active treatment of the product's billing policy for that legal entity |
+
+Loader step `billing`: AU legal entity; **Mindbody Billing Policy - Advance** (subscriptions, one-time; Can Change
+Billing Frequency on) and **- Arrears** (usage: MB-PAY, MB-SMS, MB-MKT), both selecting by legal entity, one treatment
+per legal entity (US/UK/EU/AU); the earlier default-selection policy is Inactive. Why a flow: the standard quote line
+editor does not fill the billing treatment, and a line billed at another frequency than its selling model (Term
+Monthly → Annual) is rejected without one.
+
+Test (`usage-summary`, path `legal-flow-test`), Pulse quote 00000033, nothing given but products: legal entity US on
+quote and lines; Ultimate Annual → Mindbody - US - Advance, **$371.85**; SMS overage → Mindbody - US - Arrears.
+
 ## Status (12 Nov 2026, evening) – version 3 active, Annual tested
 
 - **Version 3** (`RLM_DefaultPricingProcedure_RLM_Revenue_Management_Default_Pricing_Procedure_V30`) is the only active
