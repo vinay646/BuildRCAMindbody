@@ -23,7 +23,7 @@ BODY=$(jq -nc --arg opp "$OPP" --arg pb "$PB" --arg prod "$PROD" --arg pbe "$PBE
   graph: {graphId: "usagetest", records: [
     {referenceId: "q1", record: {attributes: {type: "Quote", method: "POST"}, Name: "Usage Test QuantumBit", OpportunityId: $opp, Pricebook2Id: $pb}},
     {referenceId: "l1", record: {attributes: {type: "QuoteLineItem", method: "POST"}, QuoteId: "@{q1.id}", Product2Id: $prod,
-      PricebookEntryId: $pbe, ProductSellingModelId: $psm, Quantity: 1, StartDate: $d, PeriodBoundary: "Anniversary", BillingFrequency: "Annual"}}]}}')
+      PricebookEntryId: $pbe, Quantity: 1, StartDate: $d, PeriodBoundary: "Anniversary", BillingFrequency: "Annual"}}]}}')
 RES=$(rest POST /connect/rev/sales-transaction/actions/place "$BODY"); echo "$RES" | head -c 1500; echo
 QUOTE=$(q "SELECT Id FROM Quote WHERE OpportunityId = '$OPP' ORDER BY CreatedDate DESC LIMIT 1" | jq -r '.[0].Id // empty')
 echo "quote=$QUOTE"; [ -z "$QUOTE" ] && exit 0
