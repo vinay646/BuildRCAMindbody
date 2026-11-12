@@ -4,6 +4,7 @@ set -uo pipefail
 API="/services/data/v$ORG_API"
 q() { sf data query --query "$1" --target-org target --json | jq -c '.result.records // []'; }
 rest() { sf api request rest "$API$2" --method "$1" ${3:+--body "$3"} --target-org target 2>&1; }
+if [ "${DEPLOY_PATH%%:*}" = "date-test" ]; then ./scripts/usage/date_test.sh; exit 0; fi
 if [ "${DEPLOY_PATH%%:*}" = "term-check" ]; then
   echo "FLOWS $(q "SELECT ApiName, Label, ProcessType, TriggerObjectOrEventLabel, IsActive FROM FlowDefinitionView WHERE IsActive = true AND (Label LIKE '%Term%' OR Label LIKE '%Quote%' OR Label LIKE '%Date%' OR TriggerObjectOrEventLabel LIKE '%Quote%')" | jq -c '[.[] | {ApiName, Label, ProcessType, obj: .TriggerObjectOrEventLabel}]')"
   echo "QUOTE FIELDS $(sf api request rest "/services/data/v$ORG_API/sobjects/Quote/describe" --target-org target | jq -c '[.fields[] | select(.name | test("Term|Date|Start|End"; "i")) | {name, type, updateable, calculated}]')"
