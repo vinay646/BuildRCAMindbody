@@ -448,6 +448,9 @@
             </contextAttributes>
             <contextAttributes>
                 <contextTags>
+                    <title>MB_Hardware_Region__c</title>
+                </contextTags>
+                <contextTags>
                     <title>MbHardwareRegion</title>
                 </contextTags>
                 <customMappingAllowed>false</customMappingAllowed>
