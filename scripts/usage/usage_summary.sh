@@ -35,3 +35,5 @@ echo "BUCKETS $(q "SELECT Name, UsageResource.Name, BucketBalance, TotalConsumed
 echo "RATABLE SUMMARIES $(q "SELECT Name, Status, OverageQuantity, StartDateTime, EndDateTime FROM UsageRatableSummary WHERE AccountId = '$ACC'")"
 echo "LIABLE / BILLING PERIOD ITEMS $(q "SELECT Name, Status, TotalUsedQuantity, OverageQuantity, OverageAmount FROM UsageBillingPeriodItem WHERE AccountId = '$ACC'")"
 echo "LATEST JOB PARTS $(q "SELECT BatchJob.Id, Name, Status, InputRecordCount, OutputRecordCount, FailedRecordCount FROM BatchJobPart ORDER BY CreatedDate DESC LIMIT 12")"
+echo "UEA BILLING PERIOD $(q "SELECT Name, BillingPeriodStartDateTime, BillingPeriodEndDateTime, BillingPeriodTerm, BillingPeriodUnit, BillDayOfMonth, EffectiveStartDateTime FROM UsageEntitlementAccount WHERE AccountId = '$ACC'")"
+echo "FAILED RECORDS $(q "SELECT BatchJobPart.Name, ErrorCode, ErrorMessage, RecordId FROM BatchJobPartFailedRecord ORDER BY CreatedDate DESC LIMIT 6" 2>&1 | head -c 2500)"
