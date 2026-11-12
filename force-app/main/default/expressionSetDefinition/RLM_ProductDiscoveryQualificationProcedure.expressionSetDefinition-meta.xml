@@ -72,6 +72,13 @@
             <customElement>
                 <parameters>
                     <input>true</input>
+                    <name>MB_Region</name>
+                    <output>false</output>
+                    <type>Parameter</type>
+                    <value>MbRegion</value>
+                </parameters>
+                <parameters>
+                    <input>true</input>
                     <name>ProductId</name>
                     <output>false</output>
                     <type>Parameter</type>
