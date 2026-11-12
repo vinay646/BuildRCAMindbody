@@ -38,6 +38,13 @@ needs it (RLP-01).
    line discount fields, Product Type / Unit Of Sale / Core Tier / Vertical fields, the pricing Apex). Run it
    only after steps 1–4 succeeded.
 
+## Clean-up (12 Nov 2026)
+
+Quote line formulas `Volume_Location_Count__c` and `Billing_Period_Months__c` are deleted (manifest
+`delete-qli-pricing-formulas`); version 3 does not read them. Their context mappings are removed; the context attributes
+`MbVolumeLocationCount` and `MbBillingPeriodMonths` stay, unmapped and unused – a deploy cannot delete context
+attributes ("Context Attribute is being delete …"), and inactive versions 1/2 still name them.
+
 ## Billing by legal entity (12 Nov 2026, tested end to end)
 
 | Level | Field | Set by |
