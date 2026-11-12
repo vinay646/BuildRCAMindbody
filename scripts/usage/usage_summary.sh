@@ -4,6 +4,11 @@ set -uo pipefail
 API="/services/data/v$ORG_API"
 q() { sf data query --query "$1" --target-org target --json | jq -c '.result.records // []'; }
 rest() { sf api request rest "$API$2" --method "$1" ${3:+--body "$3"} --target-org target 2>&1; }
+if [ "${DEPLOY_PATH%%:*}" = "rec-check" ]; then
+  echo "RECENT QUOTES $(q "SELECT Name, Account.Name, MB_Prior_System__c, Opportunity.MB_Prior_System__c, Hierarchy_Location_Count__c, LastModifiedDate FROM Quote ORDER BY LastModifiedDate DESC LIMIT 6")"
+  echo "PULSE COUNTS $(q "SELECT Name, Active_Location_Count__c, Root_Account__r.Name FROM Account WHERE Name LIKE 'Pulse%' ORDER BY Name LIMIT 20")"
+  exit 0
+fi
 ACC=$(q "SELECT Id FROM Account WHERE Name LIKE 'Usage Test QuantumBit%' AND BillingStreet != null ORDER BY CreatedDate DESC LIMIT 1" | jq -r '.[0].Id')
 MODE=${DEPLOY_PATH%%:*}; PCODE=QB-DB; case "${DEPLOY_PATH:-}" in *:*) PCODE=${DEPLOY_PATH#*:};; esac
 ASSET=$(q "SELECT Id FROM Asset WHERE AccountId = '$ACC' AND Product2.ProductCode = '$PCODE' ORDER BY CreatedDate DESC LIMIT 1" | jq -r '.[0].Id')
