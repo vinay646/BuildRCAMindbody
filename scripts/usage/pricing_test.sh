@@ -16,7 +16,7 @@ STAMP=$(date -u +%m%d-%H%M); TODAY=$(date -u +%Y-%m-%d); END=$(date -u -d '+36 m
 OPP=$(sf data create record --sobject Opportunity --values "Name='P02 Pricing Test $STAMP' AccountId=$ACC StageName=Prospecting CloseDate=$TODAY Pricebook2Id=$PB CurrencyIsoCode=USD" --target-org target --json | jq -r '.result.id // .message')
 echo "opportunity=$OPP"
 BODY=$(jq -nc --arg opp "$OPP" --arg pb "$PB" --arg prod "$PROD" --arg pbe "$PBEID" --arg d "$TODAY" --arg e "$END" --arg con "$CON" '{
-  pricingPref: "System", catalogRatesPref: "Skip", configurationPref: {configurationMethod: "Skip"}, taxPref: "Skip",
+  pricingPref: "Skip", catalogRatesPref: "Skip", configurationPref: {configurationMethod: "Skip"}, taxPref: "Skip",
   graph: {graphId: "p02", records: [
     {referenceId: "q1", record: {attributes: {type: "Quote", method: "POST"}, Name: "P02 Pricing Test", OpportunityId: $opp, Pricebook2Id: $pb, BillToContactId: $con, CurrencyIsoCode: "USD", StartDate: $d, RLM_TermMonths__c: 36}},
     {referenceId: "l1", record: {attributes: {type: "QuoteLineItem", method: "POST"}, QuoteId: "@{q1.id}", Product2Id: $prod,
@@ -25,6 +25,12 @@ RES=$(rest POST /connect/rev/sales-transaction/actions/place "$BODY"); echo "$RE
 sleep 8
 QUOTE=$(q "SELECT Id FROM Quote WHERE OpportunityId = '$OPP' ORDER BY CreatedDate DESC LIMIT 1" | jq -r '.[0].Id // empty')
 echo "quote=$QUOTE"; [ -z "$QUOTE" ] && exit 0
+echo "LINE BEFORE PRICING $(q "SELECT Quantity, SubscriptionTerm, Volume_Location_Count__c, Billing_Period_Months__c FROM QuoteLineItem WHERE QuoteId = '$QUOTE'")"
+echo "===== reprice the saved quote"
+RB=$(jq -nc --arg id "$QUOTE" '{pricingPref: "Force", catalogRatesPref: "Skip", configurationPref: {configurationMethod: "Skip"}, taxPref: "Skip",
+  graph: {graphId: "p02r", records: [{referenceId: "q1", record: {attributes: {type: "Quote", method: "PATCH", id: $id}, Description: "P02 reprice"}}]}}')
+rest POST /connect/rev/sales-transaction/actions/place "$RB" | head -c 1500; echo
+sleep 10
 echo "QUOTE $(q "SELECT Name, QuoteNumber, Hierarchy_Location_Count__c, StartDate, RLM_TermMonths__c, TotalPrice, CalculationStatus FROM Quote WHERE Id = '$QUOTE'")"
 echo "LINE $(q "SELECT Id, Quantity, ListPrice, UnitPrice, NetUnitPrice, TotalPrice, Discount, SubscriptionTerm, SubscriptionTermUnit, BillingFrequency, Volume_Location_Count__c, Billing_Period_Months__c, StartDate, EndDate FROM QuoteLineItem WHERE QuoteId = '$QUOTE'")"
 LINE=$(q "SELECT Id FROM QuoteLineItem WHERE QuoteId = '$QUOTE' LIMIT 1" | jq -r '.[0].Id')
