@@ -1,6 +1,7 @@
 // Read-only: QuantumBit Database usage setup and the usage records an earlier activation created
 Set<Id> ids = new Set<Id>();
-for (Product2 p : [SELECT Id, ProductCode, Name, IsActive, UsageModelType, Type, ConfigureDuringSale FROM Product2 WHERE ProductCode IN ('QB-DB') OR Id IN (SELECT UsageDefinitionProductId FROM UsageResource)]) {
+for (UsageResource u : [SELECT UsageDefinitionProductId FROM UsageResource]) ids.add(u.UsageDefinitionProductId);
+for (Product2 p : [SELECT Id, ProductCode, Name, IsActive, UsageModelType, Type, ConfigureDuringSale FROM Product2 WHERE ProductCode = 'QB-DB' OR Id IN :ids]) {
     ids.add(p.Id);
     System.debug(LoggingLevel.ERROR, 'PROD ' + p.Id + ' | ' + p.ProductCode + ' | ' + p.Name + ' | active=' + p.IsActive + ' | ' + p.UsageModelType + ' | ' + p.Type);
 }
