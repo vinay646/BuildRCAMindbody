@@ -16,7 +16,7 @@ type ... for product ..."). The CML and the link list are generated from the bun
 | CR-04 / CFG-03 | Starter and AI Concierge add-on | Starter can't add AI Concierge – choose Accelerate or Ultimate. |
 | CR-04 / CFG-03 | Starter and Branded app | Starter can't add Branded app – choose Accelerate or Ultimate. |
 | CR-07 | More than one Branded app | Branded app is sold once per brand – keep one Branded app on the top account's line group. |
-| CR-09 | Card reader, terminal or door kit without Mindbody Payments | Hardware requires Mindbody Payments – add Mindbody Payments (opt in) to the quote. |
+| CR-09 | Card reader, terminal or door kit on the quote | `require` adds Mindbody Payments automatically (tested); message if it is removed again |
 
 Already enforced by the bundles (no CML needed): CR-02/03 included features, CR-06 AI Concierge quantity = locations,
 CR-08 Branded app setup fee. Added with phase 5 (needs one line group per location): CR-01 one tier per location,
