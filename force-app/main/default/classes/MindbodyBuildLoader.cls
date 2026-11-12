@@ -517,7 +517,7 @@ public without sharing class MindbodyBuildLoader {
                 new Set<String>{ 'Status', 'BillingPolicyId', 'LegalEntityId', 'CurrencyIsoCode', 'IsMilestoneBilling',
                     'ExcludeFromBilling', 'CanChangeBillingFrequency', 'Description' });
             List<Map<String, Object>> itemRows = new List<Map<String, Object>>();
-            List<Map<String, Object>> activate = new List<Map<String, Object>>();
+            List<Map<String, Object>> activeRows = new List<Map<String, Object>>();
             Set<Id> tIds = new Set<Id>();
             for (String tName : nameByRegion.values()) {
                 SObject t = trt.get(tName);
@@ -528,12 +528,12 @@ public without sharing class MindbodyBuildLoader {
                 itemRows.add(new Map<String, Object>{ 'Name' => tName, 'BillingTreatmentId' => t.Id,
                     'Status' => 'Active', 'ProcessingOrder' => 1, 'Type' => 'Remainder', 'BillingType' => billingType,
                     'Sequencing' => 'Manual', 'Controller' => 'BillingScheduleGroup', 'Handling0Amount' => 'CreateInvoice' });
-                activate.add(new Map<String, Object>{ 'Name' => tName, 'Status' => 'Active' });
+                activeRows.add(new Map<String, Object>{ 'Name' => tName, 'Status' => 'Active' });
             }
             sync('BillingTreatmentItem', new List<String>{ 'Name', 'BillingTreatmentId' }, itemRows,
                 'BillingTreatmentId IN :t', new Map<String, Object>{ 't' => tIds },
                 new Set<String>{ 'Status', 'ProcessingOrder', 'Type', 'BillingType', 'Sequencing', 'Controller', 'Handling0Amount' });
-            sync('BillingTreatment', new List<String>{ 'Name' }, activate, null, null, null);
+            sync('BillingTreatment', new List<String>{ 'Name' }, activeRows, null, null, null);
             SObject defaultT = trt.get(nameByRegion.get((String) b.get('defaultRegion')));
             sync('BillingPolicy', new List<String>{ 'Name' }, new List<Map<String, Object>>{
                 new Map<String, Object>{ 'Name' => policyName, 'Status' => 'Active',
