@@ -13,7 +13,7 @@ PBEID=$(echo "$PBE" | jq -r '.[0].Id'); PSM=$(echo "$PBE" | jq -r '.[0].ProductS
 echo "pricebook=$PB product=$PROD pbe=$PBEID psm=$PSM"
 echo "===== 2. account and opportunity"
 STAMP=$(date -u +%m%d-%H%M)
-ACC=$(sf data create record --sobject Account --values "Name='Usage Test QuantumBit $STAMP' CurrencyIsoCode=USD Payer_Type__c=Self-Pay Account_Level__c=Corporate BillingStreet='1 Test Way' BillingCity=Irvine BillingState=California BillingPostalCode=92618 BillingCountry='United States' ShippingStreet='1 Test Way' ShippingCity=Irvine ShippingState=California ShippingPostalCode=92618 ShippingCountry='United States'" --target-org target --json | jq -r '.result.id')
+ACC=$(sf data create record --sobject Account --values "Name='Usage Test QuantumBit $STAMP' CurrencyIsoCode=USD Payer_Type__c=Self-Pay Account_Level__c=Corporate BillingStreet='1 Test Way' BillingCity=Irvine BillingState=California BillingPostalCode=92618 BillingCountry='United States' ShippingStreet='1 Test Way' ShippingCity=Irvine ShippingState=California ShippingPostalCode=92618 ShippingCountry='United States'" --target-org target --json > acc.json; jq -r '.message // empty' acc.json; jq -r '.result.id' acc.json)
 CON=$(sf data create record --sobject Contact --values "FirstName=Usage LastName=Tester Email=usage.tester@example.com AccountId=$ACC" --target-org target --json | jq -r '.result.id')
 OPP=$(sf data create record --sobject Opportunity --values "Name='Usage Test QuantumBit $STAMP' AccountId=$ACC StageName=Prospecting CloseDate=$(date -u +%Y-%m-%d) Pricebook2Id=$PB CurrencyIsoCode=USD" --target-org target --json | jq -r '.result.id')
 echo "account=$ACC contact=$CON opportunity=$OPP"
