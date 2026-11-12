@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Flow xmlns="http://soap.sforce.com/2006/04/metadata">
+    <apiVersion>62.0</apiVersion>
+    <assignments>
+        <name>Set_Legal_Entity</name>
+        <label>Set legal entity</label>
+        <locationX>176</locationX>
+        <locationY>287</locationY>
+        <assignmentItems>
+            <assignToReference>$Record.LegalEntityId</assignToReference>
+            <operator>Assign</operator>
+            <value><elementReference>$Record.Opportunity.Account.MB_Legal_Entity__c</elementReference></value>
+        </assignmentItems>
+    </assignments>
+    <description>A new quote takes the standard Legal Entity from its account (set from the account Region).</description>
+    <environments>Default</environments>
+    <interviewLabel>MB Quote Legal Entity {!$Flow.CurrentDateTime}</interviewLabel>
+    <label>MB Quote Legal Entity</label>
+    <processMetadataValues>
+        <name>BuilderType</name>
+        <value><stringValue>LightningFlowBuilder</stringValue></value>
+    </processMetadataValues>
+    <processMetadataValues>
+        <name>CanvasMode</name>
+        <value><stringValue>AUTO_LAYOUT_CANVAS</stringValue></value>
+    </processMetadataValues>
+    <processType>AutoLaunchedFlow</processType>
+    <start>
+        <locationX>50</locationX>
+        <locationY>0</locationY>
+        <connector><targetReference>Set_Legal_Entity</targetReference></connector>
+        <filterFormula>AND(ISBLANK({!$Record.LegalEntityId}), NOT(ISBLANK({!$Record.Opportunity.Account.MB_Legal_Entity__c})))</filterFormula>
+        <object>Quote</object>
+        <recordTriggerType>Create</recordTriggerType>
+        <triggerType>RecordBeforeSave</triggerType>
+    </start>
+    <status>Active</status>
+</Flow>

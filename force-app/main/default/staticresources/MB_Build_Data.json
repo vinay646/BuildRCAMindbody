@@ -2018,9 +2018,21 @@
   }
  ],
  "billing": {
-  "_about": "Standard billing policy and treatment for every MB- product (billing frequency changeable on the quote line).",
-  "policy": "Mindbody Billing Policy",
-  "treatment": "Mindbody Billing Treatment - Advance",
-  "description": "Mindbody subscriptions and one-time items bill in advance; reps choose Monthly, Quarterly, Semi-Annual or Annual on the quote line."
+  "_about": "Standard billing by legal entity: Region -> legal entity (account, quote, quote line); two policies that pick their treatment by legal entity. Usage bills in arrears, everything else in advance.",
+  "defaultRegion": "NA",
+  "legalEntities": [
+   {"region": "NA", "code": "US", "currency": "USD", "name": "Default Legal Entity - US"},
+   {"region": "UK", "code": "UK", "currency": "GBP", "name": "Default Legal Entity - UK"},
+   {"region": "EU", "code": "EU", "currency": "EUR", "name": "Default Legal Entity - EU"},
+   {"region": "AU", "code": "AU", "currency": "AUD", "name": "Default Legal Entity - AU",
+    "create": {"CompanyName": "Mindbody Australia", "Status": "Active", "LegalEntityCity": "Sydney", "LegalEntityState": "NSW", "LegalEntityCountry": "Australia", "LegalEntityPostalCode": "2000", "LegalEntityStreet": "1 Martin Place"}}
+  ],
+  "policies": [
+   {"name": "Mindbody Billing Policy - Advance", "billingType": "Advance", "canChangeBillingFrequency": true, "productTypes": ["*"],
+    "description": "Subscriptions and one-time items bill in advance; reps choose Monthly, Quarterly, Semi-Annual or Annual on the quote line."},
+   {"name": "Mindbody Billing Policy - Arrears", "billingType": "Arrears", "canChangeBillingFrequency": false, "productTypes": ["Usage"],
+    "description": "Usage (payments, SMS overage, marketplace fees) bills monthly in arrears from the usage summaries."}
+  ],
+  "retire": {"policy": "Mindbody Billing Policy", "treatment": "Mindbody Billing Treatment - Advance"}
  }
 }

@@ -2,18 +2,81 @@
 <Flow xmlns="http://soap.sforce.com/2006/04/metadata">
     <apiVersion>62.0</apiVersion>
     <assignments>
+        <name>Set_Legal_Entity</name>
+        <label>Set legal entity</label>
+        <locationX>182</locationX>
+        <locationY>287</locationY>
+        <assignmentItems>
+            <assignToReference>$Record.LegalEntityId</assignToReference>
+            <operator>Assign</operator>
+            <value><elementReference>fLegalEntity</elementReference></value>
+        </assignmentItems>
+        <connector><targetReference>Needs_Treatment</targetReference></connector>
+    </assignments>
+    <assignments>
         <name>Set_Billing_Treatment</name>
         <label>Set billing treatment</label>
-        <locationX>176</locationX>
-        <locationY>287</locationY>
+        <locationX>50</locationX>
+        <locationY>827</locationY>
         <assignmentItems>
             <assignToReference>$Record.BillingTreatmentId</assignToReference>
             <operator>Assign</operator>
-            <value><elementReference>$Record.Product2.BillingPolicy.DefaultBillingTreatmentId</elementReference></value>
+            <value><elementReference>Get_Treatment.Id</elementReference></value>
         </assignmentItems>
     </assignments>
-    <description>A quote line without a billing treatment takes the default treatment of its product's billing policy, so reps can change the billing frequency (e.g. Term Monthly product billed Annual). The standard quote line editor does not fill it.</description>
+    <decisions>
+        <name>Needs_Treatment</name>
+        <label>Needs treatment</label>
+        <locationX>182</locationX>
+        <locationY>395</locationY>
+        <defaultConnectorLabel>No</defaultConnectorLabel>
+        <rules>
+            <name>Treatment_Blank</name>
+            <conditionLogic>and</conditionLogic>
+            <conditions>
+                <leftValueReference>$Record.BillingTreatmentId</leftValueReference>
+                <operator>IsNull</operator>
+                <rightValue><booleanValue>true</booleanValue></rightValue>
+            </conditions>
+            <conditions>
+                <leftValueReference>$Record.Product2.BillingPolicyId</leftValueReference>
+                <operator>IsNull</operator>
+                <rightValue><booleanValue>false</booleanValue></rightValue>
+            </conditions>
+            <conditions>
+                <leftValueReference>$Record.LegalEntityId</leftValueReference>
+                <operator>IsNull</operator>
+                <rightValue><booleanValue>false</booleanValue></rightValue>
+            </conditions>
+            <connector><targetReference>Get_Treatment</targetReference></connector>
+            <label>Yes</label>
+        </rules>
+    </decisions>
+    <decisions>
+        <name>Treatment_Found</name>
+        <label>Treatment found</label>
+        <locationX>182</locationX>
+        <locationY>719</locationY>
+        <defaultConnectorLabel>Not found</defaultConnectorLabel>
+        <rules>
+            <name>Found</name>
+            <conditionLogic>and</conditionLogic>
+            <conditions>
+                <leftValueReference>Get_Treatment</leftValueReference>
+                <operator>IsNull</operator>
+                <rightValue><booleanValue>false</booleanValue></rightValue>
+            </conditions>
+            <connector><targetReference>Set_Billing_Treatment</targetReference></connector>
+            <label>Found</label>
+        </rules>
+    </decisions>
+    <description>Quote lines take the quote's Legal Entity, and the billing treatment of their product's billing policy for that legal entity (Mindbody: Advance for subscriptions and one-time items, Arrears for usage). The standard quote line editor does not fill the treatment, and a line billed at another frequency than its selling model needs one.</description>
     <environments>Default</environments>
+    <formulas>
+        <name>fLegalEntity</name>
+        <dataType>String</dataType>
+        <expression>BLANKVALUE({!$Record.LegalEntityId}, {!$Record.Quote.LegalEntityId})</expression>
+    </formulas>
     <interviewLabel>MB Quote Line Billing Treatment {!$Flow.CurrentDateTime}</interviewLabel>
     <label>MB Quote Line Billing Treatment</label>
     <processMetadataValues>
@@ -25,11 +88,39 @@
         <value><stringValue>AUTO_LAYOUT_CANVAS</stringValue></value>
     </processMetadataValues>
     <processType>AutoLaunchedFlow</processType>
-    <start>
+    <recordLookups>
+        <name>Get_Treatment</name>
+        <label>Get treatment</label>
         <locationX>50</locationX>
+        <locationY>503</locationY>
+        <assignNullValuesIfNoRecordsFound>false</assignNullValuesIfNoRecordsFound>
+        <connector><targetReference>Treatment_Found</targetReference></connector>
+        <filterLogic>and</filterLogic>
+        <filters>
+            <field>BillingPolicyId</field>
+            <operator>EqualTo</operator>
+            <value><elementReference>$Record.Product2.BillingPolicyId</elementReference></value>
+        </filters>
+        <filters>
+            <field>LegalEntityId</field>
+            <operator>EqualTo</operator>
+            <value><elementReference>$Record.LegalEntityId</elementReference></value>
+        </filters>
+        <filters>
+            <field>Status</field>
+            <operator>EqualTo</operator>
+            <value><stringValue>Active</stringValue></value>
+        </filters>
+        <getFirstRecordOnly>true</getFirstRecordOnly>
+        <object>BillingTreatment</object>
+        <queriedFields>Id</queriedFields>
+        <storeOutputAutomatically>true</storeOutputAutomatically>
+    </recordLookups>
+    <start>
+        <locationX>56</locationX>
         <locationY>0</locationY>
-        <connector><targetReference>Set_Billing_Treatment</targetReference></connector>
-        <filterFormula>AND(ISBLANK({!$Record.BillingTreatmentId}), NOT(ISBLANK({!$Record.Product2.BillingPolicy.DefaultBillingTreatmentId})))</filterFormula>
+        <connector><targetReference>Set_Legal_Entity</targetReference></connector>
+        <filterFormula>OR(ISBLANK({!$Record.LegalEntityId}), ISBLANK({!$Record.BillingTreatmentId}))</filterFormula>
         <object>QuoteLineItem</object>
         <recordTriggerType>CreateAndUpdate</recordTriggerType>
         <triggerType>RecordBeforeSave</triggerType>

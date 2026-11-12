@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>MB_Legal_Entity__c</fullName>
+    <label>Legal Entity</label>
+    <description>The account's legal entity (from its Region); quotes take it on create.</description>
+    <inlineHelpText>From the account – change the account Region.</inlineHelpText>
+    <type>Text</type>
+    <formula>Account.MB_Legal_Entity__r.Name</formula>
+    <formulaTreatBlanksAs>BlankAsZero</formulaTreatBlanksAs>
+    <unique>false</unique>
+</CustomField>

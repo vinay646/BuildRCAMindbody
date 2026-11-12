@@ -455,56 +455,143 @@ public without sharing class MindbodyBuildLoader {
     }
 
     /**
-     * Standard billing setup for Mindbody products: one billing policy whose default billing treatment bills in advance
-     * and lets the rep change the billing frequency (without it, quote lines cannot be Quarterly, Semi-Annual or Annual:
-     * "Add a Billing Treatment to make sure that you can change the Billing Frequency"). Every MB- product gets the
-     * policy, and the org's tax policy when it has none.
+     * Standard billing setup by legal entity. Legal entities per Region (the org has US, UK, EU; AU is created), two
+     * billing policies that pick their treatment by legal entity – Advance for subscriptions and one-time items
+     * (billing frequency changeable on the quote line), Arrears for usage – with one treatment per legal entity.
+     * MB- products get the policy for their product type (and the org's tax policy when they have none); accounts get
+     * the legal entity of their Region. The earlier single default-selection policy is retired.
      */
     public void loadBilling() {
         Map<String, Object> b = (Map<String, Object>) data.get('billing');
-        String policyName = (String) b.get('policy');
-        String treatmentName = (String) b.get('treatment');
-        Map<String, SObject> pol = sync('BillingPolicy', new List<String>{ 'Name' }, new List<Map<String, Object>>{
-            new Map<String, Object>{ 'Name' => policyName, 'Status' => 'Draft', 'BillingTreatmentSelection' => 'Default',
-                'Description' => b.get('description') } }, null, null, new Set<String>{ 'Status', 'BillingTreatmentSelection' });
-        SObject policy = pol.get(policyName);
-        if (policy == null) {
-            return;
+        // 1. legal entities
+        Map<String, Id> entityByRegion = new Map<String, Id>();
+        Map<String, String> currencyByRegion = new Map<String, String>();
+        List<Map<String, Object>> leRows = new List<Map<String, Object>>();
+        for (Object o : (List<Object>) b.get('legalEntities')) {
+            Map<String, Object> le = (Map<String, Object>) o;
+            Map<String, Object> row = new Map<String, Object>{ 'Name' => le.get('name') };
+            if (le.get('create') != null) {
+                row.putAll((Map<String, Object>) le.get('create'));
+            }
+            leRows.add(row);
+            currencyByRegion.put((String) le.get('region'), (String) le.get('currency'));
         }
-        Map<String, SObject> trt = sync('BillingTreatment', new List<String>{ 'Name' }, new List<Map<String, Object>>{
-            new Map<String, Object>{ 'Name' => treatmentName, 'BillingPolicyId' => policy.Id, 'Status' => 'Draft',
-                'ExcludeFromBilling' => 'No', 'IsMilestoneBilling' => false, 'CanChangeBillingFrequency' => true,
-                'Description' => 'Bill in advance; the billing frequency on the quote line (Monthly, Quarterly, Semi-Annual, Annual) drives the billing schedule.' } },
-            null, null, new Set<String>{ 'Status', 'BillingPolicyId', 'IsMilestoneBilling', 'ExcludeFromBilling' });
-        SObject treatment = trt.get(treatmentName);
-        if (treatment == null) {
-            return;
+        Map<String, SObject> entities = sync('LegalEntity', new List<String>{ 'Name' }, leRows, null, null, null, true);
+        Map<String, String> abbrev = new Map<String, String>();
+        for (Object o : (List<Object>) b.get('legalEntities')) {
+            Map<String, Object> le = (Map<String, Object>) o;
+            SObject rec = entities.get((String) le.get('name'));
+            if (rec == null) {
+                fail('Legal entity ' + le.get('name') + ' not found or not created');
+                continue;
+            }
+            entityByRegion.put((String) le.get('region'), rec.Id);
+            abbrev.put((String) le.get('region'), (String) le.get('code'));
         }
-        sync('BillingTreatmentItem', new List<String>{ 'Name', 'BillingTreatmentId' }, new List<Map<String, Object>>{
-            new Map<String, Object>{ 'Name' => treatmentName + ' – Advance', 'BillingTreatmentId' => treatment.Id,
-                'Status' => 'Active', 'ProcessingOrder' => 1, 'Type' => 'Remainder', 'BillingType' => 'Advance',
-                'Sequencing' => 'Manual', 'Controller' => 'BillingScheduleGroup', 'Handling0Amount' => 'CreateInvoice' } },
-            'BillingTreatmentId = :t', new Map<String, Object>{ 't' => treatment.Id },
-            new Set<String>{ 'Status', 'ProcessingOrder', 'Type', 'BillingType', 'Sequencing', 'Controller', 'Handling0Amount' });
-        sync('BillingTreatment', new List<String>{ 'Name' }, new List<Map<String, Object>>{
-            new Map<String, Object>{ 'Name' => treatmentName, 'Status' => 'Active' } }, null, null, null);
-        sync('BillingPolicy', new List<String>{ 'Name' }, new List<Map<String, Object>>{
-            new Map<String, Object>{ 'Name' => policyName, 'DefaultBillingTreatmentId' => treatment.Id, 'Status' => 'Active' } },
-            null, null, null);
 
+        // 2. policies (Draft) -> treatments per legal entity -> items -> activate treatments -> default + activate policy
+        Map<String, Id> policyByType = new Map<String, Id>();
+        for (Object o : (List<Object>) b.get('policies')) {
+            Map<String, Object> pd = (Map<String, Object>) o;
+            String policyName = (String) pd.get('name');
+            String billingType = (String) pd.get('billingType');
+            Map<String, SObject> pol = sync('BillingPolicy', new List<String>{ 'Name' }, new List<Map<String, Object>>{
+                new Map<String, Object>{ 'Name' => policyName, 'Status' => 'Draft', 'BillingTreatmentSelection' => 'LegalEntity',
+                    'Description' => pd.get('description') } }, null, null, new Set<String>{ 'Status', 'BillingTreatmentSelection', 'Description' });
+            SObject policy = pol.get(policyName);
+            if (policy == null) {
+                continue;
+            }
+            List<Map<String, Object>> tRows = new List<Map<String, Object>>();
+            Map<String, String> nameByRegion = new Map<String, String>();
+            for (String region : entityByRegion.keySet()) {
+                String tName = 'Mindbody - ' + abbrev.get(region) + ' - ' + billingType;
+                nameByRegion.put(region, tName);
+                tRows.add(new Map<String, Object>{ 'Name' => tName, 'BillingPolicyId' => policy.Id, 'Status' => 'Draft',
+                    'LegalEntityId' => entityByRegion.get(region), 'CurrencyIsoCode' => currencyByRegion.get(region),
+                    'ExcludeFromBilling' => 'No', 'IsMilestoneBilling' => false,
+                    'CanChangeBillingFrequency' => pd.get('canChangeBillingFrequency') == true,
+                    'Description' => pd.get('description') });
+            }
+            Map<String, SObject> trt = sync('BillingTreatment', new List<String>{ 'Name' }, tRows, null, null,
+                new Set<String>{ 'Status', 'BillingPolicyId', 'LegalEntityId', 'CurrencyIsoCode', 'IsMilestoneBilling',
+                    'ExcludeFromBilling', 'CanChangeBillingFrequency', 'Description' });
+            List<Map<String, Object>> itemRows = new List<Map<String, Object>>();
+            List<Map<String, Object>> activate = new List<Map<String, Object>>();
+            Set<Id> tIds = new Set<Id>();
+            for (String tName : nameByRegion.values()) {
+                SObject t = trt.get(tName);
+                if (t == null) {
+                    continue;
+                }
+                tIds.add(t.Id);
+                itemRows.add(new Map<String, Object>{ 'Name' => tName, 'BillingTreatmentId' => t.Id,
+                    'Status' => 'Active', 'ProcessingOrder' => 1, 'Type' => 'Remainder', 'BillingType' => billingType,
+                    'Sequencing' => 'Manual', 'Controller' => 'BillingScheduleGroup', 'Handling0Amount' => 'CreateInvoice' });
+                activate.add(new Map<String, Object>{ 'Name' => tName, 'Status' => 'Active' });
+            }
+            sync('BillingTreatmentItem', new List<String>{ 'Name', 'BillingTreatmentId' }, itemRows,
+                'BillingTreatmentId IN :t', new Map<String, Object>{ 't' => tIds },
+                new Set<String>{ 'Status', 'ProcessingOrder', 'Type', 'BillingType', 'Sequencing', 'Controller', 'Handling0Amount' });
+            sync('BillingTreatment', new List<String>{ 'Name' }, activate, null, null, null);
+            SObject defaultT = trt.get(nameByRegion.get((String) b.get('defaultRegion')));
+            sync('BillingPolicy', new List<String>{ 'Name' }, new List<Map<String, Object>>{
+                new Map<String, Object>{ 'Name' => policyName, 'Status' => 'Active',
+                    'DefaultBillingTreatmentId' => defaultT == null ? null : defaultT.Id } }, null, null, null);
+            for (Object pt : (List<Object>) pd.get('productTypes')) {
+                policyByType.put((String) pt, policy.Id);
+            }
+        }
+
+        // 3. products: policy by product type (Usage -> Arrears, everything else -> Advance); tax policy when missing
+        Map<String, String> typeByCode = new Map<String, String>();
+        for (Map<String, Object> pd : allProducts()) {
+            typeByCode.put((String) pd.get('code'), (String) pd.get('productType'));
+        }
         Id taxPolicy = null;
         for (SObject p : Database.query('SELECT TaxPolicyId FROM Product2 WHERE TaxPolicyId != null AND (NOT ProductCode LIKE \'MB-%\') LIMIT 1')) {
             taxPolicy = (Id) p.get('TaxPolicyId');
         }
         List<Map<String, Object>> prodRows = new List<Map<String, Object>>();
         for (SObject p : Database.query('SELECT ProductCode, TaxPolicyId FROM Product2 WHERE ProductCode LIKE \'MB-%\'')) {
-            Map<String, Object> r = new Map<String, Object>{ 'ProductCode' => p.get('ProductCode'), 'BillingPolicyId' => policy.Id };
+            String t = typeByCode.get((String) p.get('ProductCode'));
+            Id pol = policyByType.containsKey(t) ? policyByType.get(t) : policyByType.get('*');
+            Map<String, Object> r = new Map<String, Object>{ 'ProductCode' => p.get('ProductCode'), 'BillingPolicyId' => pol };
             if (p.get('TaxPolicyId') == null && taxPolicy != null) {
                 r.put('TaxPolicyId', taxPolicy);
             }
             prodRows.add(r);
         }
         sync('Product2', new List<String>{ 'ProductCode' }, prodRows, 'ProductCode LIKE \'MB-%\'', null, null);
+
+        // 4. retire the earlier single default-selection policy and its treatment
+        Map<String, Object> retire = (Map<String, Object>) b.get('retire');
+        if (retire != null) {
+            for (SObject t : Database.query('SELECT Id FROM BillingTreatment WHERE Name = \'' + String.escapeSingleQuotes((String) retire.get('treatment')) + '\' AND Status = \'Active\'')) {
+                t.put('Status', 'Inactive');
+                update t;
+                info('BillingTreatment ' + retire.get('treatment') + ': Inactive');
+            }
+            for (SObject p : Database.query('SELECT Id FROM BillingPolicy WHERE Name = \'' + String.escapeSingleQuotes((String) retire.get('policy')) + '\' AND Status = \'Active\'')) {
+                p.put('Status', 'Inactive');
+                update p;
+                info('BillingPolicy ' + retire.get('policy') + ': Inactive');
+            }
+        }
+
+        // 5. accounts: legal entity from Region
+        if (hasField('Account', 'MB_Legal_Entity__c') && hasField('Account', 'MB_Region__c')) {
+            List<SObject> accs = new List<SObject>();
+            for (SObject a : Database.query('SELECT Id, MB_Region__c, MB_Legal_Entity__c FROM Account WHERE MB_Region__c != null')) {
+                Id le = entityByRegion.get((String) a.get('MB_Region__c'));
+                if (le != null && a.get('MB_Legal_Entity__c') != le) {
+                    a.put('MB_Legal_Entity__c', le);
+                    accs.add(a);
+                }
+            }
+            update accs;
+            info('Account legal entity: ' + accs.size() + ' updated');
+        }
     }
 
     /**

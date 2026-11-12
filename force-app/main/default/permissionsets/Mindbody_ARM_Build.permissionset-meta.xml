@@ -13,6 +13,11 @@
     </fieldPermissions>
     <fieldPermissions>
         <editable>false</editable>
+        <field>Opportunity.MB_Legal_Entity__c</field>
+        <readable>true</readable>
+    </fieldPermissions>
+    <fieldPermissions>
+        <editable>false</editable>
         <field>Opportunity.MB_Segment__c</field>
         <readable>true</readable>
     </fieldPermissions>
@@ -49,6 +54,11 @@
     <fieldPermissions>
         <editable>true</editable>
         <field>Account.Master_Contract__c</field>
+        <readable>true</readable>
+    </fieldPermissions>
+    <fieldPermissions>
+        <editable>true</editable>
+        <field>Account.MB_Legal_Entity__c</field>
         <readable>true</readable>
     </fieldPermissions>
     <fieldPermissions>

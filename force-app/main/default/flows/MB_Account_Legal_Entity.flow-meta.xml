@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Flow xmlns="http://soap.sforce.com/2006/04/metadata">
+    <apiVersion>62.0</apiVersion>
+    <assignments>
+        <name>Set_Legal_Entity</name>
+        <label>Set legal entity</label>
+        <locationX>50</locationX>
+        <locationY>503</locationY>
+        <assignmentItems>
+            <assignToReference>$Record.MB_Legal_Entity__c</assignToReference>
+            <operator>Assign</operator>
+            <value><elementReference>Get_Legal_Entity.Id</elementReference></value>
+        </assignmentItems>
+    </assignments>
+    <decisions>
+        <name>Found</name>
+        <label>Found</label>
+        <locationX>182</locationX>
+        <locationY>395</locationY>
+        <defaultConnectorLabel>Not found</defaultConnectorLabel>
+        <rules>
+            <name>Legal_Entity_Found</name>
+            <conditionLogic>and</conditionLogic>
+            <conditions>
+                <leftValueReference>Get_Legal_Entity</leftValueReference>
+                <operator>IsNull</operator>
+                <rightValue><booleanValue>false</booleanValue></rightValue>
+            </conditions>
+            <connector><targetReference>Set_Legal_Entity</targetReference></connector>
+            <label>Found</label>
+        </rules>
+    </decisions>
+    <description>Account Legal Entity from its Region: NA = Default Legal Entity - US, UK, EU, AU. Quotes and quote lines take it; it picks the billing treatment.</description>
+    <environments>Default</environments>
+    <formulas>
+        <name>fLegalEntityName</name>
+        <dataType>String</dataType>
+        <expression>CASE(TEXT({!$Record.MB_Region__c}), 'NA', 'Default Legal Entity - US', 'UK', 'Default Legal Entity - UK', 'EU', 'Default Legal Entity - EU', 'AU', 'Default Legal Entity - AU', '')</expression>
+    </formulas>
+    <interviewLabel>MB Account Legal Entity {!$Flow.CurrentDateTime}</interviewLabel>
+    <label>MB Account Legal Entity</label>
+    <processMetadataValues>
+        <name>BuilderType</name>
+        <value><stringValue>LightningFlowBuilder</stringValue></value>
+    </processMetadataValues>
+    <processMetadataValues>
+        <name>CanvasMode</name>
+        <value><stringValue>AUTO_LAYOUT_CANVAS</stringValue></value>
+    </processMetadataValues>
+    <processType>AutoLaunchedFlow</processType>
+    <recordLookups>
+        <name>Get_Legal_Entity</name>
+        <label>Get legal entity</label>
+        <locationX>182</locationX>
+        <locationY>287</locationY>
+        <assignNullValuesIfNoRecordsFound>false</assignNullValuesIfNoRecordsFound>
+        <connector><targetReference>Found</targetReference></connector>
+        <filterLogic>and</filterLogic>
+        <filters>
+            <field>Name</field>
+            <operator>EqualTo</operator>
+            <value><elementReference>fLegalEntityName</elementReference></value>
+        </filters>
+        <getFirstRecordOnly>true</getFirstRecordOnly>
+        <object>LegalEntity</object>
+        <queriedFields>Id</queriedFields>
+        <storeOutputAutomatically>true</storeOutputAutomatically>
+    </recordLookups>
+    <start>
+        <locationX>56</locationX>
+        <locationY>0</locationY>
+        <connector><targetReference>Get_Legal_Entity</targetReference></connector>
+        <filterFormula>AND(NOT(ISBLANK(TEXT({!$Record.MB_Region__c}))), OR(ISNEW(), ISCHANGED({!$Record.MB_Region__c}), ISBLANK({!$Record.MB_Legal_Entity__c})))</filterFormula>
+        <object>Account</object>
+        <recordTriggerType>CreateAndUpdate</recordTriggerType>
+        <triggerType>RecordBeforeSave</triggerType>
+    </start>
+    <status>Active</status>
+</Flow>

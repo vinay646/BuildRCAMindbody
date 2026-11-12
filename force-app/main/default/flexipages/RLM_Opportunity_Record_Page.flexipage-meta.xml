@@ -229,6 +229,16 @@
                     <name>uiBehavior</name>
                     <value>readonly</value>
                 </fieldInstanceProperties>
+                <fieldItem>Record.MB_Legal_Entity__c</fieldItem>
+                <identifier>MbRecordOppLegalEntityField</identifier>
+            </fieldInstance>
+        </itemInstances>
+        <itemInstances>
+            <fieldInstance>
+                <fieldInstanceProperties>
+                    <name>uiBehavior</name>
+                    <value>readonly</value>
+                </fieldInstanceProperties>
                 <fieldItem>Record.MB_Segment__c</fieldItem>
                 <identifier>MbRecordMBSegmentcField</identifier>
             </fieldInstance>

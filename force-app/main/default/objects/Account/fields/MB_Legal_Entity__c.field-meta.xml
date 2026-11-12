@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>MB_Legal_Entity__c</fullName>
+    <label>Legal Entity</label>
+    <description>Mindbody legal entity that bills this account, from the account Region (NA = US, UK, EU, AU). Copied to the quote and quote lines (standard Legal Entity) and picks the billing treatment.</description>
+    <inlineHelpText>Set from Region. Quotes and quote lines take it; billing uses its treatment.</inlineHelpText>
+    <type>Lookup</type>
+    <referenceTo>LegalEntity</referenceTo>
+    <relationshipName>MB_Accounts</relationshipName>
+    <relationshipLabel>Accounts</relationshipLabel>
+    <deleteConstraint>SetNull</deleteConstraint>
+    <required>false</required>
+</CustomField>

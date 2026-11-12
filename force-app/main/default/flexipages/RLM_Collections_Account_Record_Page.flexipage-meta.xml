@@ -607,6 +607,16 @@
                     <name>uiBehavior</name>
                     <value>readonly</value>
                 </fieldInstanceProperties>
+                <fieldItem>Record.MB_Legal_Entity__c</fieldItem>
+                <identifier>MbRecordLegalEntityField</identifier>
+            </fieldInstance>
+        </itemInstances>
+        <itemInstances>
+            <fieldInstance>
+                <fieldInstanceProperties>
+                    <name>uiBehavior</name>
+                    <value>readonly</value>
+                </fieldInstanceProperties>
                 <fieldItem>Record.Resolved_Payer__c</fieldItem>
                 <identifier>MbRecordResolvedPayercField</identifier>
             </fieldInstance>

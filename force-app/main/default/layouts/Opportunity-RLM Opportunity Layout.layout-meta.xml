@@ -68,6 +68,10 @@
             </layoutItems>
             <layoutItems>
                 <behavior>Readonly</behavior>
+                <field>MB_Legal_Entity__c</field>
+            </layoutItems>
+            <layoutItems>
+                <behavior>Readonly</behavior>
                 <field>MB_Segment__c</field>
             </layoutItems>
         </layoutColumns>
