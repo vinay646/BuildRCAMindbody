@@ -6,8 +6,8 @@
     <dataSourceType>SingleSobject</dataSourceType>
     <decisionTableParameters>
         <dataType>String</dataType>
-        <fieldName>MB_Region__c</fieldName>
-        <fieldPath>MB_Region__c</fieldPath>
+        <fieldName>MB_Hardware_Region__c</fieldName>
+        <fieldPath>MB_Hardware_Region__c</fieldPath>
         <isGroupByField>false</isGroupByField>
         <isRequired>false</isRequired>
         <operator>Equals</operator>
