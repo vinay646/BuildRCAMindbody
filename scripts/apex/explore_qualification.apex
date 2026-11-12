@@ -15,3 +15,9 @@ for (String o : new List<String>{ 'ProductQualification', 'ProductDisqualificati
 for (SObject es : Database.query('SELECT Id, Name, ApiName, UsageType, InterfaceSourceType FROM ExpressionSet')) {
     System.debug(LoggingLevel.ERROR, 'PROCEDURE ' + es.get('UsageType') + ' | ' + es.get('Name') + ' (' + es.get('ApiName') + ')');
 }
+for (Account a : Database.query('SELECT Name, MB_Region__c, BillingCountry, ShippingCountry, CurrencyIsoCode FROM Account WHERE Name LIKE \'Pulse%\' OR Name LIKE \'Kraftwerk%\' OR Name LIKE \'Sunrise%\' OR Name LIKE \'Reformer Lab Pty%\'')) {
+    System.debug(LoggingLevel.ERROR, 'ACCOUNT ' + a.Name + ' | region=' + a.get('MB_Region__c') + ' | billing=' + a.BillingCountry + ' | shipping=' + a.ShippingCountry + ' | ' + a.get('CurrencyIsoCode'));
+}
+for (SObject q : Database.query('SELECT Product.ProductCode, MB_Region__c, EffectiveFromDate, EffectiveToDate, ParentProductId, RootProductId FROM ProductQualification')) {
+    System.debug(LoggingLevel.ERROR, 'PQ ' + q.getSObject('Product').get('ProductCode') + ' | ' + q.get('MB_Region__c') + ' | ' + q.get('EffectiveFromDate') + '..' + q.get('EffectiveToDate'));
+}
