@@ -247,6 +247,19 @@ jobs:
           for f in $(find explored -type f ! -name '*.zip' ! -name package.xml | sort); do
             echo "===== FILE $f"; sed -e 's/^[[:space:]]*//' "$f" | grep -v '^<?xml' | tr -d '\r\n' | head -c 8000; echo
           done
+          for m in DecisionTable:RLM_ProductQualification DecisionTable:RLM_ProductCategoryQualification ContextDefinition:RLM_ProductDiscoveryContext; do
+            rm -rf explored; mkdir -p explored
+            sf project retrieve start --api-version "$ORG_API" --metadata "$m" --target-org target --target-metadata-dir explored --unzip --wait 20 --json > explore.json || true
+            for f in $(find explored -type f ! -name '*.zip' ! -name package.xml | sort); do
+              echo "===== FILE $f ($(wc -c < "$f") bytes)"
+              if [[ "$f" == *contextDefinition ]]; then
+                echo "-- nodes:"; grep -o '<title>[^<]*</title>' "$f" | sort -u | tr '\n' ' ' | head -c 3000; echo
+                echo "-- country/region/account:"; grep -o '<contextAttribute>[^<]*</contextAttribute>\|<queryAttribute>[^<]*</queryAttribute>\|<objectName>[^<]*</objectName>' "$f" | sort -u | grep -i 'countr\|region\|account\|state\|object' | tr '\n' ' ' | head -c 3000; echo
+              else
+                sed -e 's/^[[:space:]]*//' "$f" | grep -v '^<?xml' | tr -d '\r\n' | head -c 6000; echo
+              fi
+            done
+          done
           echo "===== CONTEXT country / region attributes"
           grep -o '<name>[^<]*\(Country\|Region\|State\)[^<]*</name>' reference/RLM_SalesTransactionContext.contextDefinition | sort -u | head -40
           grep -o '<contextNodeName>[^<]*</contextNodeName>' reference/RLM_SalesTransactionContext.contextDefinition | sort -u | head -40
