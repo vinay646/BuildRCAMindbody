@@ -18,7 +18,7 @@ public without sharing class MindbodyBuildLoader {
     public class LoaderException extends Exception {}
 
     public static final String RESOURCE = 'MB_Build_Data';
-    public static final List<String> STEPS = new List<String>{ 'inventory', 'accounts', 'catalog', 'products', 'bundles', 'attributes', 'pricebooks', 'pricingschedules', 'constraints', 'constraints-reset' };
+    public static final List<String> STEPS = new List<String>{ 'inventory', 'accounts', 'catalog', 'products', 'bundles', 'attributes', 'pricebooks', 'pricingschedules', 'constraints', 'constraints-reset', 'qualification' };
 
     public List<String> log = new List<String>();
     public Integer errors = 0;
@@ -58,6 +58,7 @@ public without sharing class MindbodyBuildLoader {
             when 'pricingschedules' { loadPricingSchedules(); }
             when 'constraints' { loadConstraintLinks(); }
             when 'constraints-reset' { resetConstraintLinks(); }
+            when 'qualification' { loadQualifications(); }
             when else { throw new LoaderException('Unknown step "' + step + '". Steps: ' + String.join(STEPS, ', ')); }
         }
     }
@@ -433,6 +434,54 @@ public without sharing class MindbodyBuildLoader {
                 info(es.get('Name') + ': ' + ok + ' of ' + links.size() + ' product links deleted');
             }
         }
+    }
+
+    /**
+     * CR-15 product qualification rules: each hardware product is qualified only for accounts whose
+     * Hardware Region is Supported (US, Canada, UK, Australia). The RLM_ProductQualification decision table
+     * matches ProductId and MB_Hardware_Region__c; the discovery context hydrates the account's region.
+     */
+    public void loadQualifications() {
+        Set<String> codes = new Set<String>();
+        for (Object o : listOf('products')) {
+            Map<String, Object> p = (Map<String, Object>) o;
+            if (p.get('productType') == 'Hardware') {
+                codes.add((String) p.get('code'));
+            }
+        }
+        Map<Id, String> products = new Map<Id, String>();
+        for (Product2 p : [SELECT Id, ProductCode FROM Product2 WHERE ProductCode IN :codes]) {
+            products.put(p.Id, p.ProductCode);
+        }
+        Set<Id> productIds = products.keySet();
+        Map<Id, SObject> existing = new Map<Id, SObject>();
+        for (SObject q : Database.query('SELECT Id, ProductId, MB_Hardware_Region__c FROM ProductQualification WHERE ProductId IN :productIds AND ParentProductId = null AND RootProductId = null')) {
+            existing.put((Id) q.get('ProductId'), q);
+        }
+        List<SObject> rows = new List<SObject>();
+        for (Id pid : productIds) {
+            SObject q = existing.containsKey(pid) ? existing.get(pid) : Schema.getGlobalDescribe().get('ProductQualification').newSObject();
+            if (q.Id == null) {
+                q.put('ProductId', pid);
+                q.put('EffectiveFromDate', Date.newInstance(2020, 1, 1));
+                q.put('EffectiveToDate', Date.newInstance(2099, 12, 31));
+            }
+            q.put('MB_Hardware_Region__c', 'Supported');
+            rows.add(q);
+        }
+        List<SObject> inserts = new List<SObject>();
+        List<SObject> updates = new List<SObject>();
+        for (SObject q : rows) {
+            if (q.Id == null) { inserts.add(q); } else { updates.add(q); }
+        }
+        Integer ok = 0;
+        for (Database.SaveResult r : Database.insert(inserts, false)) {
+            if (r.isSuccess()) { ok++; } else { fail('Product qualification insert: ' + r.getErrors()[0].getMessage()); }
+        }
+        for (Database.SaveResult r : Database.update(updates, false)) {
+            if (r.isSuccess()) { ok++; } else { fail('Product qualification update: ' + r.getErrors()[0].getMessage()); }
+        }
+        info('Product qualification (CR-15): ' + ok + ' of ' + rows.size() + ' hardware products qualified for Hardware Region = Supported ' + products.values());
     }
 
     /** Attribute picklists, values, definitions, and product attribute assignments (spec 12.6). */
