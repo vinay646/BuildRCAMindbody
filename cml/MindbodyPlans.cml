@@ -42,7 +42,12 @@ type Quote {
     rule(lineitems[CountertopPaymentTerminal], "recommend", "type", "MindbodyPayments", "message", "Hardware requires Mindbody Payments.");
     rule(lineitems[DoorAccessKit], "recommend", "type", "MindbodyPayments", "message", "Hardware requires Mindbody Payments.");
 
-    // CR-09: hardware needs Mindbody Payments on the quote
+    // CR-09: hardware needs Mindbody Payments – the configurator adds it (same pattern as QuantumBit's cart-level require)
+    require(lineitems[MobileCardReader], lineitems[MindbodyPayments], "Hardware requires Mindbody Payments – added to the quote.");
+    require(lineitems[CountertopPaymentTerminal], lineitems[MindbodyPayments], "Hardware requires Mindbody Payments – added to the quote.");
+    require(lineitems[DoorAccessKit], lineitems[MindbodyPayments], "Hardware requires Mindbody Payments – added to the quote.");
+
+    // CR-09 fallback message (shown if Payments is removed again)
     message((lineitems[MobileCardReader] + lineitems[CountertopPaymentTerminal] + lineitems[DoorAccessKit]) > 0
             && lineitems[MindbodyPayments] == 0,
         "Hardware requires Mindbody Payments – add Mindbody Payments (opt in) to the quote.", "Error");
