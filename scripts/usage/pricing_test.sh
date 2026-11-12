@@ -15,17 +15,10 @@ PBEID=$(echo "$PBE" | jq -r '.[0].Id'); PROD=$(echo "$PBE" | jq -r '.[0].Product
 STAMP=$(date -u +%m%d-%H%M); TODAY=$(date -u +%Y-%m-%d); END=$(date -u -d '+36 months -1 day' +%Y-%m-%d)
 OPP=$(sf data create record --sobject Opportunity --values "Name='P02 Pricing Test $STAMP' AccountId=$ACC StageName=Prospecting CloseDate=$TODAY Pricebook2Id=$PB CurrencyIsoCode=USD" --target-org target --json | jq -r '.result.id // .message')
 echo "opportunity=$OPP"
-BODY=$(jq -nc --arg opp "$OPP" --arg pb "$PB" --arg prod "$PROD" --arg pbe "$PBEID" --arg d "$TODAY" --arg e "$END" --arg con "$CON" '{
-  pricingPref: "Skip", catalogRatesPref: "Skip", configurationPref: {configurationMethod: "Skip"}, taxPref: "Skip",
-  graph: {graphId: "p02", records: [
-    {referenceId: "q1", record: {attributes: {type: "Quote", method: "POST"}, Name: "P02 Pricing Test", OpportunityId: $opp, Pricebook2Id: $pb, BillToContactId: $con, CurrencyIsoCode: "USD", StartDate: $d, RLM_TermMonths__c: 36}},
-    {referenceId: "l1", record: {attributes: {type: "QuoteLineItem", method: "POST"}, QuoteId: "@{q1.id}", Product2Id: $prod,
-      PricebookEntryId: $pbe, Quantity: 2, StartDate: $d, EndDate: $e, PeriodBoundary: "Anniversary"}}]}}')
-RES=$(rest POST /connect/rev/sales-transaction/actions/place "$BODY"); echo "$RES" | head -c 1500; echo
-sleep 8
-QUOTE=$(q "SELECT Id FROM Quote WHERE OpportunityId = '$OPP' ORDER BY CreatedDate DESC LIMIT 1" | jq -r '.[0].Id // empty')
-echo "quote=$QUOTE"; [ -z "$QUOTE" ] && exit 0
-echo "LINE BEFORE PRICING $(q "SELECT Quantity, SubscriptionTerm, Volume_Location_Count__c, Billing_Period_Months__c FROM QuoteLineItem WHERE QuoteId = '$QUOTE'")"
+QUOTE=$(sf data create record --sobject Quote --values "Name='P02 Pricing Test' OpportunityId=$OPP Pricebook2Id=$PB BillToContactId=$CON StartDate=$TODAY RLM_TermMonths__c=36" --target-org target --json | jq -r '.result.id // .message')
+echo "quote=$QUOTE"
+L=$(sf data create record --sobject QuoteLineItem --values "QuoteId=$QUOTE Product2Id=$PROD PricebookEntryId=$PBEID Quantity=2 UnitPrice=499 StartDate=$TODAY EndDate=$END PeriodBoundary=Anniversary BillingFrequency=Monthly" --target-org target --json); echo "$L" | jq -c '{status, id: .result.id, message}'
+echo "LINE SAVED $(q "SELECT BillingFrequency, Quantity, SubscriptionTerm, Volume_Location_Count__c, Billing_Period_Months__c FROM QuoteLineItem WHERE QuoteId = '$QUOTE'")"
 LID=$(q "SELECT Id FROM QuoteLineItem WHERE QuoteId = '$QUOTE' LIMIT 1" | jq -r '.[0].Id')
 show() { echo "  LINE $(q "SELECT BillingFrequency, Quantity, SubscriptionTerm, Volume_Location_Count__c, Billing_Period_Months__c, ListPrice, UnitPrice, NetUnitPrice, TotalPrice FROM QuoteLineItem WHERE Id = '$LID'")"; echo "  QUOTE $(q "SELECT CalculationStatus, TotalPrice FROM Quote WHERE Id = '$QUOTE'")"; }
 place() { local line="$1"; RB=$(jq -nc --arg id "$QUOTE" --arg lid "$LID" --argjson line "$line" '{pricingPref: "Force", catalogRatesPref: "Skip", configurationPref: {configurationMethod: "Skip"}, taxPref: "Skip",
