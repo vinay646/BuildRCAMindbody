@@ -298,6 +298,7 @@ jobs:
         run: |
           if [ "$DEPLOY_PATH" = "empty-summaries" ]; then ./scripts/usage/empty_summaries.sh
           elif [ "$DEPLOY_PATH" = "billing-check" ]; then ./scripts/usage/billing_check.sh
+          elif [ "$DEPLOY_PATH" = "esv-check" ]; then ./scripts/usage/esv_check.sh
           elif [ "$DEPLOY_PATH" = "tier-check" ]; then ./scripts/usage/tier_check.sh
           elif [ "$DEPLOY_PATH" = "pricing-place" ]; then ./scripts/usage/pricing_place.sh
           elif [ "$DEPLOY_PATH" = "pricing-test" ]; then ./scripts/usage/pricing_test.sh
