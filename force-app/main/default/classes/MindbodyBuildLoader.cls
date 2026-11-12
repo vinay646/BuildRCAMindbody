@@ -165,6 +165,23 @@ public without sharing class MindbodyBuildLoader {
 
     /** Products and feature components, category assignment and selling model options. */
     public void loadProducts() {
+        // Products with no category in the data are sold only inside bundles: remove any category assignment first
+        // (ARM rejects 'sell only with other products' while the product is in a category).
+        Set<String> noCategory = new Set<String>();
+        for (Map<String, Object> p : allProducts()) {
+            if (p.get('category') == null) {
+                noCategory.add((String) p.get('code'));
+            }
+        }
+        List<SObject> stale = Database.query('SELECT Id, Product.ProductCode FROM ProductCategoryProduct WHERE Product.ProductCode IN :noCategory');
+        if (!stale.isEmpty()) {
+            Integer ok = 0;
+            for (Database.DeleteResult r : Database.delete(stale, false)) {
+                if (r.isSuccess()) { ok++; } else { fail('Remove category assignment ' + r.getId() + ': ' + r.getErrors()[0].getMessage()); }
+            }
+            info('ProductCategoryProduct: ' + ok + ' category assignment(s) removed for bundle-only products');
+        }
+
         List<Map<String, Object>> rows = new List<Map<String, Object>>();
         for (Map<String, Object> p : allProducts()) {
             Boolean bundle = p.get('bundle') == true;
