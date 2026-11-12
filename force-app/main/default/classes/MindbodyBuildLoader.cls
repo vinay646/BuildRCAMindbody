@@ -589,6 +589,8 @@ public without sharing class MindbodyBuildLoader {
             new List<String>{ 'ProductClassificationId', 'AttributeDefinitionId' }, classAttrs,
             'ProductClassificationId IN :ids', new Map<String, Object>{ 'ids' => idsOf(classes.values()) }, null);
 
+        removeStaleClassificationAttributes(classes.values(), classAttrs);
+
         List<Map<String, Object>> toActivate = new List<Map<String, Object>>();
         for (String n : classes.keySet()) {
             toActivate.add(new Map<String, Object>{ 'Name' => n, 'Status' => 'Active' });
@@ -634,6 +636,42 @@ public without sharing class MindbodyBuildLoader {
         }
         sync('ProductAttributeDefinition', new List<String>{ 'Product2Id', 'AttributeDefinitionId' }, pads,
             'Product2Id IN :ids', new Map<String, Object>{ 'ids' => idsOf(products.values()) }, null);
+    }
+
+    /**
+     * Deletes classification attributes that are no longer in the data (and the product-level attribute
+     * definitions built on them), so an attribute dropped from a classification disappears from the configurator.
+     */
+    void removeStaleClassificationAttributes(List<SObject> classes, List<Map<String, Object>> wanted) {
+        Set<String> keep = new Set<String>();
+        for (Map<String, Object> w : wanted) {
+            keep.add(String.valueOf(w.get('ProductClassificationId')) + '|' + String.valueOf(w.get('AttributeDefinitionId')));
+        }
+        Set<Id> classIds = idsOf(classes);
+        List<SObject> stale = new List<SObject>();
+        for (SObject pca : Database.query('SELECT Id, Name, ProductClassificationId, AttributeDefinitionId FROM ProductClassificationAttr WHERE ProductClassificationId IN :classIds')) {
+            if (!keep.contains(String.valueOf(pca.get('ProductClassificationId')) + '|' + String.valueOf(pca.get('AttributeDefinitionId')))) {
+                stale.add(pca);
+            }
+        }
+        if (stale.isEmpty()) {
+            return;
+        }
+        Set<Id> staleIds = idsOf(stale);
+        List<SObject> pads = Database.query('SELECT Id FROM ProductAttributeDefinition WHERE ProductClassificationAttributeId IN :staleIds');
+        Integer padsDeleted = 0;
+        for (Database.DeleteResult r : Database.delete(pads, false)) {
+            if (r.isSuccess()) { padsDeleted++; } else { fail('Delete product attribute ' + r.getId() + ': ' + r.getErrors()[0].getMessage()); }
+        }
+        List<String> names = new List<String>();
+        Integer ok = 0;
+        for (Database.DeleteResult r : Database.delete(stale, false)) {
+            if (r.isSuccess()) { ok++; } else { fail('Delete classification attribute ' + r.getId() + ': ' + r.getErrors()[0].getMessage()); }
+        }
+        for (SObject pca : stale) {
+            names.add((String) pca.get('Name'));
+        }
+        info('Classification attributes removed: ' + ok + ' of ' + stale.size() + ' ' + names + ' (product-level copies removed: ' + padsDeleted + ')');
     }
 
     /** Picklist value codes are unique across the org, so they carry the attribute: MB_CARD_PRESENT_YES. */

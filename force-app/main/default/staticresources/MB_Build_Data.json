@@ -1549,21 +1549,8 @@
    ],
    "attributes": [
     {
-     "attribute": "Vertical"
-    },
-    {
-     "attribute": "Region"
-    },
-    {
-     "attribute": "Location Count"
-    },
-    {
      "attribute": "Prior System",
      "default": "None"
-    },
-    {
-     "attribute": "Payments Opted In",
-     "default": "No"
     },
     {
      "attribute": "SMS Allowance",
