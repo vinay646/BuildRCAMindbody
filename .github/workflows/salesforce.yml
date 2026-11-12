@@ -297,6 +297,7 @@ jobs:
         if: env.ACTION == 'usage-summary'
         run: |
           if [ "$DEPLOY_PATH" = "empty-summaries" ]; then ./scripts/usage/empty_summaries.sh
+          elif [ "$DEPLOY_PATH" = "pricing-setup" ]; then ./scripts/usage/pricing_setup.sh
           elif [ "$DEPLOY_PATH" = "check-product" ]; then ./scripts/run-apex.sh scripts/usage/check_product.apex "Usage product setup" || true
           else ./scripts/usage/usage_summary.sh; fi
 
