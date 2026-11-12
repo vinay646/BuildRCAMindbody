@@ -17,6 +17,11 @@
             <value><elementReference>fLineEndDate</elementReference></value>
         </assignmentItems>
         <assignmentItems>
+            <assignToReference>Loop_Lines.SubscriptionTerm</assignToReference>
+            <operator>Assign</operator>
+            <value><elementReference>fLineTerm</elementReference></value>
+        </assignmentItems>
+        <assignmentItems>
             <assignToReference>linesToUpdate</assignToReference>
             <operator>Add</operator>
             <value><elementReference>Loop_Lines</elementReference></value>
@@ -35,6 +40,12 @@
     </customErrors>
     <description>When the quote's Start Date or Term (Months) changes, every quote line (except ramp segments) gets the quote Start Date; term lines also get End Date = Start + Term - 1 day; evergreen and one-time lines keep no end date.</description>
     <environments>Default</environments>
+    <formulas>
+        <name>fLineTerm</name>
+        <dataType>Number</dataType>
+        <expression>IF(AND(TEXT({!Loop_Lines.SellingModelType}) = 'TermDefined', NOT(ISBLANK({!$Record.RLM_TermMonths__c}))), {!$Record.RLM_TermMonths__c}, {!Loop_Lines.SubscriptionTerm})</expression>
+        <scale>0</scale>
+    </formulas>
     <formulas>
         <name>fCleanError</name>
         <dataType>String</dataType>
@@ -95,6 +106,7 @@
         <queriedFields>StartDate</queriedFields>
         <queriedFields>EndDate</queriedFields>
         <queriedFields>SellingModelType</queriedFields>
+        <queriedFields>SubscriptionTerm</queriedFields>
         <storeOutputAutomatically>true</storeOutputAutomatically>
     </recordLookups>
     <recordUpdates>

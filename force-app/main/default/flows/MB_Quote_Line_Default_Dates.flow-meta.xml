@@ -16,9 +16,21 @@
             <operator>Assign</operator>
             <value><elementReference>fEndDate</elementReference></value>
         </assignmentItems>
+        <assignmentItems>
+            <assignToReference>$Record.SubscriptionTerm</assignToReference>
+            <operator>Assign</operator>
+            <value><elementReference>fTerm</elementReference></value>
+        </assignmentItems>
     </assignments>
-    <description>New quote lines (except ramp segments) take the quote's Start Date; term lines also take End Date = Start + Term (Months) - 1 day.</description>
+    <description>New quote lines (except ramp segments) take the quote's Start Date; term lines also take End Date = Start + Term (Months) - 1 day and Subscription Term = Term (Months).</description>
     <environments>Default</environments>
+    <formulas>
+        <description>Subscription Term = the quote's Term (Months) for term lines; the pricing procedure's contract term discount reads it.</description>
+        <name>fTerm</name>
+        <dataType>Number</dataType>
+        <expression>IF(AND(TEXT({!$Record.PricebookEntry.ProductSellingModel.SellingModelType}) = 'TermDefined', NOT(ISBLANK({!$Record.Quote.RLM_TermMonths__c}))), {!$Record.Quote.RLM_TermMonths__c}, {!$Record.SubscriptionTerm})</expression>
+        <scale>0</scale>
+    </formulas>
     <formulas>
         <name>fEndDate</name>
         <dataType>Date</dataType>
