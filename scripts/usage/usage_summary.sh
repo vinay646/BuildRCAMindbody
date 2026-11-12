@@ -4,6 +4,20 @@ set -uo pipefail
 API="/services/data/v$ORG_API"
 q() { sf data query --query "$1" --target-org target --json | jq -c '.result.records // []'; }
 rest() { sf api request rest "$API$2" --method "$1" ${3:+--body "$3"} --target-org target 2>&1; }
+if [ "${DEPLOY_PATH%%:*}" = "plan-check" ]; then
+  for o in ProcedurePlanDefinition ProcedurePlanDefinitionVersion ProcedurePlanSection ProcedurePlanOption ProcedurePlanCriterion; do
+    echo "== $o"
+    sf data query --query "SELECT FIELDS(STANDARD) FROM $o LIMIT 20" --target-org target --json 2>/dev/null | jq -c '[.result.records[]? | del(.attributes) | with_entries(select(.value != null and (.key|test("Created|LastModified|SystemModstamp|IsDeleted|Owner|LastViewed|LastReferenced")|not)))] // .message' | head -c 3000; echo
+  done
+  echo "== expression set versions (pricing)"
+  sf data query --use-tooling-api --query "SELECT DeveloperName, VersionNumber, Status, StartDateTime, EndDateTime, Rank FROM ExpressionSetVersion WHERE ExpressionSetDefinition.DeveloperName IN ('RLM_DefaultPricingProcedure','MB_Pricing_Procedure')" --target-org target --json 2>/dev/null | jq -c '[.result.records[]? | del(.attributes)] // .message'
+  sf data query --query "SELECT ApiName, Name, UsageType FROM ExpressionSet WHERE UsageType = 'DefaultPricing'" --target-org target --json | jq -c '[.result.records[] | del(.attributes)]'
+  echo "== revenue / pricing settings"
+  rm -rf rs; mkdir rs; sf project retrieve start --api-version "$ORG_API" --metadata RevenueManagementSettings --metadata IndustriesPricingSettings --metadata RevenueSettings --target-org target --target-metadata-dir rs --unzip --wait 10 --json > rs.json 2>&1 || true
+  for f in $(find rs -type f -name '*.settings*'); do echo "-- $f"; sed -e 's/^[[:space:]]*//' "$f" | tr -d '\n' | head -c 2500; echo; done
+  jq -r '.result.messages // [] | .[] | "WARN \(.problem)"' rs.json
+  exit 0
+fi
 if [ "${DEPLOY_PATH%%:*}" = "date-test" ]; then ./scripts/usage/date_test.sh; exit 0; fi
 if [ "${DEPLOY_PATH%%:*}" = "term-check" ]; then
   echo "FLOWS $(q "SELECT ApiName, Label, ProcessType, TriggerObjectOrEventLabel, IsActive FROM FlowDefinitionView WHERE IsActive = true AND (Label LIKE '%Term%' OR Label LIKE '%Quote%' OR Label LIKE '%Date%' OR TriggerObjectOrEventLabel LIKE '%Quote%')" | jq -c '[.[] | {ApiName, Label, ProcessType, obj: .TriggerObjectOrEventLabel}]')"
