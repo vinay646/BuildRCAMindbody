@@ -66,6 +66,13 @@ setup)
     sf data create record --sobject TransactionJournal --values "AccountId=$ACC ReferenceRecordId=$ASSET UsageResourceId=$URID QuantityUnitOfMeasureId=$UOM Quantity=$QTY UsageType=UsageManagement Status=Pending ActivityDate=$USAGE_AT StartDate=$USAGE_AT EndDate=$USAGE_AT" --target-org target --json | jq -c '{status, id: .result.id, message}'
   fi
   show ;;
+usage)
+  ASSET=$(q "SELECT Id FROM Asset WHERE AccountId = '$ACC' ORDER BY CreatedDate DESC LIMIT 1" | jq -r '.[0].Id')
+  UR=$(q "SELECT UsageResourceId, UsageResource.DefaultUnitOfMeasureId FROM ProductUsageResource WHERE Product.ProductCode = '$PCODE' AND Status = 'Active' LIMIT 1")
+  URID=$(echo "$UR" | jq -r '.[0].UsageResourceId'); UOM=$(echo "$UR" | jq -r '.[0].UsageResource.DefaultUnitOfMeasureId')
+  NOW=$(date -u +%Y-%m-%dT%H:00:00Z); echo "asset=$ASSET resource=$URID at=$NOW qty=$QTY"
+  sf data create record --sobject TransactionJournal --values "AccountId=$ACC ReferenceRecordId=$ASSET UsageResourceId=$URID QuantityUnitOfMeasureId=$UOM Quantity=$QTY UsageType=UsageManagement Status=Pending ActivityDate=$NOW StartDate=$NOW EndDate=$NOW" --target-org target --json | jq -c '{status, id: .result.id, message}'
+  ;&
 summary)
   rest POST /actions/custom/dataProcessingEngineAction/Create_Usage_Summary_v4 '{"inputs":[{}]}' | head -c 800; echo
   sleep 300; show ;;
