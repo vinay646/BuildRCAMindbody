@@ -97,5 +97,12 @@ compare)
     QID=$(q "SELECT QuoteId FROM Order WHERE Id = '$O'" | jq -r '.[0].QuoteId')
     echo "QUOTE LINES $(sf data query --query "SELECT FIELDS(ALL) FROM QuoteLineItem WHERE QuoteId = '$QID' LIMIT 20" --target-org target --json | jq -c '[.result.records[] | del(.attributes) | with_entries(select(.value != null and .value != false and .value != 0))]')"
   done ;;
+steps)
+  for P in 13Vhm000000Dl2jEAC 13Vhm000000Du1BEAS; do
+    echo "---- plan $P"
+    sf data query --query "SELECT FIELDS(ALL) FROM FulfillmentStep WHERE FulfillmentPlanId = '$P' LIMIT 50" --target-org target --json | jq -c '.result.records[]? | del(.attributes) | with_entries(select(.value != null and .value != false and (.key|test("Created|Modified|Stamp|Viewed|Referenced|Owner|IsDeleted")|not)))' | cut -c1-600
+    sf data query --query "SELECT FIELDS(ALL) FROM FulfillmentPlan WHERE Id = '$P' LIMIT 1" --target-org target --json | jq -c '.result.records[]? | {Status, Name}'
+  done
+  echo "CONTRACTS $(q "SELECT Id, ContractNumber, Status, AccountId, StartDate, EndDate FROM Contract WHERE AccountId IN ('001hm00000AiysLAAR', '$ACC')")" ;;
 *) show ;;
 esac
