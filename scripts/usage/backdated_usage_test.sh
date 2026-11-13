@@ -14,6 +14,7 @@ show() {
   echo "ORDERS $(q "SELECT Id, OrderNumber, Status, EffectiveDate FROM Order WHERE AccountId = '$ACC'")"
   echo "ASSETS $(q "SELECT Id, Name, LifecycleStartDate, LifecycleEndDate FROM Asset WHERE AccountId = '$ACC'")"
   echo "BILLING SCHEDULES $(q "SELECT Id, BillingScheduleNumber, BillingMethod, BillingType, UnitPrice, TotalAmount, NextBillingDate, NextChargeFromDate, BillingScheduleStartDate, BillingScheduleEndDate, Status FROM BillingSchedule WHERE BillingAccountId = '$ACC'")"
+  echo "USAGE ENTITLEMENTS $(q "SELECT Name, EntitlementProcessingStatus FROM TransactionUsageEntitlement WHERE AccountId = '$ACC'") CONTRACTS $(q "SELECT ContractNumber, Status FROM Contract WHERE AccountId = '$ACC'")"
   echo "JOURNALS $(q "SELECT Name, Quantity, Status, ActivityDate, ReferenceRecordId FROM TransactionJournal WHERE AccountId = '$ACC'")"
   echo "USAGE SUMMARIES $(q "SELECT Name, Status, ConsumptionUnits, DebitedUnits, OverageUnits, StartDateTime, EndDateTime FROM UsageSummary WHERE AccountId = '$ACC' ORDER BY StartDateTime")"
   echo "RATABLE SUMMARIES $(q "SELECT Name, Status, OverageQuantity, NetUnitRate, TotalAmount, StartDateTime, EndDateTime, RatingDecisionDateTime FROM UsageRatableSummary WHERE AccountId = '$ACC' ORDER BY StartDateTime")"
