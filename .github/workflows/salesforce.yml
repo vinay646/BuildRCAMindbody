@@ -322,6 +322,7 @@ jobs:
           elif [ "$DEPLOY_PATH" = "promo-refresh" ]; then ./scripts/usage/promo_refresh.sh
           elif [ "$DEPLOY_PATH" = "promo-diag" ]; then ./scripts/usage/promo_diag.sh
           elif [ "$DEPLOY_PATH" = "promo-api" ]; then ./scripts/usage/promo_api.sh
+          elif [ "$DEPLOY_PATH" = "promo-restore" ]; then ./scripts/usage/activate_v4.sh; sleep 15; ./scripts/usage/promo_api.sh
           elif [ "$DEPLOY_PATH" = "tier-check" ]; then ./scripts/usage/tier_check.sh
           elif [ "$DEPLOY_PATH" = "pricing-place" ]; then ./scripts/usage/pricing_place.sh
           elif [ "$DEPLOY_PATH" = "pricing-test" ]; then ./scripts/usage/pricing_test.sh
