@@ -38,6 +38,38 @@ needs it (RLP-01).
    line discount fields, Product Type / Unit Of Sale / Core Tier / Vertical fields, the pricing Apex). Run it
    only after steps 1–4 succeeded.
 
+## Promotions (13 Nov 2026)
+
+Standard Global Promotions Management, per the Salesforce articles "Configure Your Pricing Procedure for Promotions",
+"Rule Library Mappings" and "View or Apply Promotions":
+
+1. **Rule library** RLM_RuleLibrary (usage *Promotions with Revenue Management*, context RLM_SalesTransactionContext),
+   version RLM_RuleLibrary_V1. **Custom tag mappings – UI only** (no data, metadata, tooling or Connect API stores them):
+
+   | Mapping name | Context tag |
+   |---|---|
+   | productSellingModel | ProductSellingModel |
+   | accountId | Account |
+   | cartLineItemId | LineItem |
+   | cartLineProductId | Product |
+   | currencyISOCode | CurrencyIsoCode |
+   | cartLineProductCategoryId | ProductCategory |
+   | activityStartDate | StartDate |
+   | cartLineCouponCode | SalesTransactionItemCouponCode__std |
+   | shouldEvaluatePromotions | ShouldEvaluatePromotions__std |
+   | productBundleRootId | RootItemProduct |
+   | engagementChannelId | (not used – optional, needs channels) |
+
+2. **Revenue Settings → Promotions for Transactions**: on, Rule Library = RLM_RuleLibrary.
+3. **Pricing procedure version 4** (`deploy/pricing-v4`, `scripts/build_pricing_v4.py`): List Group *Apply promotions*
+   at step 21 – after the Mindbody volume / term / billing frequency discounts, before manual discounts (spec 12.2) –
+   filter `(1 OR 2) AND 3` (IsContracted null / false, ItemPricingSource ≠ LastTransaction) and the standard
+   **Promotion Execution** element (rule library RLM_RuleLibrary, scope Line; InputSubtotal ← ItemNetTotalPrice,
+   Quantity ← LineItemQuantity, InputUnitPrice ← NetUnitPrice; outputs NetUnitPrice, Subtotal). Version 4 is active.
+4. **Users**: licences *Revenue Management Promotions Run Time* and *Global Promotions Management Basic*; permission sets
+   *Promotion Viewer* and *Promotion Designer Basic*.
+5. Reps apply a manual promotion in the Transaction Line Editor: line name → side panel → **Promotions** tab → toggle.
+
 ## Clean-up (12 Nov 2026)
 
 Quote line formulas `Volume_Location_Count__c` and `Billing_Period_Months__c` are deleted (manifest
