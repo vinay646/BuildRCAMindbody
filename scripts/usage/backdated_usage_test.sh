@@ -5,6 +5,7 @@
 set -uo pipefail
 API="/services/data/v$ORG_API"
 q() { sf data query --query "$1" --target-org target --json | jq -c '[.result.records[]? | del(.attributes)] // .message'; }
+mk() { sf api request rest "$API/sobjects/$1" --method POST --header "Sforce-Duplicate-Rule-Header: allowSave=true" --body "$2" --target-org target 2>&1 | tee mk.json | jq -r '.id // empty'; }
 rest() { sf api request rest "$API$2" --method "$1" ${3:+--body "$3"} --target-org target 2>&1; }
 PHASE=${DEPLOY_PATH#*:}; PCODE=CS-25Gb
 START=2026-10-11; END=2027-10-10; [ "$PHASE" = "setup-today" ] && { START=$(date -u +%Y-%m-%d); END=$(date -u -d "+1 year -1 day" +%Y-%m-%d); PHASE=setup; }; USAGE_AT=2026-10-20T15:00:00Z; QTY=${QTY:-50}
@@ -32,11 +33,11 @@ setup)
   STAMP=$(date -u +%m%d-%H%M); R=$((RANDOM % 9000 + 1000))
   [ -n "$ACC" ] && [ "$(q "SELECT COUNT(Id) n FROM Order WHERE AccountId = '$ACC'" | jq -r '.[0].n')" != "0" ] && ACC=""
   [ -n "$ACC" ] && [ "$(q "SELECT COUNT(Id) n FROM Order WHERE AccountId = '$ACC'" | jq -r '.[0].n')" != "0" ] && ACC=""
-  [ -z "$ACC" ] && ACC=$(sf data create record --sobject Account --values "Name='UsageTrial-$STAMP-$R' CurrencyIsoCode=USD Payer_Type__c=Self-Pay Account_Level__c=Corporate BillingStreet='$R Elm Street' BillingCity=Austin BillingState=Texas BillingPostalCode=73301 BillingCountry='United States' ShippingStreet='$R Elm Street' ShippingCity=Austin ShippingState=Texas ShippingPostalCode=73301 ShippingCountry='United States'" --target-org target --json | tee acc.json | jq -r '.result.id // empty')
-  [ -z "$ACC" ] && { echo "ACCOUNT ERROR $(jq -c '{message, name, data}' acc.json | head -c 1500)"; exit 1; }
+  [ -z "$ACC" ] && ACC=$(mk Account "$(jq -nc --arg n "UsageTrial-$STAMP-$R" --arg st "$R Elm Street" '{Name: $n, CurrencyIsoCode: "USD", Payer_Type__c: "Self-Pay", Account_Level__c: "Corporate", BillingStreet: $st, BillingCity: "Austin", BillingState: "Texas", BillingPostalCode: "73301", BillingCountry: "United States", ShippingStreet: $st, ShippingCity: "Austin", ShippingState: "Texas", ShippingPostalCode: "73301", ShippingCountry: "United States"}')")
+  [ -z "$ACC" ] && { echo "ACCOUNT ERROR $(head -c 1500 mk.json)"; exit 1; }
   CON=$(q "SELECT Id FROM Contact WHERE AccountId = '$ACC' LIMIT 1" | jq -r '.[0].Id // empty')
-  [ -z "$CON" ] && CON=$(sf data create record --sobject Contact --values "FirstName=Trial$R LastName=Payer$R Email=trial$R@example.org AccountId=$ACC" --target-org target --json | tee con.json | jq -r '.result.id // empty')
-  [ -z "$CON" ] && { echo "CONTACT ERROR $(jq -c '{message, name}' con.json)"; exit 1; }
+  [ -z "$CON" ] && CON=$(mk Contact "$(jq -nc --arg a "$ACC" --arg r "$R" '{FirstName: ("Trial" + $r), LastName: ("Payer" + $r), Email: ("trial" + $r + "@example.org"), AccountId: $a}')")
+  [ -z "$CON" ] && { echo "CONTACT ERROR $(head -c 1500 mk.json)"; exit 1; }
   OPP=$(sf data create record --sobject Opportunity --values "Name='UsageTrial-$STAMP-$R' AccountId=$ACC StageName=Prospecting CloseDate=$START Pricebook2Id=$PB CurrencyIsoCode=USD" --target-org target --json | jq -r '.result.id')
   echo "account=$ACC contact=$CON opp=$OPP product=$PROD pbe=$PBE"
   BODY=$(jq -nc --arg opp "$OPP" --arg pb "$PB" --arg prod "$PROD" --arg pbe "$PBE" --arg d "$START" --arg e "$END" --arg con "$CON" --arg r "$R" '{
