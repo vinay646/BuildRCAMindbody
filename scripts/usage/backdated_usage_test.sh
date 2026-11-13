@@ -88,5 +88,14 @@ diag)
   echo "PARTS TODAY $(q "SELECT Name, Status, InputRecordCount, OutputRecordCount, FailedRecordCount, CreatedDate FROM BatchJobPart WHERE CreatedDate = TODAY ORDER BY CreatedDate DESC LIMIT 25" | jq -c '[.[] | {n: .Name, s: .Status, i: .InputRecordCount, o: .OutputRecordCount, f: .FailedRecordCount}]')"
   echo "ASYNC ERRORS $(q "SELECT ApexClass.Name, Status, ExtendedStatus, CreatedDate FROM AsyncApexJob WHERE CreatedDate = TODAY AND Status = 'Failed' LIMIT 5")"
   show ;;
+compare)
+  NEWO=$(q "SELECT Id FROM Order WHERE AccountId = '$ACC' LIMIT 1" | jq -r '.[0].Id')
+  for O in 801hm00000Aj5XFAAZ $NEWO; do
+    echo "---- order $O"
+    echo "ORDER $(sf data query --query "SELECT FIELDS(ALL) FROM Order WHERE Id = '$O' LIMIT 1" --target-org target --json | jq -c '[.result.records[] | del(.attributes) | with_entries(select(.value != null and .value != false and .value != 0))]')"
+    echo "ITEMS $(sf data query --query "SELECT FIELDS(ALL) FROM OrderItem WHERE OrderId = '$O' LIMIT 20" --target-org target --json | jq -c '[.result.records[] | del(.attributes) | with_entries(select(.value != null and .value != false and .value != 0))]')"
+    QID=$(q "SELECT QuoteId FROM Order WHERE Id = '$O'" | jq -r '.[0].QuoteId')
+    echo "QUOTE LINES $(sf data query --query "SELECT FIELDS(ALL) FROM QuoteLineItem WHERE QuoteId = '$QID' LIMIT 20" --target-org target --json | jq -c '[.result.records[] | del(.attributes) | with_entries(select(.value != null and .value != false and .value != 0))]')"
+  done ;;
 *) show ;;
 esac
