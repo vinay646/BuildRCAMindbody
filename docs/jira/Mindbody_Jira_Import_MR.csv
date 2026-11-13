@@ -1,0 +1,585 @@
+Issue ID,Issue Type,Summary,Parent,Description,Priority,Labels,Labels,Labels,Status,Due Date,Assignee,Reporter
+MB-EPIC-CAT,Epic,MB- Catalogs,,Mindbody catalog and categories in Browse Products; add-ons only inside tiers.,High,mindbody,cat,,To Do,13/Nov/26,,
+MB-EPIC-PRD,Epic,MB- Products,,"Every Mindbody SKU with prices in USD, GBP, AUD, EUR, selling models, terms and billing frequencies.",High,mindbody,prd,,To Do,13/Nov/26,,
+MB-EPIC-BUN,Epic,MB- Bundles,,"Tier bundles with included features, Enterprise negotiated features, Branded app setup fee.",High,mindbody,bun,,To Do,13/Nov/26,,
+MB-EPIC-ATT,Epic,"MB- Attributes, Selling Models and Price Books",,"Product attributes, the three selling models and the regional price books.",High,mindbody,att,,To Do,13/Nov/26,,
+MB-EPIC-CR,Epic,MB- Configuration Rules,,"Rules that stop invalid quotes at configuration time, per spec section 5.",High,mindbody,cr,,To Do,13/Nov/26,,
+MB-CAT-01,Story,MB-CAT-01: Catalog and categories,MB-EPIC-CAT,"USER STORY
+As a sales rep, I want one Mindbody catalog with clear categories, so that I can find any product in Browse Products in a few clicks.
+
+BUSINESS CONTEXT
+The org also holds Salesforce's QuantumBit demo catalogs (314 products). A separate Mindbody catalog keeps reps out of unrelated products, and categories mirror how Mindbody sells (spec section 3).
+
+BUSINESS RULES
+Spec reference: CAT-01, PD-01
+
+ACCEPTANCE CRITERIA
+1. Catalog Mindbody Products (MB-CATALOG) is active from 1 Jan 2026.
+2. Seven categories in order: Subscriptions, Add-ons, Messaging, Payments, Marketplace, Services, Hardware.
+3. Every sellable product sits in exactly one category, except bundle-only products (MB-CAT-02).
+
+SOLUTION (HOW IT IS BUILT)
+Standard Product Catalog Management; loader steps catalog and products. Classifications: Mindbody Subscription Tier, Branded App, Payments, Hardware, SMS Bundle.
+
+CURRENT BUILD STATUS (13 Nov 2026)
+Done, tested in Browse Products",High,mindbody,catalog,,To Do,13/Nov/26,,
+MB-CAT-02,Story,MB-CAT-02: Add-ons only inside a tier,MB-EPIC-CAT,"USER STORY
+As a sales rep, I want add-ons offered only inside a tier that allows them, so that I cannot build a quote Mindbody will not sell.
+
+BUSINESS CONTEXT
+Add-on rules depend on the tier: no AI Concierge add-on on Starter or Ultimate, Branded app only on Accelerate and Ultimate. Constraint-model disable rules are not applied in Browse Products in this release, so a rep could add an invalid add-on straight from the catalog.
+
+BUSINESS RULES
+Spec reference: CR-04, CR-05, CR-08
+
+ACCEPTANCE CRITERIA
+1. AI Concierge add-on, Branded app and Branded app setup are not in any category.
+2. They can be added only through a tier bundle's Add-ons group.
+3. The 12 included features are also bundle-only.
+
+SOLUTION (HOW IT IS BUILT)
+Product setting 'sold only with other products', no category; the bundle structure decides where each add-on appears.
+
+CURRENT BUILD STATUS (13 Nov 2026)
+Done, tested 12 Nov",High,mindbody,catalog,config-rule,To Do,13/Nov/26,,
+MB-PRD-01,Story,"MB-PRD-01: Subscription tiers Starter, Accelerate, Ultimate",MB-EPIC-PRD,"USER STORY
+As a sales rep, I want Starter, Accelerate and Ultimate with fixed prices per location per month, so that I can quote a studio in minutes.
+
+BUSINESS CONTEXT
+The tiers are Mindbody's core revenue. Each location buys one tier, so the unit is the location, and contract terms and billing options differ by tier (spec CAT-07).
+
+BUSINESS RULES
+Spec reference: PD-01, PD-09, 3.1
+
+ACCEPTANCE CRITERIA
+1. Unit of measure Location; quantity = number of locations.
+2. Starter bills Monthly or Annual only; Accelerate and Ultimate also Quarterly and Semi-Annual.
+3. Contract term 12, 24 or 36 months (CR-13 blocks anything else).
+4. Ultimate includes 1,000 texts per location per month.
+5. Prices (USD/GBP/AUD/EUR): Starter 79/69/129/75; Accelerate 269/229/429/249; Ultimate 499/429/799/459.
+
+SOLUTION (HOW IT IS BUILT)
+Product2 bundles with standard selling model options; custom fields Allowed Term Months and Allowed Billing Frequencies (no standard per-product list exists).
+
+CURRENT BUILD STATUS (13 Nov 2026)
+Done, priced and tested ($499 Ultimate -> $371.85 after volume, term and annual discounts)",Highest,mindbody,product,,To Do,13/Nov/26,,
+MB-PRD-02,Story,MB-PRD-02: Enterprise plan priced per deal,MB-EPIC-PRD,"USER STORY
+As a field rep, I want an Enterprise plan priced per deal, so that multi-location brands get negotiated pricing from their master agreement.
+
+BUSINESS CONTEXT
+Large brands sign a master price agreement; a list price would be wrong for every deal.
+
+BUSINESS RULES
+Spec reference: PD-03, CR-16
+
+ACCEPTANCE CRITERIA
+1. MB-ENT has a $0 list price in every currency; the price comes from the agreement.
+2. Term 24 or 36 months only.
+3. Can be quoted only when the account (or its top account) has an activated master contract (CR-16).
+
+SOLUTION (HOW IT IS BUILT)
+Configurable bundle with Negotiated Features (all 12 features, optional); Account and Contract Master Contract lookups.
+
+CURRENT BUILD STATUS (13 Nov 2026)
+Done; CR-16 deployed, not yet tested",High,mindbody,product,,To Do,13/Nov/26,,
+MB-PRD-03,Story,"MB-PRD-03: Add-ons AI Concierge, Branded app, Branded app setup",MB-EPIC-PRD,"USER STORY
+As a sales rep, I want AI Concierge and Branded app as add-ons on eligible tiers, so that I can upsell without breaking the tier rules.
+
+BUSINESS CONTEXT
+Add-ons carry the upsell revenue but are only valid on some tiers; Branded app also needs a one-time setup fee once per brand.
+
+BUSINESS RULES
+Spec reference: PD-04, CR-04 to CR-08
+
+ACCEPTANCE CRITERIA
+1. AI Concierge add-on (MB-AIC) 150/131/240/140 per location per month, Accelerate only (included in Ultimate).
+2. Branded app (MB-APP) 199/173/318/185 per brand per month, on Accelerate, Ultimate, Enterprise.
+3. Branded app setup (MB-APP-SET) 1,500/1,305/2,400/1,395 one-time, always with Branded app.
+4. AI Concierge quantity equals the tier's locations (CR-06); one Branded app per brand (CR-07); setup fee added automatically (CR-08).
+
+SOLUTION (HOW IT IS BUILT)
+Bundle-only products inside the tier bundles' Add-ons groups.
+
+CURRENT BUILD STATUS (13 Nov 2026)
+Done; CR-06 deployed, not yet tested",High,mindbody,product,,To Do,13/Nov/26,,
+MB-PRD-04,Story,"MB-PRD-04: Services: TAM, implementation, data conversion, consulting",MB-EPIC-PRD,"USER STORY
+As a sales rep, I want implementation, data conversion, consulting and account management on the same quote, so that the customer signs one order.
+
+BUSINESS CONTEXT
+Services are usually sold with the first subscription; a separate order would delay go-live.
+
+BUSINESS RULES
+Spec reference: PD-06
+
+ACCEPTANCE CRITERIA
+1. MB-TAM Technical Account Management 1,000/870/1,600/930 per account per month, Term Monthly, 12-month term.
+2. MB-IMP Premium implementation 2,500/2,175/4,000/2,325 one-time per account.
+3. MB-DCV Custom data conversion 750/653/1,200/698 one-time per source system.
+4. MB-CON One-on-one consulting 150/131/240/140 per hour.
+
+SOLUTION (HOW IT IS BUILT)
+Standard products in category Services; One-Time selling model except TAM.
+
+CURRENT BUILD STATUS (13 Nov 2026)
+Done (TAM recommendation CR-12 pending)",Medium,mindbody,product,,To Do,13/Nov/26,,
+MB-PRD-05,Story,"MB-PRD-05: Hardware: card reader, terminal, door kit",MB-EPIC-PRD,"USER STORY
+As a sales rep, I want card readers, terminals and door kits for the regions that support them, so that payments work at the front desk.
+
+BUSINESS CONTEXT
+Hardware only works with Mindbody Payments and is not sold in the EU; it ships to a location, so it needs a Ship-To address.
+
+BUSINESS RULES
+Spec reference: PD-06, CR-09, CR-15
+
+ACCEPTANCE CRITERIA
+1. MB-HW-RDR Mobile card reader 299/260/478/278; MB-HW-TRM Countertop payment terminal 499/434/798/464; MB-HW-DOOR Door access kit 1,200/1,044/1,920/1,116.
+2. One-Time selling model, unit each.
+3. Mindbody Payments added automatically (CR-09).
+4. Hidden for EU accounts (CR-15).
+5. Ship-To address required (CR-09).
+
+SOLUTION (HOW IT IS BUILT)
+Standard products in category Hardware; constraint model require; product qualification by Region; validation rule CR_09_Hardware_Ship_To.
+
+CURRENT BUILD STATUS (13 Nov 2026)
+Done; Ship-To rule deployed, not yet tested",Medium,mindbody,product,,To Do,13/Nov/26,,
+MB-PRD-06,Story,"MB-PRD-06: Usage products: Payments, Marketplace fee, SMS overage",MB-EPIC-PRD,"USER STORY
+As a billing manager, I want payments, marketplace fees and SMS overage as usage products, so that they are billed in arrears from actual usage.
+
+BUSINESS CONTEXT
+These charges depend on volume (transactions, new clients, texts) and cannot be priced on the quote.
+
+BUSINESS RULES
+Spec reference: PD-05, BIL-06 to BIL-10
+
+ACCEPTANCE CRITERIA
+1. MB-PAY Mindbody Payments per transaction, MB-MKT Marketplace new-client fee per first purchase, MB-SMS SMS overage per text beyond allowance; $0 on the quote.
+2. Evergreen Monthly selling model.
+3. Billing treatment Arrears per legal entity.
+4. Usage resources, rate cards and grants rate the usage (phase 7).
+
+SOLUTION (HOW IT IS BUILT)
+Standard products; billing policy Arrears; usage management in phase 7.
+
+CURRENT BUILD STATUS (13 Nov 2026)
+Partial: on the quote and billed in arrears; usage resources and rate cards are phase 7",High,mindbody,product,usage,To Do,13/Nov/26,,
+MB-PRD-07,Story,MB-PRD-07: ERP keys and integration status on products,MB-EPIC-PRD,"USER STORY
+As an integration admin, I want every product to carry its ERP item ID and sync status, so that orders and invoices map to the right items in NetSuite.
+
+BUSINESS CONTEXT
+Hardware and services are fulfilled and invoiced from the ERP; without the item key a product cannot be synced, and the status shows what failed.
+
+BUSINESS RULES
+Spec reference: PD-14, NFR-07
+
+ACCEPTANCE CRITERIA
+1. Product > ERP Item Id and Integration Status (New, Synced, Error).
+2. New on create; owned by the integration afterwards.
+
+SOLUTION (HOW IT IS BUILT)
+Custom fields on Product2 (no standard ERP key or sync status exists). Standard fields replaced earlier custom ones: Product Family, Quantity Unit of Measure, classification Mindbody Subscription Tier.
+
+CURRENT BUILD STATUS (13 Nov 2026)
+Fields done; the integration itself is phase 10",Medium,mindbody,product,integration,To Do,13/Nov/26,,
+MB-PRD-08,Story,MB-PRD-08: Capital and Insurance products,MB-EPIC-PRD,"USER STORY
+As a sales rep, I want Mindbody Capital and Insurance in the catalog for the regions that offer them, so that I can sell the full product range.
+
+BUSINESS CONTEXT
+CR-15 limits Capital, Insurance and hardware by region. Hardware is built; Capital and Insurance are not in the catalog yet, so the rule covers only hardware today.
+
+BUSINESS RULES
+Spec reference: CR-15
+
+ACCEPTANCE CRITERIA
+1. Capital and Insurance products created with price, selling model and category.
+2. Region qualifications added for the allowed regions (CR-15).
+3. Hidden in Browse Products for regions that don't offer them.
+
+SOLUTION (HOW IT IS BUILT)
+Standard products + product qualification by Account Region (loader steps products, qualification).
+
+CURRENT BUILD STATUS (13 Nov 2026)
+Not built: needs prices, selling model, category and allowed regions from the spec or product owner",Medium,mindbody,product,,To Do,13/Nov/26,,
+MB-BUN-01,Story,MB-BUN-01: Tier bundles with included features,MB-EPIC-BUN,"USER STORY
+As a sales rep, I want each tier to bring its included features automatically at $0, so that the quote and the order show exactly what the customer gets.
+
+BUSINESS CONTEXT
+Provisioning and billing read the order lines. Features listed as $0 components tell fulfilment what to switch on per location, and stop reps adding or removing features a tier includes (CR-02, CR-03).
+
+BUSINESS RULES
+Spec reference: PD-02, CR-02, CR-03
+
+ACCEPTANCE CRITERIA
+1. Included features are required, selected by default and priced $0.
+2. Feature quantity follows the tier quantity (scale Proportional).
+3. Starter: Business Management, App Listing, POS and Online Payments, Branded Web Widgets.
+4. Accelerate adds Resource Management, Pick-a-Spot, Advanced Reporting, Promo Codes; add-ons group AI Concierge add-on and Branded app (max 2).
+5. Ultimate adds Email and SMS Marketing (1,000 texts), Lead Management, AI Concierge; add-ons group Branded app (max 1).
+
+SOLUTION (HOW IT IS BUILT)
+Standard bundles (product component groups, relationship type Bundle to Bundle Component Relationship); loader step bundles.
+
+CURRENT BUILD STATUS (13 Nov 2026)
+Done, tested",High,mindbody,bundle,,To Do,13/Nov/26,,
+MB-BUN-02,Story,MB-BUN-02: Enterprise negotiated features,MB-EPIC-BUN,"USER STORY
+As a field rep, I want Enterprise to start with every feature selected but let me remove some, so that the bundle matches what was negotiated.
+
+BUSINESS CONTEXT
+Enterprise deals vary; a fixed feature list would force workarounds on every deal.
+
+BUSINESS RULES
+Spec reference: PD-03
+
+ACCEPTANCE CRITERIA
+1. All 12 features (incl. Corporate Dashboard) optional and selected by default.
+2. Branded app as the only add-on (max 1).
+
+SOLUTION (HOW IT IS BUILT)
+Standard configurable bundle, group Negotiated Features.
+
+CURRENT BUILD STATUS (13 Nov 2026)
+Done",Medium,mindbody,bundle,,To Do,13/Nov/26,,
+MB-BUN-03,Story,MB-BUN-03: Branded app setup fee once per brand,MB-EPIC-BUN,"USER STORY
+As a billing manager, I want the $1,500 setup fee added automatically with every Branded app, so that it is never forgotten or charged twice.
+
+BUSINESS CONTEXT
+A missing setup fee loses revenue and a duplicate overcharges the brand; making it a required child of Branded app enforces it without a rule.
+
+BUSINESS RULES
+Spec reference: CR-08
+
+ACCEPTANCE CRITERIA
+1. Branded app is a bundle with Branded app setup as a required child.
+2. Quantity 1 (constant), priced separately.
+
+SOLUTION (HOW IT IS BUILT)
+Standard bundle MB-APP with component MB-APP-SET.
+
+CURRENT BUILD STATUS (13 Nov 2026)
+Done, tested",Medium,mindbody,bundle,config-rule,To Do,13/Nov/26,,
+MB-ATT-01,Story,MB-ATT-01: Product attributes,MB-EPIC-ATT,"USER STORY
+As a sales rep, I want to record facts like vertical, region and payments opt-in on the products, so that rules, pricing and fulfilment can use them.
+
+BUSINESS CONTEXT
+Several rules and rates depend on these values (region availability, promotion eligibility, SMS allowance, payments rating); standard attributes keep them on the line where the engine can read them.
+
+BUSINESS RULES
+Spec reference: PD-07, 12.6
+
+ACCEPTANCE CRITERIA
+1. Vertical (Fitness, Wellness, Beauty); Region (NA, UK, AU, EU); Location Count (number); Prior System (None, WellnessLiving, Vagaro, Glofox, Other; moved to Opportunity); Payments Opted In (Yes, No); Branded App Platform (iOS, Android, Both); SMS Allowance (number); Card Present (Yes, No).
+
+SOLUTION (HOW IT IS BUILT)
+Standard attribute definitions and classifications; loader step attributes.
+
+CURRENT BUILD STATUS (13 Nov 2026)
+Done",Medium,mindbody,attribute,,To Do,13/Nov/26,,
+MB-ATT-02,Story,MB-ATT-02: Selling models,MB-EPIC-ATT,"USER STORY
+As a product manager, I want each product to offer only the right selling models, so that contracts, renewals and billing behave correctly.
+
+BUSINESS CONTEXT
+ARM drives proration, renewal and billing from the selling model; a wrong model on a line gives wrong invoices later.
+
+BUSINESS RULES
+Spec reference: PD-09
+
+ACCEPTANCE CRITERIA
+1. Evergreen Monthly: Starter, add-ons, usage products.
+2. Term Monthly (contract length = the line's Subscription Term 12/24/36): tiers, add-ons, TAM.
+3. One-Time: services, hardware, Branded app setup.
+
+SOLUTION (HOW IT IS BUILT)
+Standard product selling models and options with the Default Proration Policy.
+
+CURRENT BUILD STATUS (13 Nov 2026)
+Done",Medium,mindbody,selling-model,,To Do,13/Nov/26,,
+MB-ATT-03,Story,MB-ATT-03: Regional price books,MB-EPIC-ATT,"USER STORY
+As a sales rep, I want the quote to use my customer's regional price book and currency, so that prices are in the customer's currency without conversion.
+
+BUSINESS CONTEXT
+Mindbody sets local prices per region rather than converting USD (spec PRC-02).
+
+BUSINESS RULES
+Spec reference: PRC-01, PRC-02, CR-14
+
+ACCEPTANCE CRITERIA
+1. North America & Asia (USD) for NA, UK (GBP), AU (AUD), EU (EUR).
+2. Mindbody Floor Prices used only for the floor check (PRC-18).
+3. One entry per product, currency and selling model.
+4. CR-14 blocks a quote whose price book does not match the account's Region.
+
+SOLUTION (HOW IT IS BUILT)
+Standard price books and entries; loader step pricebooks.
+
+CURRENT BUILD STATUS (13 Nov 2026)
+Done; CR-14 deployed, not yet tested",High,mindbody,pricebook,,To Do,13/Nov/26,,
+MB-CR-01,Story,"MB-CR-01: CR-01, CFG-13: One plan per quote, no duplicate products",MB-EPIC-CR,"USER STORY
+As a sales manager, I want each quote to carry one plan and each product once, so that a location is never billed for two tiers.
+
+BUSINESS CONTEXT
+Each location runs on one tier; two plans or a duplicated add-on would double-bill. Decided 13 Nov: one quote per account, each location quoted on its own account.
+
+BUSINESS RULES
+Spec reference: CR-01, CFG-13
+
+ACCEPTANCE CRITERIA
+1. A second plan on a quote is blocked: 'Only one plan (Starter, Accelerate, Ultimate or Enterprise) per quote. Quote each location on its own account. (CR-01)'
+2. A duplicate product is blocked: '<Product> is already on this quote. Add it once per location. (CFG-13)'
+3. Hardware and services may repeat.
+
+SOLUTION (HOW IT IS BUILT)
+Flow MB_Quote_Line_One_Plan_No_Duplicates (hard block) + constraint model message.
+
+CURRENT BUILD STATUS (13 Nov 2026)
+Done, tested 13 Nov",High,mindbody,config-rule,,To Do,13/Nov/26,,
+MB-CR-02,Story,"MB-CR-02: CR-02, CR-03: Included features fixed per tier",MB-EPIC-CR,"USER STORY
+As a product manager, I want each tier's included features fixed, so that reps cannot sell a tier without or with extra features.
+
+BUSINESS CONTEXT
+Provisioning reads the order lines; a missing or extra feature would switch on the wrong functions.
+
+BUSINESS RULES
+Spec reference: CR-02, CR-03
+
+ACCEPTANCE CRITERIA
+1. Included features are required components; reps cannot remove them.
+
+SOLUTION (HOW IT IS BUILT)
+Bundle structure (MB-BUN-01).
+
+CURRENT BUILD STATUS (13 Nov 2026)
+Done, tested",High,mindbody,config-rule,,To Do,13/Nov/26,,
+MB-CR-03,Story,"MB-CR-03: CR-04, CR-05: Add-on eligibility",MB-EPIC-CR,"USER STORY
+As a sales rep, I want to be stopped from adding add-ons a tier cannot take, so that I don't sell what Mindbody won't provision.
+
+BUSINESS CONTEXT
+Starter takes no add-ons; Ultimate already includes AI Concierge, so the add-on would charge twice.
+
+BUSINESS RULES
+Spec reference: CR-04, CR-05
+
+ACCEPTANCE CRITERIA
+1. Add-ons not listed in Browse Products.
+2. 'AI Concierge is already included in Ultimate.'
+3. 'Starter can't add AI Concierge - choose Accelerate or Ultimate.'
+4. 'Starter can't add Branded app - choose Accelerate or Ultimate.'
+
+SOLUTION (HOW IT IS BUILT)
+Bundle-only add-ons; constraint model Mindbody Plans; Product Configuration Rule CR 05 AI Concierge included in Ultimate (Validate, Error).
+
+CURRENT BUILD STATUS (13 Nov 2026)
+Done, tested 12 Nov",High,mindbody,config-rule,,To Do,13/Nov/26,,
+MB-CR-04,Story,MB-CR-04: CR-06: AI Concierge quantity equals plan quantity,MB-EPIC-CR,"USER STORY
+As a billing manager, I want AI Concierge on every location of the plan, so that it is not bought for some locations only.
+
+BUSINESS CONTEXT
+AI Concierge is priced per location and must cover the same locations as the plan. Validation rules cannot read the parent bundle line, so a flow checks it.
+
+BUSINESS RULES
+Spec reference: CR-06
+
+ACCEPTANCE CRITERIA
+1. Accelerate quantity 5 with AI Concierge add-on quantity 3 is blocked: 'AI Concierge must be added for every location on the plan...' (CR-06).
+2. Setting it to 5 saves.
+
+SOLUTION (HOW IT IS BUILT)
+Record-triggered flow MB_Quote_Line_AI_Concierge_Quantity (custom error).
+
+CURRENT BUILD STATUS (13 Nov 2026)
+Deployed, not tested",High,mindbody,config-rule,,To Do,13/Nov/26,,
+MB-CR-05,Story,MB-CR-05: CR-07: One Branded app per brand,MB-EPIC-CR,"USER STORY
+As a product manager, I want one Branded app per brand, so that a brand is not charged twice for its app.
+
+BUSINESS CONTEXT
+A brand has one app across all its locations and quotes.
+
+BUSINESS RULES
+Spec reference: CR-07
+
+ACCEPTANCE CRITERIA
+1. More than one Branded app on a quote is flagged.
+2. Across a brand's quotes and assets: checked against existing assets (phase 6).
+
+SOLUTION (HOW IT IS BUILT)
+Constraint model (per quote); asset check in phase 6.
+
+CURRENT BUILD STATUS (13 Nov 2026)
+Partial: per quote done; across quotes in phase 6",Medium,mindbody,config-rule,,To Do,13/Nov/26,,
+MB-CR-06,Story,MB-CR-06: CR-08: Branded app setup once,MB-EPIC-CR,"USER STORY
+As a billing manager, I want the setup fee once with each Branded app, so that it is never missed or doubled.
+
+BUSINESS CONTEXT
+See MB-BUN-03.
+
+BUSINESS RULES
+Spec reference: CR-08
+
+ACCEPTANCE CRITERIA
+1. Branded app always brings one Branded app setup line.
+
+SOLUTION (HOW IT IS BUILT)
+Bundle MB-APP with required child MB-APP-SET.
+
+CURRENT BUILD STATUS (13 Nov 2026)
+Done, tested",Medium,mindbody,config-rule,,To Do,13/Nov/26,,
+MB-CR-07,Story,MB-CR-07: CR-09: Hardware needs Payments and a Ship-To,MB-EPIC-CR,"USER STORY
+As a sales rep, I want hardware to bring Mindbody Payments and require a shipping address, so that the device works and reaches the studio.
+
+BUSINESS CONTEXT
+Readers and terminals only work with Mindbody Payments, and hardware ships to a physical location.
+
+BUSINESS RULES
+Spec reference: CR-09
+
+ACCEPTANCE CRITERIA
+1. Adding hardware adds Mindbody Payments automatically.
+2. Without a shipping address on the quote or account: 'Hardware ships to the Ship-To address: add a shipping address to the quote or the account.'
+
+SOLUTION (HOW IT IS BUILT)
+Constraint model require (tested 12 Nov); validation rule CR_09_Hardware_Ship_To.
+
+CURRENT BUILD STATUS (13 Nov 2026)
+Payments tested; Ship-To deployed, not tested",High,mindbody,config-rule,,To Do,13/Nov/26,,
+MB-CR-08,Story,MB-CR-08: CR-10: Promotion conditions,MB-EPIC-CR,"USER STORY
+As a marketing manager, I want each promotion offered only to eligible deals, so that discounts are not given away.
+
+BUSINESS CONTEXT
+LAUNCH3 is for new logos on 12+ month terms with Payments; SWITCH50 for competitor switchers on 24+ months with data conversion.
+
+BUSINESS RULES
+Spec reference: CR-10
+
+ACCEPTANCE CRITERIA
+1. LAUNCH3 only for new logos, 12+ month term, Payments opted in.
+2. SWITCH50 only when Prior System is a competitor, 24+ month term, data conversion on the quote.
+
+SOLUTION (HOW IT IS BUILT)
+Promotion eligibility (Global Promotions Management).
+
+CURRENT BUILD STATUS (13 Nov 2026)
+Pending: promotions blocked by the Salesforce support case (missing category hierarchy node)",High,mindbody,config-rule,,To Do,13/Nov/26,,
+MB-CR-09,Story,"MB-CR-09: CR-11, CR-12: Recommendations: data conversion, TAM, Enterprise",MB-EPIC-CR,"USER STORY
+As a sales rep, I want the quote to recommend data conversion, TAM or Enterprise when they fit, so that I don't miss a sale.
+
+BUSINESS CONTEXT
+Switchers from a competitor need data conversion; brands with 10+ locations need TAM, 25+ fit Enterprise.
+
+BUSINESS RULES
+Spec reference: CR-11, CR-12
+
+ACCEPTANCE CRITERIA
+1. 10+ hierarchy locations: '... recommend Technical Account Management.'
+2. 25+ hierarchy locations: '... recommend the Enterprise plan.'
+3. Prior System = competitor: recommend Custom data conversion.
+
+SOLUTION (HOW IT IS BUILT)
+Constraint model rules reading context tag MbHierarchyLocationCount and Opportunity > Prior System.
+
+CURRENT BUILD STATUS (13 Nov 2026)
+Partial: CML generated; paste as new model version, run loader step constraints, test",Medium,mindbody,config-rule,,To Do,13/Nov/26,,
+MB-CR-10,Story,MB-CR-10: CR-13: Allowed billing frequency and term,MB-EPIC-CR,"USER STORY
+As a product manager, I want only the terms and billing frequencies each product allows, so that contracts match what we sell.
+
+BUSINESS CONTEXT
+Starter is Monthly or Annual only; Enterprise is 24 or 36 months; TAM is 12 months.
+
+BUSINESS RULES
+Spec reference: CR-13
+
+ACCEPTANCE CRITERIA
+1. Starter with Quarterly billing is blocked.
+2. A quote term the product doesn't allow is blocked.
+
+SOLUTION (HOW IT IS BUILT)
+Validation rules CR_13_Billing_Frequency_Allowed, CR_13_Contract_Term_Allowed on Quote Line.
+
+CURRENT BUILD STATUS (13 Nov 2026)
+Done, tested",High,mindbody,config-rule,,To Do,13/Nov/26,,
+MB-CR-11,Story,MB-CR-11: CR-14: Region vs price book,MB-EPIC-CR,"USER STORY
+As a finance manager, I want the quote currency to match the customer's region, so that we invoice in the right currency and legal entity.
+
+BUSINESS CONTEXT
+Prices are set per region, and the legal entity follows the region.
+
+BUSINESS RULES
+Spec reference: CR-14
+
+ACCEPTANCE CRITERIA
+1. UK account with USD price book is blocked: 'The quote's currency and price book must match the account's Region: NA = USD, UK = GBP, AU = AUD, EU = EUR.'
+2. Skipped when Region is blank.
+
+SOLUTION (HOW IT IS BUILT)
+Validation rule CR_14_Region_Price_Book on Quote.
+
+CURRENT BUILD STATUS (13 Nov 2026)
+Deployed, not tested",High,mindbody,config-rule,,To Do,13/Nov/26,,
+MB-CR-12,Story,MB-CR-12: CR-15: Region availability,MB-EPIC-CR,"USER STORY
+As a product manager, I want hardware hidden where we can't sell it, so that reps don't quote it in the EU.
+
+BUSINESS CONTEXT
+Mindbody hardware is available in NA, UK and AU only.
+
+BUSINESS RULES
+Spec reference: CR-15
+
+ACCEPTANCE CRITERIA
+1. Hardware hidden in Browse Products for EU accounts.
+2. Shown for NA and AU; blank Region shows it.
+
+SOLUTION (HOW IT IS BUILT)
+Standard product qualification by Account > Region (one qualification per hardware product and allowed region).
+
+CURRENT BUILD STATUS (13 Nov 2026)
+Done, tested",Medium,mindbody,config-rule,,To Do,13/Nov/26,,
+MB-CR-13,Story,MB-CR-13: CR-16: Enterprise needs a master contract,MB-EPIC-CR,"USER STORY
+As a deal desk manager, I want Enterprise quoted only under an activated master contract, so that negotiated prices are backed by a signed agreement.
+
+BUSINESS CONTEXT
+Enterprise prices come from the master agreement.
+
+BUSINESS RULES
+Spec reference: CR-16
+
+ACCEPTANCE CRITERIA
+1. Enterprise on an account without an activated master contract is blocked: 'Enterprise needs an activated master contract...'
+
+SOLUTION (HOW IT IS BUILT)
+Validation rule CR_16_Enterprise_Master_Contract on Quote Line.
+
+CURRENT BUILD STATUS (13 Nov 2026)
+Deployed, not tested",High,mindbody,config-rule,,To Do,13/Nov/26,,
+MB-CR-14,Story,MB-CR-14: CR-17: Payer override needs a reason,MB-EPIC-CR,"USER STORY
+As a billing manager, I want a reason recorded whenever a quote bills a different payer, so that invoice routing changes are auditable.
+
+BUSINESS CONTEXT
+The payer normally follows the account hierarchy (Resolved Payer); an override changes who is invoiced.
+
+BUSINESS RULES
+Spec reference: CR-17
+
+ACCEPTANCE CRITERIA
+1. Payer Override without a reason is blocked: 'Give a reason for billing this quote to a different payer.'
+2. Approval of the override in phase 5.
+
+SOLUTION (HOW IT IS BUILT)
+Quote fields Payer Override, Payer Override Reason; validation rule CR_17_Payer_Override_Reason.
+
+CURRENT BUILD STATUS (13 Nov 2026)
+Deployed, not tested; approval in phase 5",High,mindbody,config-rule,,To Do,13/Nov/26,,
+MB-CR-15,Story,MB-CR-15: CR-18: Downgrade guard,MB-EPIC-CR,"USER STORY
+As a sales manager, I want downgrades checked against what the brand uses, so that a downgrade does not remove features still in use.
+
+BUSINESS CONTEXT
+A downgrade can drop features the brand depends on.
+
+BUSINESS RULES
+Spec reference: CR-18
+
+ACCEPTANCE CRITERIA
+1. Downgrade of an active asset to a lower tier is checked (phase 6).
+
+SOLUTION (HOW IT IS BUILT)
+Asset-based check (phase 6).
+
+CURRENT BUILD STATUS (13 Nov 2026)
+Pending: needs assets (phase 6)",Medium,mindbody,config-rule,,To Do,13/Nov/26,,

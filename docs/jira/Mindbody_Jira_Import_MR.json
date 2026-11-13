@@ -1,0 +1,586 @@
+{
+ "project": "MR (MindBody-RCA)",
+ "rules": "Create the 5 epics first, then stories with Parent = the new epic key. Assignee blank, reporter = importing user, status To Do, due date 2026-11-13.",
+ "issues": [
+  {
+   "id": "MB-EPIC-CAT",
+   "type": "Epic",
+   "summary": "MB- Catalogs",
+   "parent": "",
+   "description": "Mindbody catalog and categories in Browse Products; add-ons only inside tiers.",
+   "priority": "High",
+   "labels": [
+    "mindbody",
+    "cat"
+   ],
+   "status": "To Do",
+   "due": "2026-11-13",
+   "assignee": "",
+   "reporter": "importing user"
+  },
+  {
+   "id": "MB-EPIC-PRD",
+   "type": "Epic",
+   "summary": "MB- Products",
+   "parent": "",
+   "description": "Every Mindbody SKU with prices in USD, GBP, AUD, EUR, selling models, terms and billing frequencies.",
+   "priority": "High",
+   "labels": [
+    "mindbody",
+    "prd"
+   ],
+   "status": "To Do",
+   "due": "2026-11-13",
+   "assignee": "",
+   "reporter": "importing user"
+  },
+  {
+   "id": "MB-EPIC-BUN",
+   "type": "Epic",
+   "summary": "MB- Bundles",
+   "parent": "",
+   "description": "Tier bundles with included features, Enterprise negotiated features, Branded app setup fee.",
+   "priority": "High",
+   "labels": [
+    "mindbody",
+    "bun"
+   ],
+   "status": "To Do",
+   "due": "2026-11-13",
+   "assignee": "",
+   "reporter": "importing user"
+  },
+  {
+   "id": "MB-EPIC-ATT",
+   "type": "Epic",
+   "summary": "MB- Attributes, Selling Models and Price Books",
+   "parent": "",
+   "description": "Product attributes, the three selling models and the regional price books.",
+   "priority": "High",
+   "labels": [
+    "mindbody",
+    "att"
+   ],
+   "status": "To Do",
+   "due": "2026-11-13",
+   "assignee": "",
+   "reporter": "importing user"
+  },
+  {
+   "id": "MB-EPIC-CR",
+   "type": "Epic",
+   "summary": "MB- Configuration Rules",
+   "parent": "",
+   "description": "Rules that stop invalid quotes at configuration time, per spec section 5.",
+   "priority": "High",
+   "labels": [
+    "mindbody",
+    "cr"
+   ],
+   "status": "To Do",
+   "due": "2026-11-13",
+   "assignee": "",
+   "reporter": "importing user"
+  },
+  {
+   "id": "MB-CAT-01",
+   "type": "Story",
+   "summary": "MB-CAT-01: Catalog and categories",
+   "parent": "MB-EPIC-CAT",
+   "description": "USER STORY\nAs a sales rep, I want one Mindbody catalog with clear categories, so that I can find any product in Browse Products in a few clicks.\n\nBUSINESS CONTEXT\nThe org also holds Salesforce's QuantumBit demo catalogs (314 products). A separate Mindbody catalog keeps reps out of unrelated products, and categories mirror how Mindbody sells (spec section 3).\n\nBUSINESS RULES\nSpec reference: CAT-01, PD-01\n\nACCEPTANCE CRITERIA\n1. Catalog Mindbody Products (MB-CATALOG) is active from 1 Jan 2026.\n2. Seven categories in order: Subscriptions, Add-ons, Messaging, Payments, Marketplace, Services, Hardware.\n3. Every sellable product sits in exactly one category, except bundle-only products (MB-CAT-02).\n\nSOLUTION (HOW IT IS BUILT)\nStandard Product Catalog Management; loader steps catalog and products. Classifications: Mindbody Subscription Tier, Branded App, Payments, Hardware, SMS Bundle.\n\nCURRENT BUILD STATUS (13 Nov 2026)\nDone, tested in Browse Products",
+   "priority": "High",
+   "labels": [
+    "mindbody",
+    "catalog"
+   ],
+   "status": "To Do",
+   "due": "2026-11-13",
+   "assignee": "",
+   "reporter": "importing user"
+  },
+  {
+   "id": "MB-CAT-02",
+   "type": "Story",
+   "summary": "MB-CAT-02: Add-ons only inside a tier",
+   "parent": "MB-EPIC-CAT",
+   "description": "USER STORY\nAs a sales rep, I want add-ons offered only inside a tier that allows them, so that I cannot build a quote Mindbody will not sell.\n\nBUSINESS CONTEXT\nAdd-on rules depend on the tier: no AI Concierge add-on on Starter or Ultimate, Branded app only on Accelerate and Ultimate. Constraint-model disable rules are not applied in Browse Products in this release, so a rep could add an invalid add-on straight from the catalog.\n\nBUSINESS RULES\nSpec reference: CR-04, CR-05, CR-08\n\nACCEPTANCE CRITERIA\n1. AI Concierge add-on, Branded app and Branded app setup are not in any category.\n2. They can be added only through a tier bundle's Add-ons group.\n3. The 12 included features are also bundle-only.\n\nSOLUTION (HOW IT IS BUILT)\nProduct setting 'sold only with other products', no category; the bundle structure decides where each add-on appears.\n\nCURRENT BUILD STATUS (13 Nov 2026)\nDone, tested 12 Nov",
+   "priority": "High",
+   "labels": [
+    "mindbody",
+    "catalog",
+    "config-rule"
+   ],
+   "status": "To Do",
+   "due": "2026-11-13",
+   "assignee": "",
+   "reporter": "importing user"
+  },
+  {
+   "id": "MB-PRD-01",
+   "type": "Story",
+   "summary": "MB-PRD-01: Subscription tiers Starter, Accelerate, Ultimate",
+   "parent": "MB-EPIC-PRD",
+   "description": "USER STORY\nAs a sales rep, I want Starter, Accelerate and Ultimate with fixed prices per location per month, so that I can quote a studio in minutes.\n\nBUSINESS CONTEXT\nThe tiers are Mindbody's core revenue. Each location buys one tier, so the unit is the location, and contract terms and billing options differ by tier (spec CAT-07).\n\nBUSINESS RULES\nSpec reference: PD-01, PD-09, 3.1\n\nACCEPTANCE CRITERIA\n1. Unit of measure Location; quantity = number of locations.\n2. Starter bills Monthly or Annual only; Accelerate and Ultimate also Quarterly and Semi-Annual.\n3. Contract term 12, 24 or 36 months (CR-13 blocks anything else).\n4. Ultimate includes 1,000 texts per location per month.\n5. Prices (USD/GBP/AUD/EUR): Starter 79/69/129/75; Accelerate 269/229/429/249; Ultimate 499/429/799/459.\n\nSOLUTION (HOW IT IS BUILT)\nProduct2 bundles with standard selling model options; custom fields Allowed Term Months and Allowed Billing Frequencies (no standard per-product list exists).\n\nCURRENT BUILD STATUS (13 Nov 2026)\nDone, priced and tested ($499 Ultimate -> $371.85 after volume, term and annual discounts)",
+   "priority": "Highest",
+   "labels": [
+    "mindbody",
+    "product"
+   ],
+   "status": "To Do",
+   "due": "2026-11-13",
+   "assignee": "",
+   "reporter": "importing user"
+  },
+  {
+   "id": "MB-PRD-02",
+   "type": "Story",
+   "summary": "MB-PRD-02: Enterprise plan priced per deal",
+   "parent": "MB-EPIC-PRD",
+   "description": "USER STORY\nAs a field rep, I want an Enterprise plan priced per deal, so that multi-location brands get negotiated pricing from their master agreement.\n\nBUSINESS CONTEXT\nLarge brands sign a master price agreement; a list price would be wrong for every deal.\n\nBUSINESS RULES\nSpec reference: PD-03, CR-16\n\nACCEPTANCE CRITERIA\n1. MB-ENT has a $0 list price in every currency; the price comes from the agreement.\n2. Term 24 or 36 months only.\n3. Can be quoted only when the account (or its top account) has an activated master contract (CR-16).\n\nSOLUTION (HOW IT IS BUILT)\nConfigurable bundle with Negotiated Features (all 12 features, optional); Account and Contract Master Contract lookups.\n\nCURRENT BUILD STATUS (13 Nov 2026)\nDone; CR-16 deployed, not yet tested",
+   "priority": "High",
+   "labels": [
+    "mindbody",
+    "product"
+   ],
+   "status": "To Do",
+   "due": "2026-11-13",
+   "assignee": "",
+   "reporter": "importing user"
+  },
+  {
+   "id": "MB-PRD-03",
+   "type": "Story",
+   "summary": "MB-PRD-03: Add-ons AI Concierge, Branded app, Branded app setup",
+   "parent": "MB-EPIC-PRD",
+   "description": "USER STORY\nAs a sales rep, I want AI Concierge and Branded app as add-ons on eligible tiers, so that I can upsell without breaking the tier rules.\n\nBUSINESS CONTEXT\nAdd-ons carry the upsell revenue but are only valid on some tiers; Branded app also needs a one-time setup fee once per brand.\n\nBUSINESS RULES\nSpec reference: PD-04, CR-04 to CR-08\n\nACCEPTANCE CRITERIA\n1. AI Concierge add-on (MB-AIC) 150/131/240/140 per location per month, Accelerate only (included in Ultimate).\n2. Branded app (MB-APP) 199/173/318/185 per brand per month, on Accelerate, Ultimate, Enterprise.\n3. Branded app setup (MB-APP-SET) 1,500/1,305/2,400/1,395 one-time, always with Branded app.\n4. AI Concierge quantity equals the tier's locations (CR-06); one Branded app per brand (CR-07); setup fee added automatically (CR-08).\n\nSOLUTION (HOW IT IS BUILT)\nBundle-only products inside the tier bundles' Add-ons groups.\n\nCURRENT BUILD STATUS (13 Nov 2026)\nDone; CR-06 deployed, not yet tested",
+   "priority": "High",
+   "labels": [
+    "mindbody",
+    "product"
+   ],
+   "status": "To Do",
+   "due": "2026-11-13",
+   "assignee": "",
+   "reporter": "importing user"
+  },
+  {
+   "id": "MB-PRD-04",
+   "type": "Story",
+   "summary": "MB-PRD-04: Services: TAM, implementation, data conversion, consulting",
+   "parent": "MB-EPIC-PRD",
+   "description": "USER STORY\nAs a sales rep, I want implementation, data conversion, consulting and account management on the same quote, so that the customer signs one order.\n\nBUSINESS CONTEXT\nServices are usually sold with the first subscription; a separate order would delay go-live.\n\nBUSINESS RULES\nSpec reference: PD-06\n\nACCEPTANCE CRITERIA\n1. MB-TAM Technical Account Management 1,000/870/1,600/930 per account per month, Term Monthly, 12-month term.\n2. MB-IMP Premium implementation 2,500/2,175/4,000/2,325 one-time per account.\n3. MB-DCV Custom data conversion 750/653/1,200/698 one-time per source system.\n4. MB-CON One-on-one consulting 150/131/240/140 per hour.\n\nSOLUTION (HOW IT IS BUILT)\nStandard products in category Services; One-Time selling model except TAM.\n\nCURRENT BUILD STATUS (13 Nov 2026)\nDone (TAM recommendation CR-12 pending)",
+   "priority": "Medium",
+   "labels": [
+    "mindbody",
+    "product"
+   ],
+   "status": "To Do",
+   "due": "2026-11-13",
+   "assignee": "",
+   "reporter": "importing user"
+  },
+  {
+   "id": "MB-PRD-05",
+   "type": "Story",
+   "summary": "MB-PRD-05: Hardware: card reader, terminal, door kit",
+   "parent": "MB-EPIC-PRD",
+   "description": "USER STORY\nAs a sales rep, I want card readers, terminals and door kits for the regions that support them, so that payments work at the front desk.\n\nBUSINESS CONTEXT\nHardware only works with Mindbody Payments and is not sold in the EU; it ships to a location, so it needs a Ship-To address.\n\nBUSINESS RULES\nSpec reference: PD-06, CR-09, CR-15\n\nACCEPTANCE CRITERIA\n1. MB-HW-RDR Mobile card reader 299/260/478/278; MB-HW-TRM Countertop payment terminal 499/434/798/464; MB-HW-DOOR Door access kit 1,200/1,044/1,920/1,116.\n2. One-Time selling model, unit each.\n3. Mindbody Payments added automatically (CR-09).\n4. Hidden for EU accounts (CR-15).\n5. Ship-To address required (CR-09).\n\nSOLUTION (HOW IT IS BUILT)\nStandard products in category Hardware; constraint model require; product qualification by Region; validation rule CR_09_Hardware_Ship_To.\n\nCURRENT BUILD STATUS (13 Nov 2026)\nDone; Ship-To rule deployed, not yet tested",
+   "priority": "Medium",
+   "labels": [
+    "mindbody",
+    "product"
+   ],
+   "status": "To Do",
+   "due": "2026-11-13",
+   "assignee": "",
+   "reporter": "importing user"
+  },
+  {
+   "id": "MB-PRD-06",
+   "type": "Story",
+   "summary": "MB-PRD-06: Usage products: Payments, Marketplace fee, SMS overage",
+   "parent": "MB-EPIC-PRD",
+   "description": "USER STORY\nAs a billing manager, I want payments, marketplace fees and SMS overage as usage products, so that they are billed in arrears from actual usage.\n\nBUSINESS CONTEXT\nThese charges depend on volume (transactions, new clients, texts) and cannot be priced on the quote.\n\nBUSINESS RULES\nSpec reference: PD-05, BIL-06 to BIL-10\n\nACCEPTANCE CRITERIA\n1. MB-PAY Mindbody Payments per transaction, MB-MKT Marketplace new-client fee per first purchase, MB-SMS SMS overage per text beyond allowance; $0 on the quote.\n2. Evergreen Monthly selling model.\n3. Billing treatment Arrears per legal entity.\n4. Usage resources, rate cards and grants rate the usage (phase 7).\n\nSOLUTION (HOW IT IS BUILT)\nStandard products; billing policy Arrears; usage management in phase 7.\n\nCURRENT BUILD STATUS (13 Nov 2026)\nPartial: on the quote and billed in arrears; usage resources and rate cards are phase 7",
+   "priority": "High",
+   "labels": [
+    "mindbody",
+    "product",
+    "usage"
+   ],
+   "status": "To Do",
+   "due": "2026-11-13",
+   "assignee": "",
+   "reporter": "importing user"
+  },
+  {
+   "id": "MB-PRD-07",
+   "type": "Story",
+   "summary": "MB-PRD-07: ERP keys and integration status on products",
+   "parent": "MB-EPIC-PRD",
+   "description": "USER STORY\nAs an integration admin, I want every product to carry its ERP item ID and sync status, so that orders and invoices map to the right items in NetSuite.\n\nBUSINESS CONTEXT\nHardware and services are fulfilled and invoiced from the ERP; without the item key a product cannot be synced, and the status shows what failed.\n\nBUSINESS RULES\nSpec reference: PD-14, NFR-07\n\nACCEPTANCE CRITERIA\n1. Product > ERP Item Id and Integration Status (New, Synced, Error).\n2. New on create; owned by the integration afterwards.\n\nSOLUTION (HOW IT IS BUILT)\nCustom fields on Product2 (no standard ERP key or sync status exists). Standard fields replaced earlier custom ones: Product Family, Quantity Unit of Measure, classification Mindbody Subscription Tier.\n\nCURRENT BUILD STATUS (13 Nov 2026)\nFields done; the integration itself is phase 10",
+   "priority": "Medium",
+   "labels": [
+    "mindbody",
+    "product",
+    "integration"
+   ],
+   "status": "To Do",
+   "due": "2026-11-13",
+   "assignee": "",
+   "reporter": "importing user"
+  },
+  {
+   "id": "MB-PRD-08",
+   "type": "Story",
+   "summary": "MB-PRD-08: Capital and Insurance products",
+   "parent": "MB-EPIC-PRD",
+   "description": "USER STORY\nAs a sales rep, I want Mindbody Capital and Insurance in the catalog for the regions that offer them, so that I can sell the full product range.\n\nBUSINESS CONTEXT\nCR-15 limits Capital, Insurance and hardware by region. Hardware is built; Capital and Insurance are not in the catalog yet, so the rule covers only hardware today.\n\nBUSINESS RULES\nSpec reference: CR-15\n\nACCEPTANCE CRITERIA\n1. Capital and Insurance products created with price, selling model and category.\n2. Region qualifications added for the allowed regions (CR-15).\n3. Hidden in Browse Products for regions that don't offer them.\n\nSOLUTION (HOW IT IS BUILT)\nStandard products + product qualification by Account Region (loader steps products, qualification).\n\nCURRENT BUILD STATUS (13 Nov 2026)\nNot built: needs prices, selling model, category and allowed regions from the spec or product owner",
+   "priority": "Medium",
+   "labels": [
+    "mindbody",
+    "product"
+   ],
+   "status": "To Do",
+   "due": "2026-11-13",
+   "assignee": "",
+   "reporter": "importing user"
+  },
+  {
+   "id": "MB-BUN-01",
+   "type": "Story",
+   "summary": "MB-BUN-01: Tier bundles with included features",
+   "parent": "MB-EPIC-BUN",
+   "description": "USER STORY\nAs a sales rep, I want each tier to bring its included features automatically at $0, so that the quote and the order show exactly what the customer gets.\n\nBUSINESS CONTEXT\nProvisioning and billing read the order lines. Features listed as $0 components tell fulfilment what to switch on per location, and stop reps adding or removing features a tier includes (CR-02, CR-03).\n\nBUSINESS RULES\nSpec reference: PD-02, CR-02, CR-03\n\nACCEPTANCE CRITERIA\n1. Included features are required, selected by default and priced $0.\n2. Feature quantity follows the tier quantity (scale Proportional).\n3. Starter: Business Management, App Listing, POS and Online Payments, Branded Web Widgets.\n4. Accelerate adds Resource Management, Pick-a-Spot, Advanced Reporting, Promo Codes; add-ons group AI Concierge add-on and Branded app (max 2).\n5. Ultimate adds Email and SMS Marketing (1,000 texts), Lead Management, AI Concierge; add-ons group Branded app (max 1).\n\nSOLUTION (HOW IT IS BUILT)\nStandard bundles (product component groups, relationship type Bundle to Bundle Component Relationship); loader step bundles.\n\nCURRENT BUILD STATUS (13 Nov 2026)\nDone, tested",
+   "priority": "High",
+   "labels": [
+    "mindbody",
+    "bundle"
+   ],
+   "status": "To Do",
+   "due": "2026-11-13",
+   "assignee": "",
+   "reporter": "importing user"
+  },
+  {
+   "id": "MB-BUN-02",
+   "type": "Story",
+   "summary": "MB-BUN-02: Enterprise negotiated features",
+   "parent": "MB-EPIC-BUN",
+   "description": "USER STORY\nAs a field rep, I want Enterprise to start with every feature selected but let me remove some, so that the bundle matches what was negotiated.\n\nBUSINESS CONTEXT\nEnterprise deals vary; a fixed feature list would force workarounds on every deal.\n\nBUSINESS RULES\nSpec reference: PD-03\n\nACCEPTANCE CRITERIA\n1. All 12 features (incl. Corporate Dashboard) optional and selected by default.\n2. Branded app as the only add-on (max 1).\n\nSOLUTION (HOW IT IS BUILT)\nStandard configurable bundle, group Negotiated Features.\n\nCURRENT BUILD STATUS (13 Nov 2026)\nDone",
+   "priority": "Medium",
+   "labels": [
+    "mindbody",
+    "bundle"
+   ],
+   "status": "To Do",
+   "due": "2026-11-13",
+   "assignee": "",
+   "reporter": "importing user"
+  },
+  {
+   "id": "MB-BUN-03",
+   "type": "Story",
+   "summary": "MB-BUN-03: Branded app setup fee once per brand",
+   "parent": "MB-EPIC-BUN",
+   "description": "USER STORY\nAs a billing manager, I want the $1,500 setup fee added automatically with every Branded app, so that it is never forgotten or charged twice.\n\nBUSINESS CONTEXT\nA missing setup fee loses revenue and a duplicate overcharges the brand; making it a required child of Branded app enforces it without a rule.\n\nBUSINESS RULES\nSpec reference: CR-08\n\nACCEPTANCE CRITERIA\n1. Branded app is a bundle with Branded app setup as a required child.\n2. Quantity 1 (constant), priced separately.\n\nSOLUTION (HOW IT IS BUILT)\nStandard bundle MB-APP with component MB-APP-SET.\n\nCURRENT BUILD STATUS (13 Nov 2026)\nDone, tested",
+   "priority": "Medium",
+   "labels": [
+    "mindbody",
+    "bundle",
+    "config-rule"
+   ],
+   "status": "To Do",
+   "due": "2026-11-13",
+   "assignee": "",
+   "reporter": "importing user"
+  },
+  {
+   "id": "MB-ATT-01",
+   "type": "Story",
+   "summary": "MB-ATT-01: Product attributes",
+   "parent": "MB-EPIC-ATT",
+   "description": "USER STORY\nAs a sales rep, I want to record facts like vertical, region and payments opt-in on the products, so that rules, pricing and fulfilment can use them.\n\nBUSINESS CONTEXT\nSeveral rules and rates depend on these values (region availability, promotion eligibility, SMS allowance, payments rating); standard attributes keep them on the line where the engine can read them.\n\nBUSINESS RULES\nSpec reference: PD-07, 12.6\n\nACCEPTANCE CRITERIA\n1. Vertical (Fitness, Wellness, Beauty); Region (NA, UK, AU, EU); Location Count (number); Prior System (None, WellnessLiving, Vagaro, Glofox, Other; moved to Opportunity); Payments Opted In (Yes, No); Branded App Platform (iOS, Android, Both); SMS Allowance (number); Card Present (Yes, No).\n\nSOLUTION (HOW IT IS BUILT)\nStandard attribute definitions and classifications; loader step attributes.\n\nCURRENT BUILD STATUS (13 Nov 2026)\nDone",
+   "priority": "Medium",
+   "labels": [
+    "mindbody",
+    "attribute"
+   ],
+   "status": "To Do",
+   "due": "2026-11-13",
+   "assignee": "",
+   "reporter": "importing user"
+  },
+  {
+   "id": "MB-ATT-02",
+   "type": "Story",
+   "summary": "MB-ATT-02: Selling models",
+   "parent": "MB-EPIC-ATT",
+   "description": "USER STORY\nAs a product manager, I want each product to offer only the right selling models, so that contracts, renewals and billing behave correctly.\n\nBUSINESS CONTEXT\nARM drives proration, renewal and billing from the selling model; a wrong model on a line gives wrong invoices later.\n\nBUSINESS RULES\nSpec reference: PD-09\n\nACCEPTANCE CRITERIA\n1. Evergreen Monthly: Starter, add-ons, usage products.\n2. Term Monthly (contract length = the line's Subscription Term 12/24/36): tiers, add-ons, TAM.\n3. One-Time: services, hardware, Branded app setup.\n\nSOLUTION (HOW IT IS BUILT)\nStandard product selling models and options with the Default Proration Policy.\n\nCURRENT BUILD STATUS (13 Nov 2026)\nDone",
+   "priority": "Medium",
+   "labels": [
+    "mindbody",
+    "selling-model"
+   ],
+   "status": "To Do",
+   "due": "2026-11-13",
+   "assignee": "",
+   "reporter": "importing user"
+  },
+  {
+   "id": "MB-ATT-03",
+   "type": "Story",
+   "summary": "MB-ATT-03: Regional price books",
+   "parent": "MB-EPIC-ATT",
+   "description": "USER STORY\nAs a sales rep, I want the quote to use my customer's regional price book and currency, so that prices are in the customer's currency without conversion.\n\nBUSINESS CONTEXT\nMindbody sets local prices per region rather than converting USD (spec PRC-02).\n\nBUSINESS RULES\nSpec reference: PRC-01, PRC-02, CR-14\n\nACCEPTANCE CRITERIA\n1. North America & Asia (USD) for NA, UK (GBP), AU (AUD), EU (EUR).\n2. Mindbody Floor Prices used only for the floor check (PRC-18).\n3. One entry per product, currency and selling model.\n4. CR-14 blocks a quote whose price book does not match the account's Region.\n\nSOLUTION (HOW IT IS BUILT)\nStandard price books and entries; loader step pricebooks.\n\nCURRENT BUILD STATUS (13 Nov 2026)\nDone; CR-14 deployed, not yet tested",
+   "priority": "High",
+   "labels": [
+    "mindbody",
+    "pricebook"
+   ],
+   "status": "To Do",
+   "due": "2026-11-13",
+   "assignee": "",
+   "reporter": "importing user"
+  },
+  {
+   "id": "MB-CR-01",
+   "type": "Story",
+   "summary": "MB-CR-01: CR-01, CFG-13: One plan per quote, no duplicate products",
+   "parent": "MB-EPIC-CR",
+   "description": "USER STORY\nAs a sales manager, I want each quote to carry one plan and each product once, so that a location is never billed for two tiers.\n\nBUSINESS CONTEXT\nEach location runs on one tier; two plans or a duplicated add-on would double-bill. Decided 13 Nov: one quote per account, each location quoted on its own account.\n\nBUSINESS RULES\nSpec reference: CR-01, CFG-13\n\nACCEPTANCE CRITERIA\n1. A second plan on a quote is blocked: 'Only one plan (Starter, Accelerate, Ultimate or Enterprise) per quote. Quote each location on its own account. (CR-01)'\n2. A duplicate product is blocked: '<Product> is already on this quote. Add it once per location. (CFG-13)'\n3. Hardware and services may repeat.\n\nSOLUTION (HOW IT IS BUILT)\nFlow MB_Quote_Line_One_Plan_No_Duplicates (hard block) + constraint model message.\n\nCURRENT BUILD STATUS (13 Nov 2026)\nDone, tested 13 Nov",
+   "priority": "High",
+   "labels": [
+    "mindbody",
+    "config-rule"
+   ],
+   "status": "To Do",
+   "due": "2026-11-13",
+   "assignee": "",
+   "reporter": "importing user"
+  },
+  {
+   "id": "MB-CR-02",
+   "type": "Story",
+   "summary": "MB-CR-02: CR-02, CR-03: Included features fixed per tier",
+   "parent": "MB-EPIC-CR",
+   "description": "USER STORY\nAs a product manager, I want each tier's included features fixed, so that reps cannot sell a tier without or with extra features.\n\nBUSINESS CONTEXT\nProvisioning reads the order lines; a missing or extra feature would switch on the wrong functions.\n\nBUSINESS RULES\nSpec reference: CR-02, CR-03\n\nACCEPTANCE CRITERIA\n1. Included features are required components; reps cannot remove them.\n\nSOLUTION (HOW IT IS BUILT)\nBundle structure (MB-BUN-01).\n\nCURRENT BUILD STATUS (13 Nov 2026)\nDone, tested",
+   "priority": "High",
+   "labels": [
+    "mindbody",
+    "config-rule"
+   ],
+   "status": "To Do",
+   "due": "2026-11-13",
+   "assignee": "",
+   "reporter": "importing user"
+  },
+  {
+   "id": "MB-CR-03",
+   "type": "Story",
+   "summary": "MB-CR-03: CR-04, CR-05: Add-on eligibility",
+   "parent": "MB-EPIC-CR",
+   "description": "USER STORY\nAs a sales rep, I want to be stopped from adding add-ons a tier cannot take, so that I don't sell what Mindbody won't provision.\n\nBUSINESS CONTEXT\nStarter takes no add-ons; Ultimate already includes AI Concierge, so the add-on would charge twice.\n\nBUSINESS RULES\nSpec reference: CR-04, CR-05\n\nACCEPTANCE CRITERIA\n1. Add-ons not listed in Browse Products.\n2. 'AI Concierge is already included in Ultimate.'\n3. 'Starter can't add AI Concierge - choose Accelerate or Ultimate.'\n4. 'Starter can't add Branded app - choose Accelerate or Ultimate.'\n\nSOLUTION (HOW IT IS BUILT)\nBundle-only add-ons; constraint model Mindbody Plans; Product Configuration Rule CR 05 AI Concierge included in Ultimate (Validate, Error).\n\nCURRENT BUILD STATUS (13 Nov 2026)\nDone, tested 12 Nov",
+   "priority": "High",
+   "labels": [
+    "mindbody",
+    "config-rule"
+   ],
+   "status": "To Do",
+   "due": "2026-11-13",
+   "assignee": "",
+   "reporter": "importing user"
+  },
+  {
+   "id": "MB-CR-04",
+   "type": "Story",
+   "summary": "MB-CR-04: CR-06: AI Concierge quantity equals plan quantity",
+   "parent": "MB-EPIC-CR",
+   "description": "USER STORY\nAs a billing manager, I want AI Concierge on every location of the plan, so that it is not bought for some locations only.\n\nBUSINESS CONTEXT\nAI Concierge is priced per location and must cover the same locations as the plan. Validation rules cannot read the parent bundle line, so a flow checks it.\n\nBUSINESS RULES\nSpec reference: CR-06\n\nACCEPTANCE CRITERIA\n1. Accelerate quantity 5 with AI Concierge add-on quantity 3 is blocked: 'AI Concierge must be added for every location on the plan...' (CR-06).\n2. Setting it to 5 saves.\n\nSOLUTION (HOW IT IS BUILT)\nRecord-triggered flow MB_Quote_Line_AI_Concierge_Quantity (custom error).\n\nCURRENT BUILD STATUS (13 Nov 2026)\nDeployed, not tested",
+   "priority": "High",
+   "labels": [
+    "mindbody",
+    "config-rule"
+   ],
+   "status": "To Do",
+   "due": "2026-11-13",
+   "assignee": "",
+   "reporter": "importing user"
+  },
+  {
+   "id": "MB-CR-05",
+   "type": "Story",
+   "summary": "MB-CR-05: CR-07: One Branded app per brand",
+   "parent": "MB-EPIC-CR",
+   "description": "USER STORY\nAs a product manager, I want one Branded app per brand, so that a brand is not charged twice for its app.\n\nBUSINESS CONTEXT\nA brand has one app across all its locations and quotes.\n\nBUSINESS RULES\nSpec reference: CR-07\n\nACCEPTANCE CRITERIA\n1. More than one Branded app on a quote is flagged.\n2. Across a brand's quotes and assets: checked against existing assets (phase 6).\n\nSOLUTION (HOW IT IS BUILT)\nConstraint model (per quote); asset check in phase 6.\n\nCURRENT BUILD STATUS (13 Nov 2026)\nPartial: per quote done; across quotes in phase 6",
+   "priority": "Medium",
+   "labels": [
+    "mindbody",
+    "config-rule"
+   ],
+   "status": "To Do",
+   "due": "2026-11-13",
+   "assignee": "",
+   "reporter": "importing user"
+  },
+  {
+   "id": "MB-CR-06",
+   "type": "Story",
+   "summary": "MB-CR-06: CR-08: Branded app setup once",
+   "parent": "MB-EPIC-CR",
+   "description": "USER STORY\nAs a billing manager, I want the setup fee once with each Branded app, so that it is never missed or doubled.\n\nBUSINESS CONTEXT\nSee MB-BUN-03.\n\nBUSINESS RULES\nSpec reference: CR-08\n\nACCEPTANCE CRITERIA\n1. Branded app always brings one Branded app setup line.\n\nSOLUTION (HOW IT IS BUILT)\nBundle MB-APP with required child MB-APP-SET.\n\nCURRENT BUILD STATUS (13 Nov 2026)\nDone, tested",
+   "priority": "Medium",
+   "labels": [
+    "mindbody",
+    "config-rule"
+   ],
+   "status": "To Do",
+   "due": "2026-11-13",
+   "assignee": "",
+   "reporter": "importing user"
+  },
+  {
+   "id": "MB-CR-07",
+   "type": "Story",
+   "summary": "MB-CR-07: CR-09: Hardware needs Payments and a Ship-To",
+   "parent": "MB-EPIC-CR",
+   "description": "USER STORY\nAs a sales rep, I want hardware to bring Mindbody Payments and require a shipping address, so that the device works and reaches the studio.\n\nBUSINESS CONTEXT\nReaders and terminals only work with Mindbody Payments, and hardware ships to a physical location.\n\nBUSINESS RULES\nSpec reference: CR-09\n\nACCEPTANCE CRITERIA\n1. Adding hardware adds Mindbody Payments automatically.\n2. Without a shipping address on the quote or account: 'Hardware ships to the Ship-To address: add a shipping address to the quote or the account.'\n\nSOLUTION (HOW IT IS BUILT)\nConstraint model require (tested 12 Nov); validation rule CR_09_Hardware_Ship_To.\n\nCURRENT BUILD STATUS (13 Nov 2026)\nPayments tested; Ship-To deployed, not tested",
+   "priority": "High",
+   "labels": [
+    "mindbody",
+    "config-rule"
+   ],
+   "status": "To Do",
+   "due": "2026-11-13",
+   "assignee": "",
+   "reporter": "importing user"
+  },
+  {
+   "id": "MB-CR-08",
+   "type": "Story",
+   "summary": "MB-CR-08: CR-10: Promotion conditions",
+   "parent": "MB-EPIC-CR",
+   "description": "USER STORY\nAs a marketing manager, I want each promotion offered only to eligible deals, so that discounts are not given away.\n\nBUSINESS CONTEXT\nLAUNCH3 is for new logos on 12+ month terms with Payments; SWITCH50 for competitor switchers on 24+ months with data conversion.\n\nBUSINESS RULES\nSpec reference: CR-10\n\nACCEPTANCE CRITERIA\n1. LAUNCH3 only for new logos, 12+ month term, Payments opted in.\n2. SWITCH50 only when Prior System is a competitor, 24+ month term, data conversion on the quote.\n\nSOLUTION (HOW IT IS BUILT)\nPromotion eligibility (Global Promotions Management).\n\nCURRENT BUILD STATUS (13 Nov 2026)\nPending: promotions blocked by the Salesforce support case (missing category hierarchy node)",
+   "priority": "High",
+   "labels": [
+    "mindbody",
+    "config-rule"
+   ],
+   "status": "To Do",
+   "due": "2026-11-13",
+   "assignee": "",
+   "reporter": "importing user"
+  },
+  {
+   "id": "MB-CR-09",
+   "type": "Story",
+   "summary": "MB-CR-09: CR-11, CR-12: Recommendations: data conversion, TAM, Enterprise",
+   "parent": "MB-EPIC-CR",
+   "description": "USER STORY\nAs a sales rep, I want the quote to recommend data conversion, TAM or Enterprise when they fit, so that I don't miss a sale.\n\nBUSINESS CONTEXT\nSwitchers from a competitor need data conversion; brands with 10+ locations need TAM, 25+ fit Enterprise.\n\nBUSINESS RULES\nSpec reference: CR-11, CR-12\n\nACCEPTANCE CRITERIA\n1. 10+ hierarchy locations: '... recommend Technical Account Management.'\n2. 25+ hierarchy locations: '... recommend the Enterprise plan.'\n3. Prior System = competitor: recommend Custom data conversion.\n\nSOLUTION (HOW IT IS BUILT)\nConstraint model rules reading context tag MbHierarchyLocationCount and Opportunity > Prior System.\n\nCURRENT BUILD STATUS (13 Nov 2026)\nPartial: CML generated; paste as new model version, run loader step constraints, test",
+   "priority": "Medium",
+   "labels": [
+    "mindbody",
+    "config-rule"
+   ],
+   "status": "To Do",
+   "due": "2026-11-13",
+   "assignee": "",
+   "reporter": "importing user"
+  },
+  {
+   "id": "MB-CR-10",
+   "type": "Story",
+   "summary": "MB-CR-10: CR-13: Allowed billing frequency and term",
+   "parent": "MB-EPIC-CR",
+   "description": "USER STORY\nAs a product manager, I want only the terms and billing frequencies each product allows, so that contracts match what we sell.\n\nBUSINESS CONTEXT\nStarter is Monthly or Annual only; Enterprise is 24 or 36 months; TAM is 12 months.\n\nBUSINESS RULES\nSpec reference: CR-13\n\nACCEPTANCE CRITERIA\n1. Starter with Quarterly billing is blocked.\n2. A quote term the product doesn't allow is blocked.\n\nSOLUTION (HOW IT IS BUILT)\nValidation rules CR_13_Billing_Frequency_Allowed, CR_13_Contract_Term_Allowed on Quote Line.\n\nCURRENT BUILD STATUS (13 Nov 2026)\nDone, tested",
+   "priority": "High",
+   "labels": [
+    "mindbody",
+    "config-rule"
+   ],
+   "status": "To Do",
+   "due": "2026-11-13",
+   "assignee": "",
+   "reporter": "importing user"
+  },
+  {
+   "id": "MB-CR-11",
+   "type": "Story",
+   "summary": "MB-CR-11: CR-14: Region vs price book",
+   "parent": "MB-EPIC-CR",
+   "description": "USER STORY\nAs a finance manager, I want the quote currency to match the customer's region, so that we invoice in the right currency and legal entity.\n\nBUSINESS CONTEXT\nPrices are set per region, and the legal entity follows the region.\n\nBUSINESS RULES\nSpec reference: CR-14\n\nACCEPTANCE CRITERIA\n1. UK account with USD price book is blocked: 'The quote's currency and price book must match the account's Region: NA = USD, UK = GBP, AU = AUD, EU = EUR.'\n2. Skipped when Region is blank.\n\nSOLUTION (HOW IT IS BUILT)\nValidation rule CR_14_Region_Price_Book on Quote.\n\nCURRENT BUILD STATUS (13 Nov 2026)\nDeployed, not tested",
+   "priority": "High",
+   "labels": [
+    "mindbody",
+    "config-rule"
+   ],
+   "status": "To Do",
+   "due": "2026-11-13",
+   "assignee": "",
+   "reporter": "importing user"
+  },
+  {
+   "id": "MB-CR-12",
+   "type": "Story",
+   "summary": "MB-CR-12: CR-15: Region availability",
+   "parent": "MB-EPIC-CR",
+   "description": "USER STORY\nAs a product manager, I want hardware hidden where we can't sell it, so that reps don't quote it in the EU.\n\nBUSINESS CONTEXT\nMindbody hardware is available in NA, UK and AU only.\n\nBUSINESS RULES\nSpec reference: CR-15\n\nACCEPTANCE CRITERIA\n1. Hardware hidden in Browse Products for EU accounts.\n2. Shown for NA and AU; blank Region shows it.\n\nSOLUTION (HOW IT IS BUILT)\nStandard product qualification by Account > Region (one qualification per hardware product and allowed region).\n\nCURRENT BUILD STATUS (13 Nov 2026)\nDone, tested",
+   "priority": "Medium",
+   "labels": [
+    "mindbody",
+    "config-rule"
+   ],
+   "status": "To Do",
+   "due": "2026-11-13",
+   "assignee": "",
+   "reporter": "importing user"
+  },
+  {
+   "id": "MB-CR-13",
+   "type": "Story",
+   "summary": "MB-CR-13: CR-16: Enterprise needs a master contract",
+   "parent": "MB-EPIC-CR",
+   "description": "USER STORY\nAs a deal desk manager, I want Enterprise quoted only under an activated master contract, so that negotiated prices are backed by a signed agreement.\n\nBUSINESS CONTEXT\nEnterprise prices come from the master agreement.\n\nBUSINESS RULES\nSpec reference: CR-16\n\nACCEPTANCE CRITERIA\n1. Enterprise on an account without an activated master contract is blocked: 'Enterprise needs an activated master contract...'\n\nSOLUTION (HOW IT IS BUILT)\nValidation rule CR_16_Enterprise_Master_Contract on Quote Line.\n\nCURRENT BUILD STATUS (13 Nov 2026)\nDeployed, not tested",
+   "priority": "High",
+   "labels": [
+    "mindbody",
+    "config-rule"
+   ],
+   "status": "To Do",
+   "due": "2026-11-13",
+   "assignee": "",
+   "reporter": "importing user"
+  },
+  {
+   "id": "MB-CR-14",
+   "type": "Story",
+   "summary": "MB-CR-14: CR-17: Payer override needs a reason",
+   "parent": "MB-EPIC-CR",
+   "description": "USER STORY\nAs a billing manager, I want a reason recorded whenever a quote bills a different payer, so that invoice routing changes are auditable.\n\nBUSINESS CONTEXT\nThe payer normally follows the account hierarchy (Resolved Payer); an override changes who is invoiced.\n\nBUSINESS RULES\nSpec reference: CR-17\n\nACCEPTANCE CRITERIA\n1. Payer Override without a reason is blocked: 'Give a reason for billing this quote to a different payer.'\n2. Approval of the override in phase 5.\n\nSOLUTION (HOW IT IS BUILT)\nQuote fields Payer Override, Payer Override Reason; validation rule CR_17_Payer_Override_Reason.\n\nCURRENT BUILD STATUS (13 Nov 2026)\nDeployed, not tested; approval in phase 5",
+   "priority": "High",
+   "labels": [
+    "mindbody",
+    "config-rule"
+   ],
+   "status": "To Do",
+   "due": "2026-11-13",
+   "assignee": "",
+   "reporter": "importing user"
+  },
+  {
+   "id": "MB-CR-15",
+   "type": "Story",
+   "summary": "MB-CR-15: CR-18: Downgrade guard",
+   "parent": "MB-EPIC-CR",
+   "description": "USER STORY\nAs a sales manager, I want downgrades checked against what the brand uses, so that a downgrade does not remove features still in use.\n\nBUSINESS CONTEXT\nA downgrade can drop features the brand depends on.\n\nBUSINESS RULES\nSpec reference: CR-18\n\nACCEPTANCE CRITERIA\n1. Downgrade of an active asset to a lower tier is checked (phase 6).\n\nSOLUTION (HOW IT IS BUILT)\nAsset-based check (phase 6).\n\nCURRENT BUILD STATUS (13 Nov 2026)\nPending: needs assets (phase 6)",
+   "priority": "Medium",
+   "labels": [
+    "mindbody",
+    "config-rule"
+   ],
+   "status": "To Do",
+   "due": "2026-11-13",
+   "assignee": "",
+   "reporter": "importing user"
+  }
+ ]
+}
