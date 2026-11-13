@@ -114,5 +114,16 @@ steps)
     sf data query --query "SELECT FIELDS(ALL) FROM FulfillmentPlan WHERE Id = '$P' LIMIT 1" --target-org target --json | jq -c '.result.records[]? | {Status, Name}'
   done
   echo "CONTRACTS $(q "SELECT Id, ContractNumber, Status, AccountId, StartDate, EndDate FROM Contract WHERE AccountId IN ('001hm00000AiysLAAR', '$ACC')")" ;;
+dpe)
+  A=$(q "SELECT Id FROM Asset WHERE AccountId = '$ACC' ORDER BY CreatedDate DESC LIMIT 1" | jq -r '.[0].Id')
+  echo "UEA $(q "SELECT Name, EffectiveStartDateTime, BillingPeriodStartDateTime, BillingPeriodEndDateTime FROM UsageEntitlementAccount WHERE GrantBindingTargetId = '$A'")"
+  echo "BUCKETS $(q "SELECT Name, BucketBalance FROM UsageEntitlementBucket WHERE TransactionUsageEntitlement.AssetId = '$A'")"
+  echo "POLICIES $(q "SELECT Name, UsageAggregationPolicyId, RatingFrequencyPolicyId FROM BindingObjUsageRsrcPlcy WHERE BindingObjectId = '$A'")"
+  echo "ASSET RATE CARD ENTRIES $(q "SELECT Name, RateCard.Name FROM AssetRateCardEntry WHERE AssetId = '$A'")"
+  echo "DPE ACTIONS $(rest GET /actions/custom/dataProcessingEngineAction | jq -c '[.actions[]? | .name]')"
+  echo "DPE DEFINITIONS $(sf data query --use-tooling-api --query "SELECT DeveloperName, MasterLabel FROM BatchCalcJobDefinition" --target-org target --json 2>/dev/null | jq -c '[.result.records[]? | .DeveloperName]')"
+  echo "RECENT JOBS $(q "SELECT Id, Status, CreatedDate FROM BatchJob ORDER BY CreatedDate DESC LIMIT 4")"
+  echo "RECENT PARTS $(q "SELECT BatchJob.Id, Name, Status, InputRecordCount, OutputRecordCount, FailedRecordCount FROM BatchJobPart WHERE CreatedDate = TODAY ORDER BY CreatedDate DESC LIMIT 14" | jq -c '[.[] | {j: .BatchJob.Id, n: .Name, s: .Status, i: .InputRecordCount, o: .OutputRecordCount, f: .FailedRecordCount}]')"
+  echo "OLD SUMMARY CREATORS $(q "SELECT Name, CreatedById, CreatedBy.Name, CreatedDate FROM UsageSummary ORDER BY CreatedDate LIMIT 3")" ;;
 *) show ;;
 esac
