@@ -8,7 +8,7 @@ q() { sf data query --query "$1" --target-org target --json | jq -c '[.result.re
 rest() { sf api request rest "$API$2" --method "$1" ${3:+--body "$3"} --target-org target 2>&1; }
 PHASE=${DEPLOY_PATH#*:}; PCODE=CS-25Gb
 START=2026-10-11; END=2027-10-10; USAGE_AT=2026-10-20T15:00:00Z; QTY=${QTY:-50}
-ACC=$(q "SELECT Id FROM Account WHERE Name LIKE 'Usage Backdated Test%' ORDER BY CreatedDate DESC LIMIT 1" | jq -r '.[0].Id // empty')
+ACC=$(q "SELECT Id FROM Account WHERE Name LIKE 'Cloud Usage Trial%' ORDER BY CreatedDate DESC LIMIT 1" | jq -r '.[0].Id // empty')
 show() {
   echo "ACCOUNT $(q "SELECT Id, Name FROM Account WHERE Id = '$ACC'")"
   echo "ORDERS $(q "SELECT Id, OrderNumber, Status, EffectiveDate FROM Order WHERE AccountId = '$ACC'")"
@@ -29,17 +29,17 @@ setup)
   PROD=$(q "SELECT Id FROM Product2 WHERE ProductCode = '$PCODE'" | jq -r '.[0].Id')
   PBE=$(q "SELECT Id FROM PricebookEntry WHERE Product2Id = '$PROD' AND Pricebook2Id = '$PB' AND CurrencyIsoCode = 'USD' AND IsActive = true LIMIT 1" | jq -r '.[0].Id')
   STAMP=$(date -u +%m%d-%H%M)
-  ACC=$(sf data create record --sobject Account --values "Name='Usage Backdated Test $STAMP' CurrencyIsoCode=USD Payer_Type__c=Self-Pay Account_Level__c=Corporate BillingStreet='1 Test Way' BillingCity=Irvine BillingState=California BillingPostalCode=92618 BillingCountry='United States' ShippingStreet='1 Test Way' ShippingCity=Irvine ShippingState=California ShippingPostalCode=92618 ShippingCountry='United States'" --target-org target --json | tee acc.json | jq -r '.result.id // empty')
+  ACC=$(sf data create record --sobject Account --values "Name='Cloud Usage Trial $STAMP' CurrencyIsoCode=USD Payer_Type__c=Self-Pay Account_Level__c=Corporate BillingStreet='200 Demo Avenue' BillingCity=Austin BillingState=Texas BillingPostalCode=73301 BillingCountry='United States' ShippingStreet='200 Demo Avenue' ShippingCity=Austin ShippingState=Texas ShippingPostalCode=73301 ShippingCountry='United States'" --target-org target --json | tee acc.json | jq -r '.result.id // empty')
   [ -z "$ACC" ] && { echo "ACCOUNT ERROR $(jq -c '{message, name, data}' acc.json | head -c 1500)"; exit 1; }
   CON=$(sf data create record --sobject Contact --values "FirstName=Usage LastName=Backdated Email=usage.backdated@example.com AccountId=$ACC" --target-org target --json | jq -r '.result.id')
-  OPP=$(sf data create record --sobject Opportunity --values "Name='Usage Backdated Test $STAMP' AccountId=$ACC StageName=Prospecting CloseDate=$START Pricebook2Id=$PB CurrencyIsoCode=USD" --target-org target --json | jq -r '.result.id')
+  OPP=$(sf data create record --sobject Opportunity --values "Name='Cloud Usage Trial $STAMP' AccountId=$ACC StageName=Prospecting CloseDate=$START Pricebook2Id=$PB CurrencyIsoCode=USD" --target-org target --json | jq -r '.result.id')
   echo "account=$ACC contact=$CON opp=$OPP product=$PROD pbe=$PBE"
   BODY=$(jq -nc --arg opp "$OPP" --arg pb "$PB" --arg prod "$PROD" --arg pbe "$PBE" --arg d "$START" --arg e "$END" --arg con "$CON" '{
     pricingPref: "System", catalogRatesPref: "Fetch", configurationPref: {configurationMethod: "Skip"}, taxPref: "Skip",
     graph: {graphId: "backdated", records: [
       {referenceId: "q1", record: {attributes: {type: "Quote", method: "POST"}, Name: "Usage Backdated Test", OpportunityId: $opp, Pricebook2Id: $pb, BillToContactId: $con,
-        BillingStreet: "1 Test Way", BillingCity: "Irvine", BillingState: "California", BillingPostalCode: "92618", BillingCountry: "United States",
-        ShippingStreet: "1 Test Way", ShippingCity: "Irvine", ShippingState: "California", ShippingPostalCode: "92618", ShippingCountry: "United States"}},
+        BillingStreet: "200 Demo Avenue", BillingCity: "Austin", BillingState: "Texas", BillingPostalCode: "73301", BillingCountry: "United States",
+        ShippingStreet: "200 Demo Avenue", ShippingCity: "Austin", ShippingState: "Texas", ShippingPostalCode: "73301", ShippingCountry: "United States"}},
       {referenceId: "l1", record: {attributes: {type: "QuoteLineItem", method: "POST"}, QuoteId: "@{q1.id}", Product2Id: $prod,
         PricebookEntryId: $pbe, Quantity: 1, StartDate: $d, EndDate: $e, PeriodBoundary: "Anniversary", BillingFrequency: "Monthly"}}]}}')
   rest POST /connect/rev/sales-transaction/actions/place "$BODY" | head -c 1200; echo
