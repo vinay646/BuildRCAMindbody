@@ -2,7 +2,7 @@ name: Salesforce build
 
 # Connects to one of two orgs, picked per run with the "org" input:
 #   exploremore (default) -> secret SFDX_AUTH_URL     (our ExploremoreRCA build org)
-#   qa                    -> secret SFDX_AUTH_URL_QA  (the developers' org we QA; read-only actions only)
+#   qa                    -> secret TESTING_ORG  (the developers' org we QA; read-only actions only)
 on:
   workflow_dispatch:
     inputs:
@@ -62,7 +62,8 @@ jobs:
     runs-on: ubuntu-24.04
     env:
       MB_ORG_CHOICE: ${{ github.event.inputs.org || 'exploremore' }}
-      SFDX_AUTH_URL: ${{ github.event.inputs.org == 'qa' && secrets.SFDX_AUTH_URL_QA || secrets.SFDX_AUTH_URL }}
+      # No fallback: a qa run only ever gets the TESTING_ORG secret (empty if it is missing, and the run stops).
+      SFDX_AUTH_URL: ${{ github.event.inputs.org == 'qa' && secrets.TESTING_ORG || '' }}${{ github.event.inputs.org != 'qa' && secrets.SFDX_AUTH_URL || '' }}
       ACTION: ${{ github.event.inputs.action || 'validate' }}
       STEP: ${{ github.event.inputs.step }}
       DEPLOY_PATH: ${{ github.event.inputs.path || 'force-app' }}
@@ -72,7 +73,7 @@ jobs:
       - name: Stop if the org is not connected
         run: |
           if [ -z "$SFDX_AUTH_URL" ]; then
-            if [ "$MB_ORG_CHOICE" = "qa" ]; then echo "::error::Add the repository secret SFDX_AUTH_URL_QA first (the developers' QA org)."
+            if [ "$MB_ORG_CHOICE" = "qa" ]; then echo "::error::Add the repository secret TESTING_ORG first (the developers' QA org)."
             else echo "::error::Add the repository secret SFDX_AUTH_URL first (README: Connect GitHub to the org)."; fi
             exit 1
           fi
