@@ -310,6 +310,7 @@ jobs:
           elif [ "$DEPLOY_PATH" = "gpm-check" ]; then ./scripts/usage/gpm_check.sh
           elif [ "$DEPLOY_PATH" = "rulelib-check" ]; then ./scripts/usage/rulelib_check.sh
           elif [ "$DEPLOY_PATH" = "rulelib-activate" ]; then ./scripts/usage/rulelib_activate.sh
+          elif [ "$DEPLOY_PATH" = "v4-check" ]; then ./scripts/usage/v4_check.sh
           elif [ "$DEPLOY_PATH" = "tier-check" ]; then ./scripts/usage/tier_check.sh
           elif [ "$DEPLOY_PATH" = "pricing-place" ]; then ./scripts/usage/pricing_place.sh
           elif [ "$DEPLOY_PATH" = "pricing-test" ]; then ./scripts/usage/pricing_test.sh
