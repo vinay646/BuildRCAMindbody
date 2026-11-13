@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# PRC-18: price Pulse quotes through the standard Place Sales Transaction API and read Floor Price / Below Floor.
+# PRC-18: price Pulse quotes through the standard Place Sales Transaction API; the MB_Quote_Line_Floor_Price flow sets Floor Price.
 #   Ultimate x2, 36 months, Annual          -> 371.85, floor 339, not below
 #   Ultimate x2, 36 months, Annual, 20% off -> 297.48, floor 339, BELOW
 #   Starter x1, 36 months, Monthly          -> floor 59
