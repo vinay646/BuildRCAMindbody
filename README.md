@@ -28,16 +28,14 @@ Requirement checks against the org live in the companion repo `vinay646/mindbody
    ```
 3. In GitHub: **Settings → Secrets and variables → Actions → New repository secret**, name `SFDX_AUTH_URL`, paste the value.
 
-### Second org: the developers' QA org
+### Which org the workflow uses
 
-The workflow can also connect to the developers' org for QA, without touching the ExploremoreRCA connection.
+All runs now go to the developers' Mindbody org by default, through the repository secret `TESTING_ORG`.
 
-1. Log in to that org with its own alias, for example `sf org login web --alias mindbody-qa --instance-url https://test.salesforce.com` (use `https://login.salesforce.com` if it is not a sandbox).
-2. Print its auth URL: `sf org display --target-org mindbody-qa --verbose`.
-3. Add it as a **new** repository secret named `TESTING_ORG`. Leave `SFDX_AUTH_URL` as it is.
-4. When you run the workflow, set **org** to `qa`. The default, `exploremore`, still uses `SFDX_AUTH_URL`.
+- **org = testing** (default): uses `TESTING_ORG`. Every action runs here, including deploy, load, cleanup and delete.
+- **org = exploremore**: uses `SFDX_AUTH_URL`, our earlier ExploremoreRCA build org. Pick it only when you mean to.
 
-On the QA org only read-only actions run: `readiness`, `validate` (check-only), `retrieve`, `explore*`, `describe-term`, `ids` and `qa-*`. Deploy, load, cleanup, delete and the usage test scripts are blocked there.
+Pull-request validation (check-only) also runs against `TESTING_ORG`. Some scripts under `scripts/usage/` hold record Ids from ExploremoreRCA; check them before running them on the testing org.
    Treat it like a password: it logs in as you.
 
 ## Run from GitHub

@@ -1,8 +1,8 @@
 name: Salesforce build
 
 # Connects to one of two orgs, picked per run with the "org" input:
-#   exploremore (default) -> secret SFDX_AUTH_URL     (our ExploremoreRCA build org)
-#   qa                    -> secret TESTING_ORG  (the developers' org we QA; read-only actions only)
+#   testing (default) -> secret TESTING_ORG    (the developers' Mindbody org – all work now runs here)
+#   exploremore       -> secret SFDX_AUTH_URL  (our earlier ExploremoreRCA build org, only when picked)
 on:
   workflow_dispatch:
     inputs:
@@ -38,10 +38,10 @@ on:
           - explore-rule-api  # read-only: configuration-rule permissions, invocable actions and Connect API resources
           - probe-config-rule  # changes nothing: test-insert a configuration rule and roll it back
       org:
-        description: "Which org: exploremore (our build org) or qa (developers' org, read-only actions only)"
+        description: "Which org: testing (TESTING_ORG, default) or exploremore (SFDX_AUTH_URL)"
         type: choice
-        default: exploremore
-        options: [exploremore, qa]
+        default: testing
+        options: [testing, exploremore]
       path:
         description: "Deploy / validate only this path – several paths comma-separated (default: all of force-app)"
         required: false
@@ -61,9 +61,9 @@ jobs:
   salesforce:
     runs-on: ubuntu-24.04
     env:
-      MB_ORG_CHOICE: ${{ github.event.inputs.org || 'exploremore' }}
-      # No fallback: a qa run only ever gets the TESTING_ORG secret (empty if it is missing, and the run stops).
-      SFDX_AUTH_URL: ${{ github.event.inputs.org == 'qa' && secrets.TESTING_ORG || '' }}${{ github.event.inputs.org != 'qa' && secrets.SFDX_AUTH_URL || '' }}
+      MB_ORG_CHOICE: ${{ github.event.inputs.org || 'testing' }}
+      # No fallback between orgs: each choice only ever gets its own secret (the run stops if it is missing).
+      SFDX_AUTH_URL: ${{ github.event.inputs.org != 'exploremore' && secrets.TESTING_ORG || '' }}${{ github.event.inputs.org == 'exploremore' && secrets.SFDX_AUTH_URL || '' }}
       ACTION: ${{ github.event.inputs.action || 'validate' }}
       STEP: ${{ github.event.inputs.step }}
       DEPLOY_PATH: ${{ github.event.inputs.path || 'force-app' }}
@@ -73,20 +73,12 @@ jobs:
       - name: Stop if the org is not connected
         run: |
           if [ -z "$SFDX_AUTH_URL" ]; then
-            if [ "$MB_ORG_CHOICE" = "qa" ]; then echo "::error::Add the repository secret TESTING_ORG first (the developers' QA org)."
+            if [ "$MB_ORG_CHOICE" = "testing" ]; then echo "::error::Add the repository secret TESTING_ORG first (the developers' Mindbody org)."
             else echo "::error::Add the repository secret SFDX_AUTH_URL first (README: Connect GitHub to the org)."; fi
             exit 1
           fi
           echo "Target org: $MB_ORG_CHOICE"
 
-      - name: QA org is read-only
-        if: env.MB_ORG_CHOICE == 'qa'
-        run: |
-          # Only actions that read the org (or check-only validate) may run against the developers' org.
-          case "$ACTION" in
-            readiness|validate|retrieve|explore|explore-*|describe-term|ids|qa-*) echo "Allowed on QA org: $ACTION" ;;
-            *) echo "::error::Action '$ACTION' changes data or metadata, or uses ExploremoreRCA record IDs. It is blocked on the QA org."; exit 1 ;;
-          esac
 
       - uses: actions/setup-node@v7
         with:
