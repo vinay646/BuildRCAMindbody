@@ -40,7 +40,7 @@ setup)
   OPP=$(sf data create record --sobject Opportunity --values "Name='UsageTrial-$STAMP-$R' AccountId=$ACC StageName=Prospecting CloseDate=$START Pricebook2Id=$PB CurrencyIsoCode=USD" --target-org target --json | jq -r '.result.id')
   echo "account=$ACC contact=$CON opp=$OPP product=$PROD pbe=$PBE"
   BODY=$(jq -nc --arg opp "$OPP" --arg pb "$PB" --arg prod "$PROD" --arg pbe "$PBE" --arg d "$START" --arg e "$END" --arg con "$CON" --arg r "$R" '{
-    pricingPref: "System", catalogRatesPref: "Fetch", configurationPref: {configurationMethod: "System"}, taxPref: "Force",
+    pricingPref: "System", catalogRatesPref: "Fetch", configurationPref: {configurationMethod: "System"},
     graph: {graphId: "backdated", records: [
       {referenceId: "q1", record: {attributes: {type: "Quote", method: "POST"}, Name: "Usage Backdated Test", OpportunityId: $opp, Pricebook2Id: $pb, BillToContactId: $con,
         BillingStreet: ($r + " Elm Street"), BillingCity: "Austin", BillingState: "Texas", BillingPostalCode: "73301", BillingCountry: "United States",
