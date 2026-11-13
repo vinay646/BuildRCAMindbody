@@ -7,6 +7,10 @@
     {
       "path": "deploy/pricing-v3",
       "default": false
+    },
+    {
+      "path": "deploy/pricing-v4",
+      "default": false
     }
   ],
   "name": "mindbody-arm-build",
