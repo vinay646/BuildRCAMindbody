@@ -66,5 +66,21 @@ invoice)
   BODY=$(jq -nc --argjson ids "$BS" --arg d "$(date -u +%Y-%m-%d)" '{billingScheduleIds: $ids, action: "Draft", invoiceDate: $d, targetDate: $d}')
   rest POST /commerce/invoicing/invoices/collection/actions/generate "$BODY" | head -c 1500; echo
   sleep 120; show ;;
+diag)
+  OLD=02ihm000000ENuPAAW; NEW=$(q "SELECT Id FROM Asset WHERE AccountId = '$ACC' LIMIT 1" | jq -r '.[0].Id')
+  for A in $OLD $NEW; do
+    echo "---- asset $A"
+    echo "TUE $(q "SELECT Name, EntitlementQuantity, EntitlementProcessingStatus, CreatedDate FROM TransactionUsageEntitlement WHERE AssetId = '$A'")"
+    echo "UEA $(q "SELECT Name, EffectiveStartDateTime, EffectiveEndDateTime, BillingPeriodStartDateTime, BillingPeriodEndDateTime, CreatedDate FROM UsageEntitlementAccount WHERE GrantBindingTargetId = '$A'")"
+    echo "BUCKETS $(q "SELECT Name, BucketBalance, CreatedDate FROM UsageEntitlementBucket WHERE TransactionUsageEntitlement.AssetId = '$A'")"
+    echo "POLICIES $(q "SELECT Name, UsageResource.Name, CreatedDate FROM BindingObjUsageRsrcPlcy WHERE BindingObjectId = '$A'")"
+    echo "ASSET RATE CARD ENTRIES $(q "SELECT Name, RateCard.Name, CreatedDate FROM AssetRateCardEntry WHERE AssetId = '$A'")"
+    echo "ASSET ACTIONS $(q "SELECT Id, Type, ActionDate, CreatedDate FROM AssetAction WHERE AssetId = '$A'")"
+  done
+  echo "ORDER ITEMS old vs new $(q "SELECT Order.OrderNumber, ServiceDate, EndDate, Product2.ProductCode FROM OrderItem WHERE OrderId IN ('801hm00000Aj5XFAAZ', (SELECT Id FROM Order WHERE AccountId = '$ACC'))" 2>&1 | head -c 300)"
+  echo "BATCH JOBS TODAY $(q "SELECT Id, Status, CreatedDate FROM BatchJob WHERE CreatedDate = TODAY ORDER BY CreatedDate DESC LIMIT 5")"
+  echo "PARTS TODAY $(q "SELECT Name, Status, InputRecordCount, OutputRecordCount, FailedRecordCount, CreatedDate FROM BatchJobPart WHERE CreatedDate = TODAY ORDER BY CreatedDate DESC LIMIT 25" | jq -c '[.[] | {n: .Name, s: .Status, i: .InputRecordCount, o: .OutputRecordCount, f: .FailedRecordCount}]')"
+  echo "ASYNC ERRORS $(q "SELECT ApexClass.Name, Status, ExtendedStatus, CreatedDate FROM AsyncApexJob WHERE CreatedDate = TODAY AND Status = 'Failed' LIMIT 5")"
+  show ;;
 *) show ;;
 esac
