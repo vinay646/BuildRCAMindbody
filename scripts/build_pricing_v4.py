@@ -5,12 +5,14 @@ frequency discounts and before manual discounts (spec 12.2 waterfall: step 6 Pro
 The Promotion Execution element itself is added inside the group in the builder (rule library RLM_RuleLibrary,
 scope Line). Version 4 was created in the builder (Save As New Version); this deploys onto that draft.
 """
+import os
 import re
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
 SRC = ROOT / "deploy/pricing-v3/main/default/expressionSetDefinition/RLM_DefaultPricingProcedure.expressionSetDefinition-meta.xml"
-OUT = ROOT / "deploy/pricing-v4/main/default/expressionSetDefinition/RLM_DefaultPricingProcedure.expressionSetDefinition-meta.xml"
+NO_PROMO = os.environ.get("NO_PROMO") == "1"  # temporary: frees the rule library so its mappings can be edited
+OUT = ROOT / ("deploy/pricing-v4-nopromo" if NO_PROMO else "deploy/pricing-v4") / ("main/default/expressionSetDefinition/RLM_DefaultPricingProcedure.expressionSetDefinition-meta.xml")
 V3 = "RLM_DefaultPricingProcedure_RLM_Revenue_Management_Default_Pricing_Procedure_V30"
 V4 = "RLM_DefaultPricingProcedure_RLM_Revenue_Management_Default_Pricing_Procedure_V40"
 PROMO_SEQ = 21  # before "Apply manual discounts to lines without derived pricing"
@@ -60,6 +62,12 @@ def main():
             return st
         tail = st.rfind("<sequenceNumber>")
         return st[:tail] + re.sub(r"<sequenceNumber>\d+</sequenceNumber>", f"<sequenceNumber>{seq + 1}</sequenceNumber>", st[tail:], count=1)
+    if NO_PROMO:
+        out = s[:s.index("<versions>")] + v + s[s.rindex("</versions>") + len("</versions>"):]
+        OUT.parent.mkdir(parents=True, exist_ok=True)
+        OUT.write_text(out)
+        print(OUT.relative_to(ROOT), v.count("<steps>"), "steps (no promotions)")
+        return
     v = re.sub(r"<steps>.*?</steps>", shift, v, flags=re.S)
     first = v.index("<steps>")
     v = v[:first] + GROUP + v[first:]
