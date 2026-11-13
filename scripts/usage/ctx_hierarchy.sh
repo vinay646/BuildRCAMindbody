@@ -1,15 +1,9 @@
 #!/usr/bin/env bash
-# Tags of the standard CartDetailGetEligiblePromotion context (the rule library mapping names come from it).
+# Node names of the standard CartDetailGetEligiblePromotion context; is a category hierarchy node present?
 set -uo pipefail
 API="/services/data/v$ORG_API"
-rest() { sf api request rest "$API$1" --target-org target 2>&1; }
-ID=CartDetailGetEligiblePromotion__stdctx
-D=$(rest "/connect/context-definitions/$ID")
-echo "DEF $(echo "$D" | jq -c '{activeVersionId, versions: .contextDefinitionVersionList}' | head -c 1500)"
-AV=$(echo "$D" | jq -r '.activeVersionId // empty')
-for p in "/connect/context-definitions/$ID/versions/$AV" "/connect/context-definitions/$ID/versions" "/connect/context-definitions/$ID/context-nodes" "/connect/context-definitions/$ID/version/$AV/context-nodes"; do
-  R=$(rest "$p")
-  echo "== $p ($(echo "$R" | wc -c) bytes)"
-  echo "   hierarchy strings: $(echo "$R" | tr -d '\n' | grep -o '"[A-Za-z_]*[Hh]ierarch[A-Za-z_]*"' | sort -u | tr '\n' ' ')"
-  echo "   head: $(echo "$R" | tr -d '\n' | head -c 400)"
-done
+D=$(sf api request rest "$API/connect/context-definitions/CartDetailGetEligiblePromotion__stdctx" --target-org target 2>&1)
+echo "BYTES $(echo "$D" | wc -c)"
+echo "ANY 'ierarch' TEXT: $(echo "$D" | grep -o '[A-Za-z_/]*[Hh]ierarch[A-Za-z_]*' | sort -u | tr '\n' ' ')"
+echo "NODES $(echo "$D" | jq -c '[.. | objects | select(has("contextNodeId")) | .contextNodeId | split("/") | last] | unique')"
+echo "CATEGORY ATTRS $(echo "$D" | jq -c '[.. | objects | select(has("contextAttributeId")) | .contextAttributeId | select(test("ategor"))] | unique')"
