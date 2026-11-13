@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>MB_Below_Floor__c</fullName>
+    <label>Below Floor</label>
+    <description>Net unit price is below the tier floor price (PRC-18). Drives the VP Sales then Finance approval (phase 5).</description>
+    <inlineHelpText>Checked when the net unit price is below the floor price – the quote needs VP Sales then Finance approval.</inlineHelpText>
+    <type>Checkbox</type>
+    <formula>AND(NOT(ISBLANK(MB_Floor_Price__c)), NetUnitPrice &lt; MB_Floor_Price__c)</formula>
+    <formulaTreatBlanksAs>BlankAsZero</formulaTreatBlanksAs>
+</CustomField>

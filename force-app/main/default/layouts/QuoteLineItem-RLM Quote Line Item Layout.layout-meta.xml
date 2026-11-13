@@ -82,6 +82,14 @@
                 <field>NetUnitPrice</field>
             </layoutItems>
             <layoutItems>
+                <behavior>Readonly</behavior>
+                <field>MB_Floor_Price__c</field>
+            </layoutItems>
+            <layoutItems>
+                <behavior>Readonly</behavior>
+                <field>MB_Below_Floor__c</field>
+            </layoutItems>
+            <layoutItems>
                 <behavior>Edit</behavior>
                 <field>DiscountAmount</field>
             </layoutItems>
