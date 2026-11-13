@@ -312,6 +312,7 @@ jobs:
           elif [ "$DEPLOY_PATH" = "rulelib-activate" ]; then ./scripts/usage/rulelib_activate.sh
           elif [ "$DEPLOY_PATH" = "v4-check" ]; then ./scripts/usage/v4_check.sh
           elif [ "$DEPLOY_PATH" = "promo-perms" ]; then ./scripts/usage/promo_perms.sh
+          elif [ "$DEPLOY_PATH" = "activate-v4" ]; then ./scripts/usage/activate_v4.sh
           elif [ "$DEPLOY_PATH" = "tier-check" ]; then ./scripts/usage/tier_check.sh
           elif [ "$DEPLOY_PATH" = "pricing-place" ]; then ./scripts/usage/pricing_place.sh
           elif [ "$DEPLOY_PATH" = "pricing-test" ]; then ./scripts/usage/pricing_test.sh
