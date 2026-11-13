@@ -11,7 +11,8 @@ echo "pricebook=$PB"
 pbe() { q "SELECT Id, Product2Id FROM PricebookEntry WHERE Pricebook2Id = '$PB' AND Product2.ProductCode = '$1' AND CurrencyIsoCode = 'USD' AND IsActive = true LIMIT 1"; }
 CT=$(sf api request rest "$API/sobjects/Account/describe" --target-org target | jq -r '[.fields[] | select(.name=="Contract_Type__c") | .picklistValues[] | select(.active) | .value] | (map(select(. == "Master"))[0] // .[0]) // empty')
 echo "contract type values: $(sf api request rest "$API/sobjects/Account/describe" --target-org target | jq -c '[.fields[] | select(.name=="Contract_Type__c") | .picklistValues[] | select(.active) | .value]')"
-ACC=$(q "SELECT Id FROM Account WHERE Name = 'QA Test - Services' LIMIT 1" | jq -r '.[0].Id // empty')
+ACC=${QA_ACCOUNT_ID:-001i800000A8qodAAB}
+echo "ACCOUNT $(q "SELECT Id, Name, CurrencyIsoCode, BillingCountry FROM Account WHERE Id = '$ACC'")"
 [ -z "$ACC" ] && ACC=$(mk Account '{"Name":"QA Test - Services","Contract_Type__c":"'"$CT"'","CurrencyIsoCode":"USD","BillingStreet":"100 QA Street","BillingCity":"San Luis Obispo","BillingState":"California","BillingPostalCode":"93401","BillingCountry":"United States","ShippingStreet":"100 QA Street","ShippingCity":"San Luis Obispo","ShippingState":"California","ShippingPostalCode":"93401","ShippingCountry":"United States"}')
 [ -z "$ACC" ] && { echo "ACCOUNT ERROR $(head -c 1500 mk.json)"; echo "ACCOUNT FLOWS $(q "SELECT ApiName, Label, ProcessType, TriggerType FROM FlowDefinitionView WHERE IsActive = true AND TriggerObjectOrEventLabel = 'Account'")"; echo "RECORD TYPES $(q "SELECT Name, DeveloperName, IsActive FROM RecordType WHERE SobjectType = 'Account'")"; exit 1; }
 CON=$(q "SELECT Id FROM Contact WHERE AccountId = '$ACC' LIMIT 1" | jq -r '.[0].Id // empty')
