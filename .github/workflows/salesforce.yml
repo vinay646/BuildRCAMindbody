@@ -61,7 +61,7 @@ jobs:
   salesforce:
     runs-on: ubuntu-24.04
     env:
-      TARGET_ORG: ${{ github.event.inputs.org || 'exploremore' }}
+      MB_ORG_CHOICE: ${{ github.event.inputs.org || 'exploremore' }}
       SFDX_AUTH_URL: ${{ github.event.inputs.org == 'qa' && secrets.SFDX_AUTH_URL_QA || secrets.SFDX_AUTH_URL }}
       ACTION: ${{ github.event.inputs.action || 'validate' }}
       STEP: ${{ github.event.inputs.step }}
@@ -72,14 +72,14 @@ jobs:
       - name: Stop if the org is not connected
         run: |
           if [ -z "$SFDX_AUTH_URL" ]; then
-            if [ "$TARGET_ORG" = "qa" ]; then echo "::error::Add the repository secret SFDX_AUTH_URL_QA first (the developers' QA org)."
+            if [ "$MB_ORG_CHOICE" = "qa" ]; then echo "::error::Add the repository secret SFDX_AUTH_URL_QA first (the developers' QA org)."
             else echo "::error::Add the repository secret SFDX_AUTH_URL first (README: Connect GitHub to the org)."; fi
             exit 1
           fi
-          echo "Target org: $TARGET_ORG"
+          echo "Target org: $MB_ORG_CHOICE"
 
       - name: QA org is read-only
-        if: env.TARGET_ORG == 'qa'
+        if: env.MB_ORG_CHOICE == 'qa'
         run: |
           # Only actions that read the org (or check-only validate) may run against the developers' org.
           case "$ACTION" in
