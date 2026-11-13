@@ -17,5 +17,9 @@ echo "== CLASSIFICATION ATTRIBUTES"; raw "SELECT FIELDS(ALL) FROM ProductClassif
 echo "== ATTRIBUTE DEFINITIONS"; raw "SELECT Id, Name, Code, DataType, DefaultValue FROM AttributeDefinition LIMIT 200"
 echo "== VALIDATION RULES (term / frequency)"; raw "SELECT EntityDefinition.QualifiedApiName, ValidationName, Active, ErrorMessage FROM ValidationRule WHERE EntityDefinition.QualifiedApiName IN ('Quote','QuoteLineItem','OrderItem')" "--use-tooling-api"
 echo "== QUOTE LINE TERM / FREQUENCY PICKLISTS"; sf api request rest "$API/sobjects/QuoteLineItem/describe" --target-org target | jq -c '[.fields[] | select(.name|test("BillingFrequency|SubscriptionTerm|Term";"i")) | {name, type, picklist: [.picklistValues[]?.value]}]'
-echo "== CONSTRAINT MODELS"; raw "SELECT Id, ApiName, Name, Status FROM ExpressionSet WHERE UsageType = 'Constraint'"
-echo "== CML TEXT (term / frequency lines)"; for id in $(sf data query --query "SELECT Id FROM ExpressionSetVersion WHERE ExpressionSet.UsageType = 'Constraint' AND IsActive = true" --target-org target --json | jq -r '.result.records[]?.Id'); do sf api request rest "$API/connect/cml/expression-set-versions/$id" --target-org target 2>/dev/null | tr ',;' '\n\n' | grep -i -E "term|frequen|MB-STR|Starter" | head -20; done
+echo "== CONSTRAINT MODELS"; raw "SELECT Id, DeveloperName, Status, VersionNumber FROM ExpressionSetDefinitionVersion WHERE ExpressionSetDefinition.ProcessType = 'Constraint' OR DeveloperName LIKE '%Mindbody%' OR DeveloperName LIKE 'MB%'" "--use-tooling-api"
+for id in $(sf data query --use-tooling-api --query "SELECT Id FROM ExpressionSetDefinitionVersion WHERE (DeveloperName LIKE '%Mindbody%' OR DeveloperName LIKE 'MB%' OR DeveloperName LIKE '%Tier%')" --target-org target --json | jq -r '.result.records[]?.Id'); do
+  echo "== CML $id"
+  sf api request rest "$API/tooling/sobjects/ExpressionSetDefinitionVersion/$id/ConstraintModel" --target-org target > cml.txt 2>&1 || true
+  echo "size $(wc -c < cml.txt)"; grep -n -i -E "term|frequen|billing|constraint|message|type MB|MB-STR|Starter" cml.txt | head -40
+done
