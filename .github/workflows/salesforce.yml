@@ -323,6 +323,7 @@ jobs:
           elif [ "$DEPLOY_PATH" = "promo-diag" ]; then ./scripts/usage/promo_diag.sh
           elif [ "$DEPLOY_PATH" = "promo-api" ]; then ./scripts/usage/promo_api.sh
           elif [ "$DEPLOY_PATH" = "floor-check" ]; then ./scripts/usage/floor_check.sh
+          elif [ "$DEPLOY_PATH" = "v5-variants" ]; then ./scripts/usage/v5_variants.sh
           elif [ "$DEPLOY_PATH" = "pricing-sync" ]; then ./scripts/usage/pricing_sync.sh
           elif [ "$DEPLOY_PATH" = "ctx-floor-check" ]; then ./scripts/usage/ctx_floor_check.sh
           elif [ "$DEPLOY_PATH" = "floor-test" ]; then ./scripts/usage/floor_test.sh
