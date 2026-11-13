@@ -319,6 +319,7 @@ jobs:
           elif [ "$DEPLOY_PATH" = "rulelib-retrieve" ]; then ./scripts/usage/rulelib_retrieve.sh
           elif [ "$DEPLOY_PATH" = "rulelib-blob" ]; then ./scripts/usage/rulelib_blob.sh
           elif [ "$DEPLOY_PATH" = "rulelib-tooling" ]; then ./scripts/usage/rulelib_tooling.sh
+          elif [ "$DEPLOY_PATH" = "promo-refresh" ]; then ./scripts/usage/promo_refresh.sh
           elif [ "$DEPLOY_PATH" = "tier-check" ]; then ./scripts/usage/tier_check.sh
           elif [ "$DEPLOY_PATH" = "pricing-place" ]; then ./scripts/usage/pricing_place.sh
           elif [ "$DEPLOY_PATH" = "pricing-test" ]; then ./scripts/usage/pricing_test.sh
