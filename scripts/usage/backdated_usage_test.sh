@@ -34,7 +34,7 @@ setup)
   OPP=$(sf data create record --sobject Opportunity --values "Name='Usage Backdated Test $STAMP' AccountId=$ACC StageName=Prospecting CloseDate=$START Pricebook2Id=$PB CurrencyIsoCode=USD" --target-org target --json | jq -r '.result.id')
   echo "account=$ACC contact=$CON opp=$OPP product=$PROD pbe=$PBE"
   BODY=$(jq -nc --arg opp "$OPP" --arg pb "$PB" --arg prod "$PROD" --arg pbe "$PBE" --arg d "$START" --arg e "$END" --arg con "$CON" '{
-    pricingPref: "System", catalogRatesPref: "Skip", configurationPref: {configurationMethod: "Skip"}, taxPref: "Skip",
+    pricingPref: "System", catalogRatesPref: "Fetch", configurationPref: {configurationMethod: "Skip"}, taxPref: "Skip",
     graph: {graphId: "backdated", records: [
       {referenceId: "q1", record: {attributes: {type: "Quote", method: "POST"}, Name: "Usage Backdated Test", OpportunityId: $opp, Pricebook2Id: $pb, BillToContactId: $con,
         BillingStreet: "1 Test Way", BillingCity: "Irvine", BillingState: "California", BillingPostalCode: "92618", BillingCountry: "United States",
@@ -43,6 +43,8 @@ setup)
         PricebookEntryId: $pbe, Quantity: 1, StartDate: $d, EndDate: $e, PeriodBoundary: "Anniversary", BillingFrequency: "Monthly"}}]}}')
   rest POST /connect/rev/sales-transaction/actions/place "$BODY" | head -c 1200; echo
   QUOTE=$(q "SELECT Id FROM Quote WHERE OpportunityId = '$OPP' LIMIT 1" | jq -r '.[0].Id // empty'); echo "quote=$QUOTE"; [ -z "$QUOTE" ] && exit 1
+  QLI=$(q "SELECT Id FROM QuoteLineItem WHERE QuoteId = '$QUOTE' LIMIT 1" | jq -r '.[0].Id')
+  echo "QUOTE LINE RATE CARDS new $(q "SELECT COUNT(Id) n FROM QuoteLineRateCardEntry WHERE QuoteLineItemId = '$QLI'" 2>&1 | head -c 300) old $(q "SELECT COUNT(Id) n FROM QuoteLineRateCardEntry WHERE QuoteLineItemId = '0QLhm0000009XBFGA2'" 2>&1 | head -c 300)"
   sleep 10
   rest POST /actions/standard/createOrderFromQuote "{\"inputs\":[{\"quoteRecordId\":\"$QUOTE\"}]}" | head -c 800; echo
   sleep 15
