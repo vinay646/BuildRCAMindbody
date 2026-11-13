@@ -29,7 +29,8 @@ setup)
   PB=$(q "SELECT Id FROM Pricebook2 WHERE IsStandard = true" | jq -r '.[0].Id')
   PROD=$(q "SELECT Id FROM Product2 WHERE ProductCode = '$PCODE'" | jq -r '.[0].Id')
   PBE=$(q "SELECT Id FROM PricebookEntry WHERE Product2Id = '$PROD' AND Pricebook2Id = '$PB' AND CurrencyIsoCode = 'USD' AND IsActive = true LIMIT 1" | jq -r '.[0].Id')
-  STAMP=$(date -u +%m%d-%H%M); R=$((RANDOM % 9000 + 1000)); ACC=""
+  STAMP=$(date -u +%m%d-%H%M); R=$((RANDOM % 9000 + 1000))
+  [ -n "$ACC" ] && [ "$(q "SELECT COUNT(Id) n FROM Order WHERE AccountId = '$ACC'" | jq -r '.[0].n')" != "0" ] && ACC=""
   [ -n "$ACC" ] && [ "$(q "SELECT COUNT(Id) n FROM Order WHERE AccountId = '$ACC'" | jq -r '.[0].n')" != "0" ] && ACC=""
   [ -z "$ACC" ] && ACC=$(sf data create record --sobject Account --values "Name='UsageTrial-$STAMP-$R' CurrencyIsoCode=USD Payer_Type__c=Self-Pay Account_Level__c=Corporate BillingStreet='$R Elm Street' BillingCity=Austin BillingState=Texas BillingPostalCode=73301 BillingCountry='United States' ShippingStreet='$R Elm Street' ShippingCity=Austin ShippingState=Texas ShippingPostalCode=73301 ShippingCountry='United States'" --target-org target --json | tee acc.json | jq -r '.result.id // empty')
   [ -z "$ACC" ] && { echo "ACCOUNT ERROR $(jq -c '{message, name, data}' acc.json | head -c 1500)"; exit 1; }
@@ -39,7 +40,7 @@ setup)
   OPP=$(sf data create record --sobject Opportunity --values "Name='UsageTrial-$STAMP-$R' AccountId=$ACC StageName=Prospecting CloseDate=$START Pricebook2Id=$PB CurrencyIsoCode=USD" --target-org target --json | jq -r '.result.id')
   echo "account=$ACC contact=$CON opp=$OPP product=$PROD pbe=$PBE"
   BODY=$(jq -nc --arg opp "$OPP" --arg pb "$PB" --arg prod "$PROD" --arg pbe "$PBE" --arg d "$START" --arg e "$END" --arg con "$CON" --arg r "$R" '{
-    pricingPref: "System", catalogRatesPref: "Fetch", configurationPref: {configurationMethod: "System"}, taxPref: "System",
+    pricingPref: "System", catalogRatesPref: "Fetch", configurationPref: {configurationMethod: "System"}, taxPref: "Force",
     graph: {graphId: "backdated", records: [
       {referenceId: "q1", record: {attributes: {type: "Quote", method: "POST"}, Name: "Usage Backdated Test", OpportunityId: $opp, Pricebook2Id: $pb, BillToContactId: $con,
         BillingStreet: ($r + " Elm Street"), BillingCity: "Austin", BillingState: "Texas", BillingPostalCode: "73301", BillingCountry: "United States",
