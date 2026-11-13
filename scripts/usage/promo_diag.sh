@@ -30,3 +30,14 @@ rest POST /connect/rev/sales-transaction/actions/place "$BODY" | jq -c '.' | hea
 sleep 8
 echo "AFTER $(q "SELECT CalculationStatus FROM Quote WHERE Id = '$QUOTE'") $(q "SELECT Product2.ProductCode, NetUnitPrice FROM QuoteLineItem WHERE QuoteId = '$QUOTE'")"
 echo "RECENT LOGS $(q "SELECT Id, Operation, Status, StartTime FROM ApexLog ORDER BY StartTime DESC LIMIT 5")"
+echo "CATEGORY $(q "SELECT Id, Name, CatalogId, Catalog.Name, IsNavigational, ParentCategoryId FROM ProductCategory WHERE Id = '0ZGhm0000003Fk5GAE'")"
+echo "ALL CATEGORIES $(q "SELECT Id, Name, Catalog.Name FROM ProductCategory LIMIT 30")"
+echo "CATEGORY PRODUCTS $(q "SELECT ProductCategoryId, Product.ProductCode FROM ProductCategoryProduct WHERE ProductCategoryId = '0ZGhm0000003Fk5GAE' LIMIT 20")"
+echo "PROMO TARGETS $(q "SELECT FIELDS(STANDARD) FROM PromotionTarget LIMIT 10" | jq -c '[.[]? | with_entries(select(.value != null and (.key|test("Created|LastModified|System|IsDeleted|LastViewed|LastReferenced|Owner")|not)))]')"
+echo "PROMO ELIGIBLE CATEGORIES $(q "SELECT FIELDS(STANDARD) FROM PromotionMarketSegment LIMIT 5" | head -c 600)"
+for o in $(rest GET /sobjects | jq -r '[.sobjects[] | select(.name|test("^(Promotion|PromotionQualifier|PromotionLineItemRule|PromotionProductCategory|PromotionTier)";"i")) | select(.name|test("Feed|History|Share|ChangeEvent")|not) | .name] | join(" ")'); do
+  echo "== $o $(q "SELECT FIELDS(STANDARD) FROM $o LIMIT 8" | jq -c '[.[]? | with_entries(select(.value != null and (.key|test("Created|LastModified|System|IsDeleted|LastViewed|LastReferenced|Owner|CurrencyIsoCode")|not)))]' | head -c 1200)"
+done
+echo "TAG MAPPINGS"; for o in $(rest GET /sobjects | jq -r '[.sobjects[] | select(.name|test("RuleLib|TagMap";"i")) | select(.name|test("Feed|History|Share|ChangeEvent")|not) | .name] | join(" ")'); do
+  echo "== $o $(q "SELECT FIELDS(STANDARD) FROM $o LIMIT 20" | jq -c '[.[]? | with_entries(select(.value != null and (.key|test("Created|LastModified|System|IsDeleted|LastViewed|LastReferenced|Owner|CurrencyIsoCode")|not)))]' | head -c 2500)"
+done
