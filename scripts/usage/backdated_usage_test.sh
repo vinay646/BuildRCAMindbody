@@ -7,7 +7,7 @@ API="/services/data/v$ORG_API"
 q() { sf data query --query "$1" --target-org target --json | jq -c '[.result.records[]? | del(.attributes)] // .message'; }
 rest() { sf api request rest "$API$2" --method "$1" ${3:+--body "$3"} --target-org target 2>&1; }
 PHASE=${DEPLOY_PATH#*:}; PCODE=CS-25Gb
-START=2026-10-11; END=2027-10-10; USAGE_AT=2026-10-20T15:00:00Z; QTY=${QTY:-50}
+START=2026-10-11; END=2027-10-10; [ "$PHASE" = "setup-today" ] && { START=$(date -u +%Y-%m-%d); END=$(date -u -d "+1 year -1 day" +%Y-%m-%d); PHASE=setup; }; USAGE_AT=2026-10-20T15:00:00Z; QTY=${QTY:-50}
 ACC=$(q "SELECT Id FROM Account WHERE Name LIKE 'UsageTrial-%' ORDER BY CreatedDate DESC LIMIT 1" | jq -r '.[0].Id // empty')
 show() {
   echo "ACCOUNT $(q "SELECT Id, Name FROM Account WHERE Id = '$ACC'")"
