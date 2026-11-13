@@ -74,8 +74,10 @@ usage)
   sf data create record --sobject TransactionJournal --values "AccountId=$ACC ReferenceRecordId=$ASSET UsageResourceId=$URID QuantityUnitOfMeasureId=$UOM Quantity=$QTY UsageType=UsageManagement Status=Pending ActivityDate=$NOW StartDate=$NOW EndDate=$NOW" --target-org target --json | jq -c '{status, id: .result.id, message}'
   ;&
 summary)
-  rest POST /actions/custom/dataProcessingEngineAction/Create_Usage_Summary_v4 '{"inputs":[{}]}' | head -c 800; echo
-  sleep 300; show ;;
+  echo "== Create Liable Summary"; rest POST /actions/custom/dataProcessingEngineAction/Create_Liable_Summary_v4 '{"inputs":[{}]}' | jq -c '.[0] | {isSuccess, errors, outputValues}' 2>/dev/null; sleep 180
+  echo "UEA AFTER LIABLE $(q "SELECT Name, BillingPeriodStartDateTime, BillingPeriodEndDateTime FROM UsageEntitlementAccount WHERE AccountId = '$ACC'")"
+  echo "== Create Usage Summary"; rest POST /actions/custom/dataProcessingEngineAction/Create_Usage_Summary_v4 '{"inputs":[{}]}' | jq -c '.[0] | {isSuccess, errors, outputValues}' 2>/dev/null; sleep 240
+  show ;;
 invoice)
   BS=$(q "SELECT Id FROM BillingSchedule WHERE BillingAccountId = '$ACC'" | jq -c '[.[].Id]')
   echo "schedules=$BS"
