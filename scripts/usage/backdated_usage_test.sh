@@ -127,5 +127,11 @@ dpe)
   echo "RECENT JOBS $(q "SELECT Id, Status, CreatedDate FROM BatchJob ORDER BY CreatedDate DESC LIMIT 4")"
   echo "RECENT PARTS $(q "SELECT BatchJob.Id, Name, Status, InputRecordCount, OutputRecordCount, FailedRecordCount FROM BatchJobPart WHERE CreatedDate = TODAY ORDER BY CreatedDate DESC LIMIT 14" | jq -c '[.[] | {j: .BatchJob.Id, n: .Name, s: .Status, i: .InputRecordCount, o: .OutputRecordCount, f: .FailedRecordCount}]')"
   echo "OLD SUMMARY CREATORS $(q "SELECT Name, CreatedById, CreatedBy.Name, CreatedDate FROM UsageSummary ORDER BY CreatedDate LIMIT 3")" ;;
+empty)
+  echo "EMPTY SUMMARY PARTS $(q "SELECT Id, Name, Status, BatchJobId, InputRecordCount, OutputRecordCount, FailedRecordCount, CreatedDate FROM BatchJobPart WHERE Name LIKE '%Empty%' ORDER BY CreatedDate DESC LIMIT 6")"
+  echo "EMPTY SUMMARY JOBS $(q "SELECT Id, Status, CreatedDate, CompletedDate FROM BatchJob WHERE Id IN (SELECT BatchJobId FROM BatchJobPart WHERE Name LIKE '%Empty%') ORDER BY CreatedDate DESC LIMIT 4" 2>&1 | head -c 800)"
+  echo "FAILED RECORDS $(q "SELECT BatchJobPart.Name, ErrorCode, ErrorMessage, RecordId, CreatedDate FROM BatchJobPartFailedRecord ORDER BY CreatedDate DESC LIMIT 6")"
+  echo "PART NAMES TODAY $(q "SELECT Name FROM BatchJobPart WHERE CreatedDate = TODAY" | jq -c '[.[].Name] | unique')"
+  echo "UEA $(q "SELECT Id, Name, BillingPeriodStartDateTime, CreatedDate FROM UsageEntitlementAccount WHERE AccountId = '$ACC'")" ;;
 *) show ;;
 esac
