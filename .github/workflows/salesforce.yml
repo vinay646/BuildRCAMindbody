@@ -1,6 +1,8 @@
 name: Salesforce build
 
-# Connects to the org with one secret: SFDX_AUTH_URL (see README "Connect GitHub to the org").
+# Connects to one of two orgs, picked per run with the "org" input:
+#   exploremore (default) -> secret SFDX_AUTH_URL     (our ExploremoreRCA build org)
+#   qa                    -> secret SFDX_AUTH_URL_QA  (the developers' org we QA; read-only actions only)
 on:
   workflow_dispatch:
     inputs:
@@ -35,6 +37,11 @@ on:
           - explore-constraints  # read-only: constraint models (CML), their versions, product links and the CML files
           - explore-rule-api  # read-only: configuration-rule permissions, invocable actions and Connect API resources
           - probe-config-rule  # changes nothing: test-insert a configuration rule and roll it back
+      org:
+        description: "Which org: exploremore (our build org) or qa (developers' org, read-only actions only)"
+        type: choice
+        default: exploremore
+        options: [exploremore, qa]
       path:
         description: "Deploy / validate only this path – several paths comma-separated (default: all of force-app)"
         required: false
@@ -54,7 +61,8 @@ jobs:
   salesforce:
     runs-on: ubuntu-24.04
     env:
-      SFDX_AUTH_URL: ${{ secrets.SFDX_AUTH_URL }}
+      TARGET_ORG: ${{ github.event.inputs.org || 'exploremore' }}
+      SFDX_AUTH_URL: ${{ github.event.inputs.org == 'qa' && secrets.SFDX_AUTH_URL_QA || secrets.SFDX_AUTH_URL }}
       ACTION: ${{ github.event.inputs.action || 'validate' }}
       STEP: ${{ github.event.inputs.step }}
       DEPLOY_PATH: ${{ github.event.inputs.path || 'force-app' }}
@@ -64,9 +72,20 @@ jobs:
       - name: Stop if the org is not connected
         run: |
           if [ -z "$SFDX_AUTH_URL" ]; then
-            echo "::error::Add the repository secret SFDX_AUTH_URL first (README: Connect GitHub to the org)."
+            if [ "$TARGET_ORG" = "qa" ]; then echo "::error::Add the repository secret SFDX_AUTH_URL_QA first (the developers' QA org)."
+            else echo "::error::Add the repository secret SFDX_AUTH_URL first (README: Connect GitHub to the org)."; fi
             exit 1
           fi
+          echo "Target org: $TARGET_ORG"
+
+      - name: QA org is read-only
+        if: env.TARGET_ORG == 'qa'
+        run: |
+          # Only actions that read the org (or check-only validate) may run against the developers' org.
+          case "$ACTION" in
+            readiness|validate|retrieve|explore|explore-*|describe-term|ids|qa-*) echo "Allowed on QA org: $ACTION" ;;
+            *) echo "::error::Action '$ACTION' changes data or metadata, or uses ExploremoreRCA record IDs. It is blocked on the QA org."; exit 1 ;;
+          esac
 
       - uses: actions/setup-node@v7
         with:
