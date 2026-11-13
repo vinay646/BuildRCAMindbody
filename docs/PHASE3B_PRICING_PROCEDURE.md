@@ -70,6 +70,16 @@ Standard Global Promotions Management, per the Salesforce articles "Configure Yo
    *Promotion Viewer* and *Promotion Designer Basic*.
 5. Reps apply a manual promotion in the Transaction Line Editor: line name → side panel → **Promotions** tab → toggle.
 
+**Blocked (13 Nov) – Salesforce support case.** The Promotions tab shows "Something went wrong" and Browse Catalogs shows
+"Failed to fetch promotions – We couldn't find any records for the field ProductCategory". Reproduced via
+`POST /global-promotions-management/eligible-promotions` (`scripts/usage/promo_api.sh`): every ProductCategory Id in the org
+fails, in every catalog, as an admin who owns the catalog. Cause: the standard context CartDetailGetEligiblePromotion has no
+`CartLineProductCategoryHierarchy__std` node (release note "Scan All Categories for Eligible Promotions"); its **Sync** button is
+greyed out and `isUpgradeAvailable` is false (`scripts/usage/ctx_hierarchy.sh`). Global Promotions Management setting is on.
+Only Salesforce can add the node. After the fix: sync the context → free the rule library (activate v3, deploy
+`deploy/pricing-v4-nopromo`) → map the hierarchy tags → deploy `deploy/pricing-v4`, run `promo-restore` and `promo-refresh`.
+Until then pricing runs without promotions; reps give the promotional discount as a manual discount.
+
 ## Clean-up (12 Nov 2026)
 
 Quote line formulas `Volume_Location_Count__c` and `Billing_Period_Months__c` are deleted (manifest
