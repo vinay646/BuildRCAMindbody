@@ -307,6 +307,7 @@ jobs:
           elif [ "$DEPLOY_PATH" = "legal-flow-test" ]; then ./scripts/usage/legal_flow_test.sh
           elif [ "$DEPLOY_PATH" = "ui-quote-check" ]; then ./scripts/usage/ui_quote_check.sh
           elif [ "$DEPLOY_PATH" = "promo-check" ]; then ./scripts/usage/promo_check.sh
+          elif [ "$DEPLOY_PATH" = "gpm-check" ]; then ./scripts/usage/gpm_check.sh
           elif [ "$DEPLOY_PATH" = "tier-check" ]; then ./scripts/usage/tier_check.sh
           elif [ "$DEPLOY_PATH" = "pricing-place" ]; then ./scripts/usage/pricing_place.sh
           elif [ "$DEPLOY_PATH" = "pricing-test" ]; then ./scripts/usage/pricing_test.sh
