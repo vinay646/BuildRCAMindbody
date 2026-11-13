@@ -18,7 +18,7 @@ pricing objects' fields and picklist values.
 | 5 Billing frequency (PRC-06) | **Price Adjustment Schedule, type Volume** (quantity = months per billing period; ARM tiers do not accept type Custom) + Volume Discount step | *Mindbody Billing Frequency* (months per period): 1–2 0%, 3–5 2%, 6–11 4%, 12+ 8% |
 | 6 Promotion (PRC-07) | **Promotions** (Promotion, Promotion Target, Coupon) | LAUNCH3 ($39 fixed price, Starter), SWITCH50 (50%, Accelerate/Ultimate), GROW2 (100%, any tier) |
 | 7 Manual discount | Manual Discount step | – |
-| 8 Floor (PRC-18) | **Price book** *Mindbody Floor Prices* read by a second price-book step | Starter 59, Accelerate 189, Ultimate 339 (USD; GBP/AUD/EUR converted) |
+| 8 Floor (PRC-18) | **Price book** *Mindbody Floor Prices* read by the flow MB_Quote_Line_Floor_Price → Floor Price / Below Floor | Starter 59, Accelerate 189, Ultimate 339 (USD; GBP/AUD/EUR converted) |
 | Approvals (CFG-16) | Standard approval rules (phase 5) | auto-approve 10 / 20 / 25%, Enterprise deal desk |
 
 Tiers are created for each product × selling model × currency, because the standard *Price Adjustment Tier*
@@ -185,11 +185,26 @@ Not standard and handled elsewhere:
 - **Promo length** (months 1–3, 1–6, 2) → the promo price applies to the first ramp segment; the step-up to the
   standard price is the ramp schedule (PRC-09, LCM-15) in phase 5.
 
-## Step 6 – Floor price
+## Step 6 – Floor price (PRC-18) – done 13 Nov
 
-Duplicate the standard *Get base prices from price book* step after Manual Discount: price book = **Mindbody Floor
-Prices**, output `UnitPrice` → variable `FloorPrice`. Phase 5's approval rule compares the net unit price with
-`FloorPrice` (below floor → VP Sales then Finance).
+Price book **Mindbody Floor Prices** (loader, `MB_Build_Data.json` › `floorPriceBook`): Starter 59 / Accelerate 189 /
+Ultimate 339 USD (GBP 51/164/295, EUR 55/176/315, AUD 94/302/542), per location per month.
+
+- **Quote Line Item › Floor Price** (`MB_Floor_Price__c`, currency) – set by the before-save flow
+  **MB_Quote_Line_Floor_Price** from the floor price book (line product, quote currency) when a line is created, its
+  product changes, or the floor is blank. Products without a floor entry stay blank.
+- **Quote Line Item › Below Floor** (`MB_Below_Floor__c`, formula) – Net Unit Price < Floor Price. Phase 5 approval:
+  any line Below Floor → VP Sales, then Finance. Promotional lines will be exempt (decision 13 Nov) once promotions work.
+- Both on the RLM Quote Line Item layout and in the Mindbody_ARM_Build permission set.
+
+Tested (`floor-test`, pricing v4): Ultimate ×2, 36 mo, Annual 371.85 → floor 339, not below; same with 20 % off 297.48 →
+**Below Floor**; Starter monthly 63.99 → floor 59, not below.
+
+Why a flow and not a pricing procedure step: the procedure's List Price lookup only supports the quote's own price
+book. A second lookup on the floor price book (draft version 5, `deploy/pricing-v5`, `scripts/build_pricing_v5.py`)
+deployed, but with it active every quote failed with "We couldn't fetch the data for RLM_SalesTransactionContext".
+Version 5 stays inactive; version 4 is active. Context attribute `MbFloorPrice` (line, number) is left unmapped and
+unused – context attributes cannot be deleted by deploy.
 
 ## Step 7 – Activate and check
 
