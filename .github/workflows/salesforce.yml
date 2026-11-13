@@ -299,6 +299,7 @@ jobs:
           if [ "$DEPLOY_PATH" = "empty-summaries" ]; then ./scripts/usage/empty_summaries.sh
           elif [ "$DEPLOY_PATH" = "billing-check" ]; then ./scripts/usage/billing_check.sh
           elif [ "$DEPLOY_PATH" = "invoice-check" ]; then ./scripts/usage/invoice_check.sh
+          elif [ "${DEPLOY_PATH%%:*}" = "backdated-usage" ]; then ./scripts/usage/backdated_usage_test.sh
           elif [ "$DEPLOY_PATH" = "invoice-usage" ]; then ./scripts/usage/invoice_usage_check.sh
           elif [ "$DEPLOY_PATH" = "esv-check" ]; then ./scripts/usage/esv_check.sh
           elif [ "$DEPLOY_PATH" = "activate-v3" ]; then ./scripts/usage/activate_v3.sh
