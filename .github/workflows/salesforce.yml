@@ -323,6 +323,8 @@ jobs:
           elif [ "$DEPLOY_PATH" = "promo-diag" ]; then ./scripts/usage/promo_diag.sh
           elif [ "$DEPLOY_PATH" = "promo-api" ]; then ./scripts/usage/promo_api.sh
           elif [ "$DEPLOY_PATH" = "floor-check" ]; then ./scripts/usage/floor_check.sh
+          elif [ "$DEPLOY_PATH" = "floor-test" ]; then ./scripts/usage/floor_test.sh
+          elif [ "$DEPLOY_PATH" = "activate-v5" ]; then ./scripts/usage/activate_v5.sh; sleep 20; ./scripts/usage/floor_test.sh
           elif [ "$DEPLOY_PATH" = "ctx-hierarchy" ]; then ./scripts/usage/ctx_hierarchy.sh
           elif [ "$DEPLOY_PATH" = "promo-restore" ]; then ./scripts/usage/activate_v4.sh; sleep 15; ./scripts/usage/promo_api.sh
           elif [ "$DEPLOY_PATH" = "tier-check" ]; then ./scripts/usage/tier_check.sh
