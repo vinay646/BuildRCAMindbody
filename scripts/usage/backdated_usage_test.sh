@@ -29,7 +29,8 @@ setup)
   PROD=$(q "SELECT Id FROM Product2 WHERE ProductCode = '$PCODE'" | jq -r '.[0].Id')
   PBE=$(q "SELECT Id FROM PricebookEntry WHERE Product2Id = '$PROD' AND Pricebook2Id = '$PB' AND CurrencyIsoCode = 'USD' AND IsActive = true LIMIT 1" | jq -r '.[0].Id')
   STAMP=$(date -u +%m%d-%H%M)
-  ACC=$(sf data create record --sobject Account --values "Name='Usage Backdated Test $STAMP' CurrencyIsoCode=USD Payer_Type__c=Self-Pay Account_Level__c=Corporate BillingStreet='1 Test Way' BillingCity=Irvine BillingState=California BillingPostalCode=92618 BillingCountry='United States' ShippingStreet='1 Test Way' ShippingCity=Irvine ShippingState=California ShippingPostalCode=92618 ShippingCountry='United States'" --target-org target --json | jq -r '.result.id')
+  ACC=$(sf data create record --sobject Account --values "Name='Usage Backdated Test $STAMP' CurrencyIsoCode=USD Payer_Type__c=Self-Pay Account_Level__c=Corporate BillingStreet='1 Test Way' BillingCity=Irvine BillingState=California BillingPostalCode=92618 BillingCountry='United States' ShippingStreet='1 Test Way' ShippingCity=Irvine ShippingState=California ShippingPostalCode=92618 ShippingCountry='United States'" --target-org target --json | tee acc.json | jq -r '.result.id // empty')
+  [ -z "$ACC" ] && { echo "ACCOUNT ERROR $(jq -c '{message, name, data}' acc.json | head -c 1500)"; exit 1; }
   CON=$(sf data create record --sobject Contact --values "FirstName=Usage LastName=Backdated Email=usage.backdated@example.com AccountId=$ACC" --target-org target --json | jq -r '.result.id')
   OPP=$(sf data create record --sobject Opportunity --values "Name='Usage Backdated Test $STAMP' AccountId=$ACC StageName=Prospecting CloseDate=$START Pricebook2Id=$PB CurrencyIsoCode=USD" --target-org target --json | jq -r '.result.id')
   echo "account=$ACC contact=$CON opp=$OPP product=$PROD pbe=$PBE"
