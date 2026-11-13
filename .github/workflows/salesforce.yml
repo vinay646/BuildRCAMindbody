@@ -315,6 +315,7 @@ jobs:
           elif [ "$DEPLOY_PATH" = "activate-v4" ]; then ./scripts/usage/activate_v4.sh
           elif [ "$DEPLOY_PATH" = "promo-user-check" ]; then ./scripts/usage/promo_user_check.sh
           elif [ "$DEPLOY_PATH" = "promo-psl-sets" ]; then ./scripts/usage/promo_psl_sets.sh
+          elif [ "$DEPLOY_PATH" = "rulelib-map-check" ]; then ./scripts/usage/rulelib_map_check.sh
           elif [ "$DEPLOY_PATH" = "tier-check" ]; then ./scripts/usage/tier_check.sh
           elif [ "$DEPLOY_PATH" = "pricing-place" ]; then ./scripts/usage/pricing_place.sh
           elif [ "$DEPLOY_PATH" = "pricing-test" ]; then ./scripts/usage/pricing_test.sh
