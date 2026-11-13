@@ -26,7 +26,18 @@ GROUP = (
     f"<criteria><operator>NotEquals</operator><sequenceNumber>3</sequenceNumber><sourceFieldName>ItemPricingSource</sourceFieldName><value>&apos;LastTransaction&apos;</value><valueType>Literal</valueType></criteria>"
     f"</advancedCondition><hasNestedExplainability>false</hasNestedExplainability><label>Filter lines without contract or last-trxn pricing</label>"
     f"<name>Filterlinesforpromotions</name><parentStep>Applypromotions</parentStep><resultIncluded>false</resultIncluded>"
-    f"<sequenceNumber>1</sequenceNumber>{FLAGS}<stepType>AdvancedListFilter</stepType></steps>")
+    f"<sequenceNumber>1</sequenceNumber>{FLAGS}<stepType>AdvancedListFilter</stepType></steps>"
+    f"<steps><actionType>PromotionExecution</actionType><customElement>"
+    + "".join(f"<parameters><input>true</input><name>{n}</name><output>false</output><type>{t}</type><value>{v}</value></parameters>"
+              for n, t, v in [("RuleLibrary", "Literal", "RLM_RuleLibrary"), ("PromotionScope", "Literal", "Line"),
+                              ("Subtotal", "Parameter", "ItemNetTotalPrice"), ("Quantity", "Parameter", "LineItemQuantity"),
+                              ("InputUnitPrice", "Parameter", "NetUnitPrice"), ("HideWaterfall", "Literal", "false"),
+                              ("sectionCount", "Literal", "0"), ("selectedFunction", "Literal", "Get"), ("IsRealTime", "Literal", "false")])
+    + "<parameters><input>false</input><name>NetUnitPrice</name><output>true</output><type>Parameter</type><value>NetUnitPrice</value></parameters>"
+    + "<parameters><input>false</input><name>Subtotal</name><output>true</output><type>Parameter</type><value>ItemNetTotalPrice</value></parameters>"
+    + f"</customElement><description>Promotion Execution</description><hasNestedExplainability>false</hasNestedExplainability>"
+    f"<label>Apply promotions from the rule library</label><name>Applypromotionsfromtherulelibrary</name><parentStep>Applypromotions</parentStep>"
+    f"<resultIncluded>false</resultIncluded><sequenceNumber>2</sequenceNumber>{FLAGS}<stepType>BusinessKnowledgeModel</stepType></steps>")
 
 
 def main():
