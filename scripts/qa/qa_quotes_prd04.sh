@@ -20,9 +20,10 @@ CON=$(q "SELECT Id FROM Contact WHERE AccountId = '$ACC' LIMIT 1" | jq -r '.[0].
 echo "account=$ACC contact=$CON"
 TODAY=$(date -u +%Y-%m-%d)
 mkquote() { # $1 name, $2 lines json array (jq objects without QuoteId)
-  OPP=$(mk Opportunity "{\"Name\":\"$1\",\"AccountId\":\"$ACC\",\"StageName\":\"Prospecting\",\"CloseDate\":\"$TODAY\",\"Pricebook2Id\":\"$PB\",\"CurrencyIsoCode\":\"USD\"}")
+  OPP=$(q "SELECT Id FROM Opportunity WHERE AccountId = '$ACC' AND Name = '$1' LIMIT 1" | jq -r '.[0].Id // empty')
+  [ -z "$OPP" ] && OPP=$(mk Opportunity "{\"Name\":\"$1\",\"AccountId\":\"$ACC\",\"StageName\":\"Prospecting\",\"CloseDate\":\"$TODAY\",\"Pricebook2Id\":\"$PB\",\"CurrencyIsoCode\":\"USD\"}")
   BODY=$(jq -nc --arg opp "$OPP" --arg pb "$PB" --arg con "$CON" --arg n "$1" --argjson lines "$2" '{
-    pricingPref: "System", catalogRatesPref: "Skip", configurationPref: {configurationMethod: "System"},
+    pricingPref: "System", catalogRatesPref: "Skip", configurationPref: {configurationMethod: "Skip"},
     graph: {graphId: "qa", records: ([{referenceId: "q1", record: {attributes: {type: "Quote", method: "POST"}, Name: $n, OpportunityId: $opp, Pricebook2Id: $pb, BillToContactId: $con,
       BillingStreet: "100 QA Street", BillingCity: "San Luis Obispo", BillingState: "California", BillingPostalCode: "93401", BillingCountry: "United States",
       ShippingStreet: "100 QA Street", ShippingCity: "San Luis Obispo", ShippingState: "California", ShippingPostalCode: "93401", ShippingCountry: "United States"}}]
