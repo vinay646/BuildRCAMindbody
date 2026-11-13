@@ -327,6 +327,7 @@ jobs:
           elif [ "$DEPLOY_PATH" = "pricing-sync" ]; then ./scripts/usage/pricing_sync.sh
           elif [ "$DEPLOY_PATH" = "ctx-floor-check" ]; then ./scripts/usage/ctx_floor_check.sh
           elif [ "$DEPLOY_PATH" = "floor-test" ]; then ./scripts/usage/floor_test.sh
+          elif [ "$DEPLOY_PATH" = "restore-v4" ]; then ./scripts/usage/activate_v4.sh; sleep 20; ./scripts/usage/pricing_place.sh
           elif [ "$DEPLOY_PATH" = "activate-v5" ]; then ./scripts/usage/activate_v5.sh; sleep 20; ./scripts/usage/floor_test.sh
           elif [ "$DEPLOY_PATH" = "ctx-hierarchy" ]; then ./scripts/usage/ctx_hierarchy.sh
           elif [ "$DEPLOY_PATH" = "promo-restore" ]; then ./scripts/usage/activate_v4.sh; sleep 15; ./scripts/usage/promo_api.sh
