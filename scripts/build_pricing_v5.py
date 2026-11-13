@@ -17,6 +17,8 @@ OUT = ROOT / "deploy/pricing-v5/main/default/expressionSetDefinition/RLM_Default
 V4 = "RLM_DefaultPricingProcedure_RLM_Revenue_Management_Default_Pricing_Procedure_V40"
 V5 = "RLM_DefaultPricingProcedure_RLM_Revenue_Management_Default_Pricing_Procedure_V50"
 FLOOR_BOOK_ID = "01shm000001QRonAAG"  # Pricebook2 "Mindbody Floor Prices"
+import os
+FLOOR_TAG = os.environ.get("FLOOR_TAG", "MbFloorPrice")  # FLOOR_TAG=<older tag> only to test the deploy
 FLOOR_SEQ = 24  # after "Apply amount-based and percentage-based discounts" (23)
 FLAGS = ("<shouldExposExecPathMsgOnly>true</shouldExposExecPathMsgOnly><shouldExposeConditionDetails>false</shouldExposeConditionDetails>"
          "<shouldShowExplExternally>false</shouldShowExplExternally>")
@@ -30,7 +32,7 @@ STEP = ("<steps><actionType>ListPrice</actionType><customElement>"
         + P("LookUpApiName", "Literal", "Price_Book_Entry_Decision_Table_v2") + P("IsContractEnabled", "Literal", "false")
         + P("HideWaterfall", "Literal", "true") + P("IsOutputResolutionEnabled", "Literal", "false")
         + P("sectionCount", "Literal", "0") + P("selectedFunction", "Literal", "Get") + P("IsRealTime", "Literal", "false")
-        + P("ListPrice", "Parameter", "MbFloorPrice", out=True)
+        + P("ListPrice", "Parameter", FLOOR_TAG, out=True)
         + "</customElement><description>List Price</description><hasNestedExplainability>false</hasNestedExplainability>"
         f"<label>Get floor price from the Mindbody Floor Prices price book</label><name>Getfloorpricefromfloorpricebook</name>"
         f"<resultIncluded>false</resultIncluded><sequenceNumber>{FLOOR_SEQ}</sequenceNumber>{FLAGS}<stepType>BusinessKnowledgeModel</stepType></steps>")
