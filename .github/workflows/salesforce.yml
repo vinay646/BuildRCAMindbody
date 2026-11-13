@@ -12,6 +12,7 @@ on:
         default: readiness
         options:
           - readiness        # phase 0: read-only check of what the org has turned on
+          - qa               # read-only QA checks; path = which one (catalog)
           - validate         # check-only deploy, nothing changes in the org
           - deploy           # deploy force-app and assign the permission set
           - load             # run one loader step (pick it below)
@@ -103,6 +104,10 @@ jobs:
             echo "Org: $(echo "$info" | jq -r .result.instanceUrl) as $(echo "$info" | jq -r .result.username)"
             echo
           } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: QA checks (read-only)
+        if: env.ACTION == 'qa'
+        run: ./scripts/qa/qa_$DEPLOY_PATH.sh
 
       - name: Phase 0 readiness check
         if: env.ACTION == 'readiness'
