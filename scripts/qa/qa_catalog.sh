@@ -12,4 +12,4 @@ raw() { sf data query --query "$1" --target-org target --json | jq -c 'if .statu
 MBP="SELECT Id FROM Product2 WHERE ProductCode LIKE 'MB-%'"
 echo "== MB PRODUCT IDS"; raw "SELECT Id, ProductCode FROM Product2 WHERE ProductCode LIKE 'MB-%'"
 echo "== COMPONENT GROUPS"; raw "SELECT FIELDS(ALL) FROM ProductComponentGroup WHERE ParentProductId IN ($MBP) LIMIT 200"
-echo "== BUNDLE COMPONENTS"; raw "SELECT FIELDS(ALL) FROM ProductRelatedComponent WHERE ParentProductId IN ($MBP) LIMIT 500"
+echo "== BUNDLE COMPONENTS"; raw "SELECT FIELDS(ALL) FROM ProductRelatedComponent WHERE ParentProductId IN ($MBP) LIMIT 200"
