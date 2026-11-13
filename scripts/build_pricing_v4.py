@@ -30,7 +30,7 @@ GROUP = (
     f"<steps><actionType>PromotionExecution</actionType><customElement>"
     + "".join(f"<parameters><input>true</input><name>{n}</name><output>false</output><type>{t}</type><value>{v}</value></parameters>"
               for n, t, v in [("RuleLibrary", "Literal", "RLM_RuleLibrary"), ("PromotionScope", "Literal", "Line"),
-                              ("Subtotal", "Parameter", "ItemNetTotalPrice"), ("Quantity", "Parameter", "LineItemQuantity"),
+                              ("InputSubtotal", "Parameter", "ItemNetTotalPrice"), ("Quantity", "Parameter", "LineItemQuantity"),
                               ("InputUnitPrice", "Parameter", "NetUnitPrice"), ("HideWaterfall", "Literal", "false"),
                               ("sectionCount", "Literal", "0"), ("selectedFunction", "Literal", "Get"), ("IsRealTime", "Literal", "false")])
     + "<parameters><input>false</input><name>NetUnitPrice</name><output>true</output><type>Parameter</type><value>NetUnitPrice</value></parameters>"
