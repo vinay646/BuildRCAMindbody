@@ -1,0 +1,21 @@
+#!/usr/bin/env bash
+# READ-ONLY re-test of the failed checks on MR-73, 78, 84, 85, 86, 92, 93, 95, 96.
+set -uo pipefail
+API="/services/data/v$ORG_API"
+raw() { sf data query --query "$1" --target-org target ${2:-} --json | jq -c 'if .status == 0 then [.result.records[]? | del(.attributes)] else {error: .message} end'; }
+flow() { id=$(sf data query --use-tooling-api --query "SELECT Id, VersionNumber, LastModifiedDate FROM Flow WHERE Definition.DeveloperName = '$1' AND Status = 'Active' LIMIT 1" --target-org target --json | jq -r '.result.records[0].Id // empty'); [ -z "$id" ] && { echo "no active version"; return; }
+  sf api request rest "$API/tooling/sobjects/Flow/$id" --target-org target | jq -c 'def v: (.stringValue // .numberValue // (if .booleanValue == null then null else (.booleanValue|tostring) end) // .elementReference); .Metadata | {start: {when: .start.recordTriggerType, filters: [.start.filters[]? | "\(.field) \(.operator) \(.value|v)"]}, lookups: [.recordLookups[]? | {name, filterLogic, filters: [.filters[]? | "\(.field) \(.operator) \(.value|v)"]}], decisions: [.decisions[]? | {name, rules: [.rules[]? | {name, logic: .conditionLogic, conds: [.conditions[]? | "\(.leftValueReference) \(.operator) \(.rightValue|v)"]}]}], errors: [.customErrors[]? | [.customErrorMessages[]? | .errorMessage] | join(" ")]}'; }
+echo "== VERSIONS"; sf data query --use-tooling-api --query "SELECT DeveloperName, ActiveVersion.VersionNumber, LatestVersion.VersionNumber, LastModifiedDate FROM FlowDefinition WHERE LastModifiedDate >= 2026-11-14T00:00:00Z" --target-org target --json | jq -c '[.result.records[] | {n: .DeveloperName, active: .ActiveVersion.VersionNumber, latest: .LatestVersion.VersionNumber, mod: .LastModifiedDate[0:16]}]'
+echo "== MR-73/85 ENTERPRISE PRICES"; raw "SELECT Pricebook2.Name, CurrencyIsoCode, UnitPrice, ProductSellingModel.Name, IsActive FROM PricebookEntry WHERE Product2.ProductCode = 'MB-ENT' ORDER BY Pricebook2.Name"
+echo "== MR-78 FIELD DEFAULT"; sf api request rest "$API/sobjects/Product2/describe" --target-org target | jq -c '[.fields[] | select(.name=="Integration_Status__c") | {default: [.picklistValues[] | select(.defaultValue) | .value]}]'
+echo "== MR-78 PRODUCT VALUES"; raw "SELECT Integration_Status__c s, COUNT(Id) n FROM Product2 WHERE ProductCode LIKE 'MB-%' GROUP BY Integration_Status__c"
+echo "== MR-78 FLS EDIT"; raw "SELECT Field, COUNT(Id) n FROM FieldPermissions WHERE SobjectType = 'Product2' AND Field IN ('Product2.ERP_ID__c','Product2.Integration_Status__c') AND PermissionsEdit = true GROUP BY Field"
+echo "== MR-78 PRODUCT FLOWS"; raw "SELECT ApiName, Label, TriggerType, IsActive FROM FlowDefinitionView WHERE TriggerObjectOrEventLabel = 'Product'"
+echo "== MR-84 ADDON MODELS"; raw "SELECT Product2.ProductCode, ProductSellingModel.Name FROM ProductSellingModelOption WHERE Product2.ProductCode IN ('MB-F-AIC','MB-APP')"
+echo "== MR-86 SINGLE BUNDLE FLOW"; flow Validate_Single_Bundle_Per_Quote
+echo "== MR-86 OTHER DUPLICATE RULES"; raw "SELECT ApiName, Label, IsActive FROM FlowDefinitionView WHERE TriggerObjectOrEventLabel = 'Quote Line Item'"
+echo "== MR-92/95 TERM FLOW"; flow Quote_Term_and_Account_s_Master_Contract_Validation
+echo "== VALIDATION RULES"; raw "SELECT EntityDefinition.QualifiedApiName, ValidationName, Active, ErrorMessage, LastModifiedDate FROM ValidationRule WHERE EntityDefinition.QualifiedApiName IN ('Quote','QuoteLineItem','Opportunity','Account')" "--use-tooling-api"
+echo "== MR-93 FLOWS ON QUOTE/OPP"; raw "SELECT ApiName, Label, TriggerType, TriggerObjectOrEventLabel, IsActive FROM FlowDefinitionView WHERE TriggerObjectOrEventLabel IN ('Quote','Opportunity') AND IsActive = true"
+echo "== MR-95 MASTER CONTRACT FIELDS"; for o in Account Contract; do echo "$o $(sf api request rest "$API/sobjects/$o/describe" --target-org target | jq -c '[.fields[] | select(.name|test("Master";"i")) | .name]')"; done
+echo "== MR-96 RULE"; id=$(sf data query --use-tooling-api --query "SELECT Id FROM ValidationRule WHERE ValidationName = 'Require_Override_Payer_Reason'" --target-org target --json | jq -r '.result.records[0].Id'); sf api request rest "$API/tooling/sobjects/ValidationRule/$id" --target-org target | jq -c '.Metadata | {active, errorConditionFormula}'
