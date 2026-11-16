@@ -10,7 +10,7 @@ def api(method, path, body=None, extra=None):
     url = path if path.startswith("/services") else f"/services/data/v{V}{path}"
     cmd=["sf","api","request","rest",url,"--method",method,"--include","--target-org","target","--header","Sforce-Duplicate-Rule-Header: allowSave=true"]
     if body is not None:
-        bf="/tmp/e2e_body.json"; open(bf,"w").write(json.dumps(body)); cmd+=["--body","@"+bf]
+        cmd+=["--body",json.dumps(body)]
     out=subprocess.run(cmd,capture_output=True,text=True).stdout
     status=0; text=out
     for line in out.splitlines():
