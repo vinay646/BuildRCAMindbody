@@ -2,21 +2,28 @@
 # CREATES test data (all names start "E2E"): end-to-end test Account -> Contact -> Opportunity -> Quote in the testing org.
 import json, os, subprocess, sys, time, urllib.request, urllib.error, urllib.parse, datetime
 V=os.environ.get("ORG_API","68.0")
-info=json.loads(subprocess.run(["sf","org","display","--target-org","target","--verbose","--json"],capture_output=True,text=True).stdout)["result"]
-TOK, INST = info["accessToken"], info["instanceUrl"]
+info=json.loads(subprocess.run(["sf","org","display","--target-org","target","--json"],capture_output=True,text=True).stdout)["result"]
+INST = info["instanceUrl"]
 LIGHT=INST.replace(".my.salesforce.com",".lightning.force.com")
 def api(method, path, body=None, extra=None):
-    url = INST + (path if path.startswith("/services") else f"/services/data/v{V}{path}")
-    h={"Authorization":"Bearer "+TOK,"Content-Type":"application/json","Sforce-Duplicate-Rule-Header":"allowSave=true"}
-    if extra: h.update(extra)
-    req=urllib.request.Request(url, data=json.dumps(body).encode() if body is not None else None, headers=h, method=method)
-    try:
-        with urllib.request.urlopen(req, timeout=120) as r:
-            t=r.read().decode(); return r.status, (json.loads(t) if t else {})
-    except urllib.error.HTTPError as e:
-        t=e.read().decode()
-        try: return e.code, json.loads(t)
-        except Exception: return e.code, t
+    # Calls go through the Salesforce CLI (already logged in), so no token handling here.
+    url = path if path.startswith("/services") else f"/services/data/v{V}{path}"
+    cmd=["sf","api","request","rest",url,"--method",method,"--include","--target-org","target","--header","Sforce-Duplicate-Rule-Header: allowSave=true"]
+    if body is not None:
+        bf="/tmp/e2e_body.json"; open(bf,"w").write(json.dumps(body)); cmd+=["--body","@"+bf]
+    out=subprocess.run(cmd,capture_output=True,text=True).stdout
+    status=0; text=out
+    for line in out.splitlines():
+        if line.startswith("HTTP/"):
+            try: status=int(line.split()[1])
+            except Exception: pass
+            break
+    for sep in ("\r\n\r\n","\n\n"):
+        if sep in out: text=out.split(sep,1)[1]; break
+    text=text.strip()
+    try: data=json.loads(text) if text else {}
+    except Exception: data=text
+    return status, data
 def q(soql):
     s,r=api("GET","/query?q="+urllib.parse.quote(soql)); return r.get("records",[]) if isinstance(r,dict) else []
 def err(r):
