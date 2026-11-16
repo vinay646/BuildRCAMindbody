@@ -39,7 +39,8 @@ TAG="E2E "+datetime.datetime.utcnow().strftime("%m%d-%H%M")
 TODAY=datetime.date.today().isoformat()
 def endd(m): d=datetime.date.today(); y=d.year+(d.month-1+m)//12; mo=(d.month-1+m)%12+1; return (datetime.date(y,mo,min(d.day,28))-datetime.timedelta(days=1)).isoformat()
 # picklist values
-desc=api("GET","/sobjects/Account/describe")[1]
+st,desc=api("GET","/sobjects/Account/describe")
+if not isinstance(desc,dict): print("DESCRIBE FAILED",st,str(desc)[:500], "instance",INST); sys.exit(1)
 pv=lambda f:[p["value"] for x in desc["fields"] if x["name"]==f for p in x["picklistValues"] if p["active"]]
 PAYER=(pv("Payer__c") or [None])[0]; print("Payer values",pv("Payer__c"),"Level",pv("Account_Level__c"),"Contract type",pv("Contract_Type__c"))
 ADDR={"BillingStreet":"1 E2E Way","BillingCity":"Austin","BillingState":"Texas","BillingPostalCode":"73301","BillingCountry":"United States","ShippingStreet":"1 E2E Way","ShippingCity":"Austin","ShippingState":"Texas","ShippingPostalCode":"73301","ShippingCountry":"United States"}
