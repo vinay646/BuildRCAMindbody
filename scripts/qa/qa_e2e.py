@@ -2,7 +2,7 @@
 # CREATES test data (all names start "E2E"): end-to-end test Account -> Contact -> Opportunity -> Quote in the testing org.
 import json, os, subprocess, sys, time, urllib.request, urllib.error, urllib.parse, datetime
 V=os.environ.get("ORG_API","68.0")
-info=json.loads(subprocess.run(["sf","org","display","--target-org","target","--json"],capture_output=True,text=True).stdout)["result"]
+info=json.loads(subprocess.run(["sf","org","display","--target-org","target","--verbose","--json"],capture_output=True,text=True).stdout)["result"]
 TOK, INST = info["accessToken"], info["instanceUrl"]
 LIGHT=INST.replace(".my.salesforce.com",".lightning.force.com")
 def api(method, path, body=None, extra=None):
