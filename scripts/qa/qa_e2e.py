@@ -6,24 +6,16 @@ info=json.loads(subprocess.run(["sf","org","display","--target-org","target","--
 INST = info["instanceUrl"]
 LIGHT=INST.replace(".my.salesforce.com",".lightning.force.com")
 def api(method, path, body=None, extra=None):
-    # Calls go through the Salesforce CLI (already logged in), so no token handling here.
+    # Calls go through the Salesforce CLI (already logged in). An error body is a list with errorCode.
     url = path if path.startswith("/services") else f"/services/data/v{V}{path}"
-    cmd=["sf","api","request","rest",url,"--method",method,"--include","--target-org","target","--header","Sforce-Duplicate-Rule-Header: allowSave=true"]
-    if body is not None:
-        cmd+=["--body",json.dumps(body)]
-    out=subprocess.run(cmd,capture_output=True,text=True).stdout
-    status=0; text=out
-    for line in out.splitlines():
-        if line.startswith("HTTP/"):
-            try: status=int(line.split()[1])
-            except Exception: pass
-            break
-    for sep in ("\r\n\r\n","\n\n"):
-        if sep in out: text=out.split(sep,1)[1]; break
-    text=text.strip()
+    cmd=["sf","api","request","rest",url,"--method",method,"--target-org","target","--header","Sforce-Duplicate-Rule-Header: allowSave=true"]
+    if body is not None: cmd+=["--body",json.dumps(body)]
+    p=subprocess.run(cmd,capture_output=True,text=True)
+    text=(p.stdout or "").strip()
     try: data=json.loads(text) if text else {}
-    except Exception: data=text
-    return status, data
+    except Exception: data=text or (p.stderr or "").strip()
+    bad = (isinstance(data,list) and data and isinstance(data[0],dict) and "errorCode" in data[0]) or (isinstance(data,str) and data!="") or (isinstance(data,dict) and data.get("errorCode"))
+    return (400 if bad else 200), data
 def q(soql):
     s,r=api("GET","/query?q="+urllib.parse.quote(soql)); return r.get("records",[]) if isinstance(r,dict) else []
 def err(r):
