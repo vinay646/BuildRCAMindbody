@@ -1,9 +1,9 @@
 #!/usr/bin/env bash
 # READ-ONLY: MR-100 - active pricing procedure tier steps and context mapping for location count.
 set -uo pipefail
-mkdir -p /tmp/md && sf project retrieve start --metadata ExpressionSetDefinition:RLM_DefaultPricingProcedure --metadata ContextDefinition:RLM_SalesTransactionContext --output-dir /tmp/md --target-org target --json > /tmp/md/r.json 2>&1
-jq -c '{status, message, files: [.result.files[]? | "\(.type):\(.fullName) \(.state)"]}' /tmp/md/r.json | cut -c1-600
-for f in $(find /tmp/md -name '*.expressionSetDefinition-meta.xml'); do
+mkdir -p qa_tmp_md && sf project retrieve start --metadata ExpressionSetDefinition:RLM_DefaultPricingProcedure --metadata ContextDefinition:RLM_SalesTransactionContext --output-dir qa_tmp_md --target-org target --json > qa_tmp_md/r.json 2>&1
+jq -c '{status, message, files: [.result.files[]? | "\(.type):\(.fullName) \(.state)"]}' qa_tmp_md/r.json | cut -c1-600
+for f in $(find qa_tmp_md -name '*.expressionSetDefinition-meta.xml'); do
   python3 - "$f" <<'PY'
 import re,sys
 s=open(sys.argv[1]).read()
@@ -23,7 +23,7 @@ for v in re.findall(r"<versions>.*?</versions>", s, re.S):
     print("   mentions of location:", len(re.findall(r"[Ll]ocation", v)))
 PY
 done
-for f in $(find /tmp/md -name '*.contextDefinition-meta.xml'); do
+for f in $(find qa_tmp_md -name '*.contextDefinition-meta.xml'); do
   python3 - "$f" <<'PY'
 import re,sys
 s=open(sys.argv[1]).read()
