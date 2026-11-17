@@ -41,11 +41,11 @@ def rest(method, path, body=None):
     args = ["sf", "api", "request", "rest", API + path, "--method", method, "--target-org", "target"]
     if body is not None:
         args += ["--body", json.dumps(body)]
-    r = sh(args)
+    out = subprocess.run(args, capture_output=True, text=True)
     try:
-        return json.loads(r)
+        return json.loads(out.stdout)
     except Exception:
-        return {"raw": r[:500]}
+        return {"raw": out.stdout[:300], "stderr": out.stderr[:500]}
 
 
 def band(table, n):
@@ -97,8 +97,11 @@ def pbe(code, cur):
     return rows[0] if rows else None
 
 
-def case(title, story, account, cur, term, lines, expect_block=None):
+def case(title, story, account, cur, term, lines, expect_block=None, quote_extra=None):
     """lines: [(code, qty, freq, manual%)]"""
+    only = os.environ.get("ONLY")
+    if only and not any(k.strip().lower() in title.lower() for k in only.split(",")):
+        return
     print(f"\n===== {story} | {title}")
     acc = PULSE if account == "pulse" else ZERO["Id"]
     end = (TODAY + timedelta(days=int(term * 30.44))).isoformat()
@@ -110,7 +113,7 @@ def case(title, story, account, cur, term, lines, expect_block=None):
         print("   opportunity not created:", json.dumps(opp)[:300]); RESULTS.append((story, title, "ERROR", "opportunity")); return
     recs = [{"referenceId": "q1", "record": {"attributes": {"type": "Quote", "method": "POST"}, "Name": f"PRICING-ALL {story}",
              "OpportunityId": opp_id, "Pricebook2Id": PB[cur], "StartDate": TODAY.isoformat(), "RLM_TermMonths__c": term,
-             "LegalEntityId": LE_BY_CUR[cur]}}]
+             "LegalEntityId": LE_BY_CUR[cur]} | (quote_extra or {})}]
     meta = []
     for i, (code, qty, freq, manual) in enumerate(lines):
         e = pbe(code, cur)
@@ -164,7 +167,8 @@ case("Starter x3 USD monthly = $79 x 3", "MR-99", "zero", "USD", 12, [(STR, 3, "
 for cur in ("GBP", "AUD", "EUR"):
     if cur in PB:
         case(f"Ultimate x1 list price in {cur}", "MR-99", "zero", cur, 12, [(ULT, 1, "Monthly", 0)])
-case("Branded App $199 and TAM $1,000", "MR-99/MR-106", "zero", "USD", 12, [("MB-APP", 1, "Monthly", 0), ("MB-TAM", 1, "Monthly", 0)])
+case("Branded App $199 per brand", "MR-99", "zero", "USD", 12, [("MB-APP", 1, "Monthly", 0)])
+case("TAM $1,000 per account", "MR-106", "zero", "USD", 12, [("MB-TAM", 1, "Monthly", 0)])
 # MR-100 volume
 case("No locations + 2 new = 2 -> 0%", "MR-100", "zero", "USD", 12, [(ULT, 2, "Monthly", 0)])
 case("No locations + 5 new = 5 -> 5%", "MR-100", "zero", "USD", 12, [(ULT, 5, "Monthly", 0)])
@@ -188,7 +192,8 @@ case("Accelerate 15% manual = $228.65, above floor", "MR-104", "zero", "USD", 12
 case("Services on a 12-location account: no discounts", "MR-106", "pulse", "USD", 12,
      [("MB-CON", 10, "Monthly", 0), ("MB-DCV", 2, "Monthly", 0), ("MB-IMP", 1, "Monthly", 0)])
 case("Hardware: card reader, terminal, door kit", "MR-106", "pulse", "USD", 12,
-     [("MB-PAY", 1, "Monthly", 0), ("MB-HW-RDR", 1, "Monthly", 0), ("MB-HW-TRM", 1, "Monthly", 0), ("MB-HW-DOOR", 1, "Monthly", 0)])
+     [("MB-PAY", 1, "Monthly", 0), ("MB-HW-RDR", 1, "Monthly", 0), ("MB-HW-TRM", 1, "Monthly", 0), ("MB-HW-DOOR", 1, "Monthly", 0)],
+     quote_extra={"ShippingStreet": "1 Main St", "ShippingCity": "Austin", "ShippingState": "TX", "ShippingPostalCode": "78701", "ShippingCountry": "United States"})
 
 # standard quantity tiers still work (restored standard step)
 tier = q("SELECT Product2.ProductCode, Product2Id, LowerBound, TierValue, TierType, CurrencyIsoCode FROM PriceAdjustmentTier "

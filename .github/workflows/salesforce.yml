@@ -349,6 +349,7 @@ jobs:
           elif [ "$DEPLOY_PATH" = "floor-test" ]; then ./scripts/usage/floor_test.sh
           elif [ "$DEPLOY_PATH" = "restore-v4" ]; then ./scripts/usage/activate_v4.sh; sleep 20; ./scripts/usage/pricing_place.sh
           elif [ "$DEPLOY_PATH" = "pricing-all" ]; then python3 scripts/usage/pricing_all.py
+          elif [ "${DEPLOY_PATH%%:*}" = "pricing-only" ]; then ONLY="${DEPLOY_PATH#*:}" python3 scripts/usage/pricing_all.py
           elif [ "$DEPLOY_PATH" = "volume-v5" ]; then ./scripts/usage/volume_v5_test.sh
           elif [ "$DEPLOY_PATH" = "activate-v5" ]; then ./scripts/usage/activate_v5.sh; sleep 20; ./scripts/usage/floor_test.sh
           elif [ "$DEPLOY_PATH" = "ctx-hierarchy" ]; then ./scripts/usage/ctx_hierarchy.sh
