@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Activate pricing procedure version 5 (promotions + floor price), deactivate the others, sync pricing data.
+# Activate pricing procedure version 5 (location volume incl. new locations, promotions), deactivate the others, sync pricing data.
 set -uo pipefail
 API="/services/data/v$ORG_API"
 q() { sf data query --query "$1" --target-org target --json | jq -c '[.result.records[]? | del(.attributes)] // .message'; }
