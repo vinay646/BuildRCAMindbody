@@ -30,12 +30,10 @@ Requirement checks against the org live in the companion repo `vinay646/mindbody
 
 ### Which org the workflow uses
 
-All runs now go to the developers' Mindbody org by default, through the repository secret `TESTING_ORG`.
+- **org = exploremore** (default): uses `SFDX_AUTH_URL`, our ExploremoreRCA build org. Development runs here.
+- **org = testing**: uses `TESTING_ORG`, the developers' Mindbody org (mindbodysfs), used for QA. Every action can run there, so pick it only when you mean to.
 
-- **org = testing** (default): uses `TESTING_ORG`. Every action runs here, including deploy, load, cleanup and delete.
-- **org = exploremore**: uses `SFDX_AUTH_URL`, our earlier ExploremoreRCA build org. Pick it only when you mean to.
-
-Pull-request validation (check-only) also runs against `TESTING_ORG`. Some scripts under `scripts/usage/` hold record Ids from ExploremoreRCA; check them before running them on the testing org.
+Pull-request validation (check-only) runs against ExploremoreRCA.
    Treat it like a password: it logs in as you.
 
 ## Run from GitHub

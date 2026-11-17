@@ -1,8 +1,8 @@
 name: Salesforce build
 
 # Connects to one of two orgs, picked per run with the "org" input:
-#   testing (default) -> secret TESTING_ORG    (the developers' Mindbody org – all work now runs here)
-#   exploremore       -> secret SFDX_AUTH_URL  (our earlier ExploremoreRCA build org, only when picked)
+#   exploremore (default) -> secret SFDX_AUTH_URL  (our ExploremoreRCA build org – development runs here)
+#   testing               -> secret TESTING_ORG    (the developers' Mindbody org, used for QA)
 on:
   workflow_dispatch:
     inputs:
@@ -39,10 +39,10 @@ on:
           - explore-rule-api  # read-only: configuration-rule permissions, invocable actions and Connect API resources
           - probe-config-rule  # changes nothing: test-insert a configuration rule and roll it back
       org:
-        description: "Which org: testing (TESTING_ORG, default) or exploremore (SFDX_AUTH_URL)"
+        description: "Which org: exploremore (SFDX_AUTH_URL, default) or testing (TESTING_ORG)"
         type: choice
-        default: testing
-        options: [testing, exploremore]
+        default: exploremore
+        options: [exploremore, testing]
       path:
         description: "Deploy / validate only this path – several paths comma-separated (default: all of force-app)"
         required: false
@@ -62,9 +62,9 @@ jobs:
   salesforce:
     runs-on: ubuntu-24.04
     env:
-      MB_ORG_CHOICE: ${{ github.event.inputs.org || 'testing' }}
+      MB_ORG_CHOICE: ${{ github.event.inputs.org || 'exploremore' }}
       # No fallback between orgs: each choice only ever gets its own secret (the run stops if it is missing).
-      SFDX_AUTH_URL: ${{ github.event.inputs.org != 'exploremore' && secrets.TESTING_ORG || '' }}${{ github.event.inputs.org == 'exploremore' && secrets.SFDX_AUTH_URL || '' }}
+      SFDX_AUTH_URL: ${{ github.event.inputs.org == 'testing' && secrets.TESTING_ORG || '' }}${{ github.event.inputs.org != 'testing' && secrets.SFDX_AUTH_URL || '' }}
       ACTION: ${{ github.event.inputs.action || 'validate' }}
       STEP: ${{ github.event.inputs.step }}
       DEPLOY_PATH: ${{ github.event.inputs.path || 'force-app' }}
