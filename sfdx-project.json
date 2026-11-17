@@ -21,67 +21,7 @@
       "default": false
     },
     {
-      "path": "deploy/pv5-s0",
-      "default": false
-    },
-    {
-      "path": "deploy/pv5-s1",
-      "default": false
-    },
-    {
       "path": "deploy/pv5-s2",
-      "default": false
-    },
-    {
-      "path": "deploy/pv5-s3",
-      "default": false
-    },
-    {
-      "path": "deploy/pv5-va",
-      "default": false
-    },
-    {
-      "path": "deploy/pv5-vb",
-      "default": false
-    },
-    {
-      "path": "deploy/pv5-vc",
-      "default": false
-    },
-    {
-      "path": "deploy/pv5-vd",
-      "default": false
-    },
-    {
-      "path": "deploy/pv5-ve",
-      "default": false
-    },
-    {
-      "path": "deploy/pv5-vf",
-      "default": false
-    },
-    {
-      "path": "deploy/pv5-vg",
-      "default": false
-    },
-    {
-      "path": "deploy/pv5-vh",
-      "default": false
-    },
-    {
-      "path": "deploy/pv5-vi",
-      "default": false
-    },
-    {
-      "path": "deploy/pv5-vj",
-      "default": false
-    },
-    {
-      "path": "deploy/pv5-vk",
-      "default": false
-    },
-    {
-      "path": "deploy/pv5-vl",
       "default": false
     }
   ],

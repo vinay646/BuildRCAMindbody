@@ -24932,6 +24932,19 @@
             </contextAttributes>
             <contextAttributes>
                 <contextTags>
+                    <title>MbVolumeCount</title>
+                </contextTags>
+                <customMappingAllowed>false</customMappingAllowed>
+                <dataType>number</dataType>
+                <fieldType>inputoutput</fieldType>
+                <key>false</key>
+                <localizationDisabled>false</localizationDisabled>
+                <title>MbVolumeCount</title>
+                <transient>true</transient>
+                <value>false</value>
+            </contextAttributes>
+            <contextAttributes>
+                <contextTags>
                     <title>MbNewLocationQty</title>
                 </contextTags>
                 <customMappingAllowed>false</customMappingAllowed>

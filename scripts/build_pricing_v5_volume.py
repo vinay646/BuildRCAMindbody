@@ -5,13 +5,13 @@ and was never activated; it stays in git history).
 
 Changes against version 4 (all standard elements):
   1. List Group "Mindbody new locations – reset": every line, Formula 0 -> line tag MbNewLocationQty.
-  2. List Group "Mindbody new locations – new core plan lines": lines with ProductCode MB-STR/ACC/ULT/ENT and
+  2. List Group "Mindbody new locations – new core plan lines": lines whose Product is Starter/Accelerate/Ultimate/Enterprise and
      SalesTransactionActionType blank or 'Add', Formula LineItemQuantity -> MbNewLocationQty.
   3. Aggregate Price "Mindbody new locations on quote": SUM(MbNewLocationQty) over all lines -> header tag
      MbNewLocationsOnQuote (no grouping, like the standard "total amount" aggregate).
   4. List Group "Mindbody volume count": every line, Formula MbHierarchyLocationCount + MbNewLocationsOnQuote ->
-     line tag MbVolumeLocationCount (existing, unused attribute).
-  5. Volume group: the Mindbody location step reads MbVolumeLocationCount; the standard Salesforce volume step is added
+     temporary line tag MbVolumeCount (a formula cannot write to the saved attribute MbVolumeLocationCount).
+  5. Volume group: the Mindbody location step reads MbVolumeCount; the standard Salesforce volume step is added
      back exactly as in version 1 (schedule VolumePASIdConstant, bounds = line quantity) so future quantity-based
      volume products only need tiers. Order: Mindbody location volume, standard volume, contract term, billing frequency.
 Source: the org's version 4 as retrieved (BASE env var or the default scratch path); output: deploy/pricing-v5.
@@ -32,7 +32,9 @@ V5 = "RLM_DefaultPricingProcedure_RLM_Revenue_Management_Default_Pricing_Procedu
 VOLUME_GROUP = "Applyvolumebaseddiscountstolineswithoutcontractorlasttrxnpricing"
 STD_STEP = "Calculatenetunitpriceandnettotalpriceaftervolumebaseddiscount"
 FIRST_SEQ = 20  # the volume group's current top-level sequence; the 4 new top-level steps go in front of it
-CORE = ["MB-STR", "MB-ACC", "MB-ULT", "MB-ENT"]
+# Core plan products by Id: the pricing procedure filter rejects ProductCode (deploy fails with an internal error) but
+# accepts the Product lookup. Ids are ExploremoreRCA's; another org passes its own: CORE_IDS=id1,id2,...
+CORE = os.environ.get("CORE_IDS", "01thm000000vXaLAAU,01thm000000vXaMAAU,01thm000000vXaNAAU,01thm000000vXaOAAU").split(",")  # STR, ACC, ULT, ENT
 FLAGS = ("<shouldExposExecPathMsgOnly>true</shouldExposExecPathMsgOnly><shouldExposeConditionDetails>false</shouldExposeConditionDetails>"
          "<shouldShowExplExternally>false</shouldShowExplExternally>")
 
@@ -65,9 +67,9 @@ def group(name, label, seq, logic, criteria, formula, output):
         f"<sequenceNumber>2</sequenceNumber>{FLAGS}<stepType>BusinessKnowledgeModel</stepType></steps>")
 
 
-ALL_LINES = ("1 OR 2", [crit(1, "ProductCode", "IsNull"), crit(2, "ProductCode", "NotEquals", "&apos;MB-NONE&apos;")])
+ALL_LINES = ("1 OR 2 OR 3", [crit(1, "IsContracted", "IsNull"), crit(2, "IsContracted", "Equals", "false"), crit(3, "IsContracted", "Equals", "true")])
 NEW_CORE = ("(1 OR 2 OR 3 OR 4) AND (5 OR 6)",
-            [crit(i + 1, "ProductCode", "Equals", f"&apos;{c}&apos;") for i, c in enumerate(CORE)]
+            [crit(i + 1, "Product", "Equals", f"&apos;{c}&apos;") for i, c in enumerate(CORE)]
             + [crit(5, "SalesTransactionActionType", "IsNull"), crit(6, "SalesTransactionActionType", "Equals", "&apos;Add&apos;")])
 
 AGGREGATE = (
@@ -128,8 +130,8 @@ def main():
                 st = set_tag(st, "sequenceNumber", seq + SHIFT, last=True)
         elif parent.group(1) == VOLUME_GROUP:
             if name == STD_STEP:  # current Mindbody location step: new name, bounds = volume count
-                st = set_param(st, "LowerBound", "MbVolumeLocationCount")
-                st = set_param(st, "UpperBound", "MbVolumeLocationCount")
+                st = set_param(st, "LowerBound", "MbVolumeCount")
+                st = set_param(st, "UpperBound", "MbVolumeCount")
                 st = st.replace(f"<name>{STD_STEP}</name>", "<name>MindbodyLocationVolumeDiscount</name>")
                 st = st.replace("<resultIncluded>true</resultIncluded>", "<resultIncluded>false</resultIncluded>")
             elif name == "MindbodyContractTermDiscount":
@@ -145,7 +147,7 @@ def main():
                      "LineItemQuantity", "MbNewLocationQty")
              + (AGGREGATE if STAGE >= 3 else "")
              + group("MindbodyVolumeCount", "Mindbody volume count", FIRST_SEQ + SHIFT - 1, *ALL_LINES,
-                     "MbHierarchyLocationCount + MbNewLocationsOnQuote", "MbVolumeLocationCount"))
+                     "MbHierarchyLocationCount + MbNewLocationsOnQuote", "MbVolumeCount"))
 
     head = v[: v.find("<steps>")]
     tail = v[v.rfind("</steps>") + len("</steps>"):]
