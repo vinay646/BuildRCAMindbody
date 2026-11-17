@@ -23,26 +23,3 @@ for (String r : pbByRegion.keySet()) {
         Database.rollback(sp);
     }
 }
-// Starter line with blank / Monthly / Quarterly billing frequency on an empty USD quote
-List<Quote> qs = [SELECT Id, QuoteNumber, Pricebook2Id, Pricebook2.Name FROM Quote WHERE Pricebook2.Name = 'North America & Asia (USD)' AND Id NOT IN (SELECT QuoteId FROM QuoteLineItem) ORDER BY CreatedDate DESC LIMIT 1];
-if (qs.isEmpty()) { System.debug(LoggingLevel.ERROR, 'RESULT starter: no empty USD quote'); }
-else {
-    Quote q = qs[0];
-    List<PricebookEntry> pbes = [SELECT Id, UnitPrice, Product2Id, ProductSellingModelId, ProductSellingModel.Name FROM PricebookEntry WHERE Pricebook2Id = :q.Pricebook2Id AND Product2.ProductCode = 'MB-STR' AND CurrencyIsoCode = 'USD' AND IsActive = true];
-    for (PricebookEntry pbe : pbes) {
-        for (String f : new List<String>{ null, 'Monthly', 'Quarterly' }) {
-            Savepoint sp = Database.setSavepoint();
-            String label = 'RESULT starter ' + pbe.ProductSellingModel.Name + ' freq=' + (f == null ? 'blank' : f) + ' on quote ' + q.QuoteNumber + ': ';
-            try {
-                QuoteLineItem l = new QuoteLineItem(QuoteId = q.Id, PricebookEntryId = pbe.Id, Product2Id = pbe.Product2Id, Quantity = 1, UnitPrice = pbe.UnitPrice, ProductSellingModelId = pbe.ProductSellingModelId, StartDate = Date.today());
-                if (f != null) { l.put('BillingFrequency', f); }
-                insert l;
-                SObject s = Database.query('SELECT BillingFrequency FROM QuoteLineItem WHERE Id = \'' + l.Id + '\'');
-                System.debug(LoggingLevel.ERROR, label + 'SAVED, billing frequency stored = ' + s.get('BillingFrequency'));
-            } catch (Exception e) {
-                System.debug(LoggingLevel.ERROR, label + 'BLOCKED ' + e.getMessage().left(300));
-            }
-            Database.rollback(sp);
-        }
-    }
-}
