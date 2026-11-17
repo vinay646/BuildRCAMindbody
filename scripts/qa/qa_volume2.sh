@@ -8,7 +8,7 @@ echo "== CONTEXT DEFINITIONS"; raw "SELECT DeveloperName, LastModifiedDate FROM 
 args=""; for n in $(sf data query --query "SELECT DeveloperName FROM ExpressionSetDefinition WHERE LastModifiedDate >= 2026-11-01T00:00:00Z" --target-org target --json | jq -r '.result.records[].DeveloperName'); do args="$args --metadata ExpressionSetDefinition:$n"; done
 for n in $(sf data query --query "SELECT DeveloperName FROM ContextDefinition WHERE LastModifiedDate >= 2026-10-25T00:00:00Z" --target-org target --json | jq -r '.result.records[].DeveloperName'); do args="$args --metadata ContextDefinition:$n"; done
 echo "retrieve:$args"
-mkdir -p /tmp/md && sf project retrieve start $args --target-dir /tmp/md --target-org target --json > /tmp/md/r.json 2>&1; jq -c '{status, message, files: [.result.files[]? | "\(.type):\(.fullName) \(.state)"]}' /tmp/md/r.json | cut -c1-1500
+mkdir -p /tmp/md && sf project retrieve start $args --output-dir /tmp/md --target-org target --json > /tmp/md/r.json 2>&1; jq -c '{status, message, files: [.result.files[]? | "\(.type):\(.fullName) \(.state)"]}' /tmp/md/r.json | cut -c1-1500
 for f in $(find /tmp/md -name '*.expressionSetDefinition-meta.xml'); do
   python3 - "$f" <<'PY'
 import re,sys
