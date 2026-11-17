@@ -51,6 +51,22 @@
     {
       "path": "deploy/pv5-vd",
       "default": false
+    },
+    {
+      "path": "deploy/pv5-ve",
+      "default": false
+    },
+    {
+      "path": "deploy/pv5-vf",
+      "default": false
+    },
+    {
+      "path": "deploy/pv5-vg",
+      "default": false
+    },
+    {
+      "path": "deploy/pv5-vh",
+      "default": false
     }
   ],
   "name": "mindbody-arm-build",
