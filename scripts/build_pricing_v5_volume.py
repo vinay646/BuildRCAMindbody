@@ -23,7 +23,10 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
 BASE = Path(os.environ.get("BASE", ROOT / "deploy/org-retrieved/RLM_DefaultPricingProcedure.expressionSetDefinition"))
-OUT = ROOT / "deploy/pricing-v5/main/default/expressionSetDefinition/RLM_DefaultPricingProcedure.expressionSetDefinition-meta.xml"
+STAGE = int(os.environ.get("STAGE", "9"))
+SHIFT = 0 if STAGE < 2 else (3 if STAGE == 2 else 4)  # number of new top-level steps  # bisect a failing deploy: 0 copy of v4, 1 + volume group, 2 + formula groups, 3+ all
+WRAPPER = ROOT / "deploy/pricing-v5/main/default/expressionSetDefinition/RLM_DefaultPricingProcedure.expressionSetDefinition-meta.xml"
+OUT = Path(os.environ["OUT"]) if os.environ.get("OUT") else WRAPPER
 V4 = "RLM_DefaultPricingProcedure_RLM_Revenue_Management_Default_Pricing_Procedure_V40"
 V5 = "RLM_DefaultPricingProcedure_RLM_Revenue_Management_Default_Pricing_Procedure_V50"
 VOLUME_GROUP = "Applyvolumebaseddiscountstolineswithoutcontractorlasttrxnpricing"
@@ -116,10 +119,13 @@ def main():
         o = outer(st)
         parent = re.search(r"<parentStep>(.*?)</parentStep>", o)
         name = re.findall(r"<name>(.*?)</name>", o)[-1]
+        if STAGE < 1:
+            new_steps.append(st)
+            continue
         if parent is None:  # top level: shift from the volume group on
             seq = int(re.findall(r"<sequenceNumber>(\d+)</sequenceNumber>", o)[-1])
             if seq >= FIRST_SEQ:
-                st = set_tag(st, "sequenceNumber", seq + 4, last=True)
+                st = set_tag(st, "sequenceNumber", seq + SHIFT, last=True)
         elif parent.group(1) == VOLUME_GROUP:
             if name == STD_STEP:  # current Mindbody location step: new name, bounds = volume count
                 st = set_param(st, "LowerBound", "MbVolumeLocationCount")
@@ -134,11 +140,11 @@ def main():
         if parent is not None and parent.group(1) == VOLUME_GROUP and name == STD_STEP:
             new_steps.append(set_tag(std, "sequenceNumber", 3, last=True))  # standard step, as Salesforce ships it
 
-    added = (group("MindbodyNewLocationsReset", "Mindbody new locations – reset", FIRST_SEQ, *ALL_LINES, "0", "MbNewLocationQty")
+    added = "" if STAGE < 2 else (group("MindbodyNewLocationsReset", "Mindbody new locations – reset", FIRST_SEQ, *ALL_LINES, "0", "MbNewLocationQty")
              + group("MindbodyNewLocationsCore", "Mindbody new locations – new core plan lines", FIRST_SEQ + 1, *NEW_CORE,
                      "LineItemQuantity", "MbNewLocationQty")
-             + AGGREGATE
-             + group("MindbodyVolumeCount", "Mindbody volume count", FIRST_SEQ + 3, *ALL_LINES,
+             + (AGGREGATE if STAGE >= 3 else "")
+             + group("MindbodyVolumeCount", "Mindbody volume count", FIRST_SEQ + SHIFT - 1, *ALL_LINES,
                      "MbHierarchyLocationCount + MbNewLocationsOnQuote", "MbVolumeLocationCount"))
 
     head = v[: v.find("<steps>")]
@@ -155,9 +161,10 @@ def main():
                 "<description>Default pricing + Mindbody discounts: location volume (hierarchy + new locations on the quote), "
                 "standard quantity volume, contract term, billing frequency; promotions.</description>", v5, count=1)
 
-    wrapper = OUT.read_text()
+    wrapper = WRAPPER.read_text()
     w_head = wrapper[: wrapper.find("<versions>")]
     w_tail = wrapper[wrapper.rfind("</versions>") + len("</versions>"):]
+    OUT.parent.mkdir(parents=True, exist_ok=True)
     OUT.write_text(w_head + v5 + w_tail)
     print("version 5 written:", len(re.findall(r"<steps>", v5)), "steps (v4 had", len(steps), ")")
 

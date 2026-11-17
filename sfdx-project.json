@@ -19,6 +19,22 @@
     {
       "path": "deploy/pricing-v5",
       "default": false
+    },
+    {
+      "path": "deploy/pv5-s0",
+      "default": false
+    },
+    {
+      "path": "deploy/pv5-s1",
+      "default": false
+    },
+    {
+      "path": "deploy/pv5-s2",
+      "default": false
+    },
+    {
+      "path": "deploy/pv5-s3",
+      "default": false
     }
   ],
   "name": "mindbody-arm-build",
