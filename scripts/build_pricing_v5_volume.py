@@ -24,6 +24,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent.parent
 BASE = Path(os.environ.get("BASE", ROOT / "deploy/org-retrieved/RLM_DefaultPricingProcedure.expressionSetDefinition"))
 STAGE = int(os.environ.get("STAGE", "9"))
+AGG_TYPE = os.environ.get("AGG_TYPE", "Number")  # data type the Aggregate Price element accepts for a quantity sum
 SHIFT = 0 if STAGE < 2 else (3 if STAGE == 2 else 4)  # number of new top-level steps  # bisect a failing deploy: 0 copy of v4, 1 + volume group, 2 + formula groups, 3+ all
 WRAPPER = ROOT / "deploy/pricing-v5/main/default/expressionSetDefinition/RLM_DefaultPricingProcedure.expressionSetDefinition-meta.xml"
 OUT = Path(os.environ["OUT"]) if os.environ.get("OUT") else WRAPPER
@@ -75,10 +76,10 @@ NEW_CORE = ("(1 OR 2 OR 3 OR 4) AND (5 OR 6)",
 AGGREGATE = (
     "<steps><actionType>GroupingAndAggregatePricing</actionType><customElement>"
     + P("section-count", "Literal", "1") + P("section-0-group-count", "Literal", "0") + P("section-0-aggr-func", "Literal", "SUM")
-    + P("section-0-aggr-func-tag-type", "Literal", "Number") + P("section-0-aggr-func-tag", "Parameter", "MbNewLocationQty")
-    + P("section-0-output-type", "Literal", "Number")
+    + P("section-0-aggr-func-tag-type", "Literal", AGG_TYPE) + P("section-0-aggr-func-tag", "Parameter", "MbNewLocationQty")
+    + P("section-0-output-type", "Literal", AGG_TYPE)
     + P("condition-0-input", "Parameter", "MbNewLocationQty") + P("condition-0-operator", "Literal", "isNotNull")
-    + P("condition-0-input-data-type", "Literal", "Number")
+    + P("condition-0-input-data-type", "Literal", AGG_TYPE)
     + P("write-back-data-type", "Literal", "Text") + P("rollup-condition-data-type", "Literal", "Text")
     + P("where-condition-count", "Literal", "1") + P("RollUpPrice", "Literal", "false")
     + P("section-0-output", "Parameter", "MbNewLocationsOnQuote", True)

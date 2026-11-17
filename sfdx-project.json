@@ -23,6 +23,18 @@
     {
       "path": "deploy/pv5-s2",
       "default": false
+    },
+    {
+      "path": "deploy/pv5-aggCurrency",
+      "default": false
+    },
+    {
+      "path": "deploy/pv5-aggNumeric",
+      "default": false
+    },
+    {
+      "path": "deploy/pv5-aggDecimal",
+      "default": false
     }
   ],
   "name": "mindbody-arm-build",
