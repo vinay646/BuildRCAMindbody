@@ -77,7 +77,8 @@ def expected(code, lst, count, term, freq, manual):
 PB = {}
 for cur in ("USD", "GBP", "AUD", "EUR"):
     rows = q(f"SELECT Pricebook2Id, Pricebook2.Name FROM PricebookEntry WHERE Product2.ProductCode = 'MB-ULT' AND CurrencyIsoCode = '{cur}' "
-             f"AND IsActive = true AND Pricebook2.IsStandard = false LIMIT 1")
+             f"AND IsActive = true AND Pricebook2.IsStandard = false AND Pricebook2.IsActive = true "
+             f"AND (NOT Pricebook2.Name LIKE '%Floor%') LIMIT 1")
     if rows:
         PB[cur] = rows[0]["Pricebook2Id"]
 LE = {r["Name"]: r["Id"] for r in q("SELECT Id, Name FROM LegalEntity")}
@@ -86,7 +87,7 @@ LE_BY_CUR = {"USD": LE.get("Default Legal Entity - US"), "GBP": LE.get("Default 
 PULSE = q("SELECT Id FROM Account WHERE Name = 'Pulse Fitness Brands' LIMIT 1")[0]["Id"]
 ZERO = q("SELECT Id, Name FROM Account WHERE Root_Account__c = null AND (Active_Location_Count__c = null OR Active_Location_Count__c = 0) "
          "AND Id NOT IN (SELECT AccountId FROM Asset) ORDER BY CreatedDate DESC LIMIT 1")[0]
-print("price books:", PB, "| zero-location account:", ZERO["Name"])
+print("price books:", {c: q(f"SELECT Name FROM Pricebook2 WHERE Id = '{i}'")[0]["Name"] for c, i in PB.items()}, "| zero-location account:", ZERO["Name"])
 
 
 def pbe(code, cur):
