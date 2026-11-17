@@ -40,7 +40,8 @@ run() {  # $1 name, $2 lines json array of [pbeJson, qty]
   echo "$R" | jq -e '.isSuccess == true' > /dev/null 2>&1 || FAILED=1
 }
 run "ULT-2" "[[${ULT},2]]"
-run "ULT-2+STR-2" "[[${ULT},2],[${STR},2]]"
-run "ULT-12" "[[${ULT},12]]"
+# one plan per quote (CR-01), so the band change is shown with one Ultimate line: 12 + 40 = 52 -> 15%, 12 + 189 = 201 -> 20%
+run "ULT-40" "[[${ULT},40]]"
+run "ULT-189" "[[${ULT},189]]"
 echo "== standard quantity tiers still present: $(q "SELECT COUNT(Id) n FROM PriceAdjustmentTier WHERE PriceAdjustmentSchedule.Name = 'Standard Price Adjustment Tier'")"
 if [ "$FAILED" = 1 ]; then echo "== FAILURES: re-activating version 4"; ./scripts/usage/activate_v4.sh; else echo "== ALL PASS: version 5 stays active"; fi
