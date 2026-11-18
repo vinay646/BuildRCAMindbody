@@ -440,6 +440,16 @@
                     <name>uiBehavior</name>
                     <value>none</value>
                 </fieldInstanceProperties>
+                <fieldItem>Record.MB_Billing_Frequency__c</fieldItem>
+                <identifier>MbRecordMBBillingFrequencycField</identifier>
+            </fieldInstance>
+        </itemInstances>
+        <itemInstances>
+            <fieldInstance>
+                <fieldInstanceProperties>
+                    <name>uiBehavior</name>
+                    <value>none</value>
+                </fieldInstanceProperties>
                 <fieldItem>Record.Payer_Override__c</fieldItem>
                 <identifier>MbRecordPayerOverridecField</identifier>
             </fieldInstance>

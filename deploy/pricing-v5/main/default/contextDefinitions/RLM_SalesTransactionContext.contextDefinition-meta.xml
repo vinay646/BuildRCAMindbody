@@ -8374,6 +8374,14 @@
                 <contextAttributeMappings>
                     <contextAttrHydrationDetails>
                         <objectName>Quote</objectName>
+                        <queryAttribute>MB_Billing_Frequency__c</queryAttribute>
+                    </contextAttrHydrationDetails>
+                    <contextAttribute>MbQuoteBillingFrequency</contextAttribute>
+                    <contextInputAttributeName>MB_Billing_Frequency__c</contextInputAttributeName>
+                </contextAttributeMappings>
+                <contextAttributeMappings>
+                    <contextAttrHydrationDetails>
+                        <objectName>Quote</objectName>
                         <queryAttribute>MB_Prior_System__c</queryAttribute>
                     </contextAttrHydrationDetails>
                     <contextAttribute>MbPriorSystem</contextAttribute>
@@ -18241,6 +18249,19 @@
                 <key>false</key>
                 <localizationDisabled>false</localizationDisabled>
                 <title>MbHierarchyLocationCount</title>
+                <transient>false</transient>
+                <value>false</value>
+            </contextAttributes>
+            <contextAttributes>
+                <contextTags>
+                    <title>MbQuoteBillingFrequency</title>
+                </contextTags>
+                <customMappingAllowed>false</customMappingAllowed>
+                <dataType>string</dataType>
+                <fieldType>input</fieldType>
+                <key>false</key>
+                <localizationDisabled>false</localizationDisabled>
+                <title>MbQuoteBillingFrequency</title>
                 <transient>false</transient>
                 <value>false</value>
             </contextAttributes>

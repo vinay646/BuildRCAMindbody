@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>MB_Billing_Frequency__c</fullName>
+    <label>Billing Frequency</label>
+    <description>Quote-level billing frequency. The pricing procedure (context attribute MbQuoteBillingFrequency) applies it to every recurring quote line's Billing Frequency and the billing frequency discount. Blank: each line keeps its own.</description>
+    <inlineHelpText>Applies to every recurring line on the quote when the quote is priced. Leave blank to set it per line.</inlineHelpText>
+    <type>Picklist</type>
+    <required>false</required>
+    <trackHistory>false</trackHistory>
+    <valueSet>
+        <restricted>true</restricted>
+        <valueSetDefinition>
+            <sorted>false</sorted>
+            <value><fullName>Monthly</fullName><default>false</default><label>Monthly</label></value>
+            <value><fullName>Quarterly</fullName><default>false</default><label>Quarterly</label></value>
+            <value><fullName>Semi-Annual</fullName><default>false</default><label>Semi-Annual</label></value>
+            <value><fullName>Annual</fullName><default>false</default><label>Annual</label></value>
+        </valueSetDefinition>
+    </valueSet>
+</CustomField>

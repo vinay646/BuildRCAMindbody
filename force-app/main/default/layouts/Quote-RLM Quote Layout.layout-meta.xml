@@ -70,6 +70,10 @@
         <layoutColumns>
             <layoutItems>
                 <behavior>Edit</behavior>
+                <field>MB_Billing_Frequency__c</field>
+            </layoutItems>
+            <layoutItems>
+                <behavior>Edit</behavior>
                 <field>Payer_Override__c</field>
             </layoutItems>
             <layoutItems>
