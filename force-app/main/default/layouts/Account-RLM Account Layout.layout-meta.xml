@@ -61,6 +61,10 @@
                 <field>MB_Region__c</field>
             </layoutItems>
             <layoutItems>
+                <behavior>Readonly</behavior>
+                <field>MB_Qualification_Region__c</field>
+            </layoutItems>
+            <layoutItems>
                 <behavior>Edit</behavior>
                 <field>Master_Contract__c</field>
             </layoutItems>

@@ -29,10 +29,10 @@
                 <contextAttributeMappings>
                     <contextAttrHydrationDetails>
                         <objectName>Account</objectName>
-                        <queryAttribute>MB_Region__c</queryAttribute>
+                        <queryAttribute>MB_Qualification_Region__c</queryAttribute>
                     </contextAttrHydrationDetails>
                     <contextAttribute>MB_Region__c</contextAttribute>
-                    <contextInputAttributeName>MB_Region__c</contextInputAttributeName>
+                    <contextInputAttributeName>MB_Qualification_Region__c</contextInputAttributeName>
                 </contextAttributeMappings>
                 <contextAttributeMappings>
                     <contextAttribute>AccountId</contextAttribute>

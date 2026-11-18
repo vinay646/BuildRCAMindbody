@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>MB_Qualification_Region__c</fullName>
+    <label>Qualification Region</label>
+    <description>CR-15 product availability in Browse Products (product discovery context attribute MB_Region__c). US48 = United States excluding Alaska and Hawaii (Insurance); otherwise the account Region (NA, UK, AU, EU).</description>
+    <inlineHelpText>Decides which region-limited products (hardware, Capital, Insurance) this account can buy. Set from Region and billing country / state.</inlineHelpText>
+    <type>Text</type>
+    <formula>IF(
+  AND(
+    ISPICKVAL(MB_Region__c, &apos;NA&apos;),
+    OR(UPPER(TRIM(BillingCountry)) = &apos;US&apos;, UPPER(TRIM(BillingCountry)) = &apos;USA&apos;, UPPER(TRIM(BillingCountry)) = &apos;UNITED STATES&apos;, UPPER(TRIM(BillingCountry)) = &apos;UNITED STATES OF AMERICA&apos;),
+    NOT(OR(UPPER(TRIM(BillingState)) = &apos;AK&apos;, UPPER(TRIM(BillingState)) = &apos;ALASKA&apos;, UPPER(TRIM(BillingState)) = &apos;HI&apos;, UPPER(TRIM(BillingState)) = &apos;HAWAII&apos;))
+  ),
+  &apos;US48&apos;,
+  TEXT(MB_Region__c)
+)</formula>
+    <formulaTreatBlanksAs>BlankAsZero</formulaTreatBlanksAs>
+    <unique>false</unique>
+</CustomField>
