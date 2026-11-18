@@ -61,9 +61,9 @@ for name, region, country, state, want_cap, want_ins, want_hw in CASES:
         body = {"catalogId": cat, "categoryId": cats.get(c), "enableQualification": True, "userContext": {"accountId": acc},
                 "pageSize": 50}
         r = rest("POST", "/connect/cpq/products", body)
-        prods = r.get("result") or r.get("products") or []
+        prods = (r.get("result") or r.get("products") or []) if isinstance(r, dict) else []
         if not prods and len(results) == 0:
-            print(f"   {c} response:", json.dumps(r)[:600])
+            print(f"   {c} response:", json.dumps(r)[:800])
         for p in prods:
             seen.add(p.get("productCode") or (p.get("additionalFields") or {}).get("ProductCode") or p.get("name"))
     got = ("MB-CAP" in seen or "Mindbody Capital" in seen, "MB-INS" in seen or "Mindbody Insurance" in seen,
