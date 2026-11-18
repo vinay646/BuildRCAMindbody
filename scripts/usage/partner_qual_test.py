@@ -58,8 +58,7 @@ for name, region, country, state, want_cap, want_ins, want_hw in CASES:
     qreg = qr[0]["MB_Qualification_Region__c"] if qr else None
     seen = set()
     for c in ("Partner Products", "Hardware"):
-        body = {"catalogId": cat, "categoryId": cats.get(c), "enableQualification": True, "userContext": {"accountId": acc},
-                "pageSize": 50}
+        body = {"catalogId": cat, "categoryId": cats.get(c), "enableQualification": True, "userContext": {"accountId": acc}}
         r = rest("POST", "/connect/cpq/products", body)
         prods = (r.get("result") or r.get("products") or []) if isinstance(r, dict) else []
         if not prods and len(results) == 0:
