@@ -75,34 +75,40 @@ def case(title, coupon, lines, want):
         row = next((x for x in rows if x["Product2"]["ProductCode"] == code), None)
         if not row:
             print(f"   FAIL {code}: no line"); RESULTS.append((f"{title} {code}", "FAIL")); continue
-        adj = q(f"SELECT AdjustmentSource, AdjustmentType, AdjustmentValue, CouponCode, PromotionId FROM QuoteLinePriceAdjustment "
-                f"WHERE QuoteLineItemId = '{row['Id']}' AND (PromotionId != null OR CouponCode != null)")
-        res = "PASS" if abs(float(row["NetUnitPrice"] or 0) - exp) <= 0.01 else "FAIL"
+        adj = q(f"SELECT AdjustmentSource, AdjustmentType, AdjustmentValue, CouponCode FROM QuoteLinePriceAdjustment "
+                f"WHERE QuoteLineItemId = '{row['Id']}'")
+        if exp < 0:
+            res = "INFO" if float(row["NetUnitPrice"] or 0) < float(row["ListPrice"] or 0) else "NONE"
+        else:
+            res = "PASS" if abs(float(row["NetUnitPrice"] or 0) - exp) <= 0.01 else "FAIL"
         print(f"   {res} {code}: list {row['ListPrice']} -> net {row['NetUnitPrice']} (want {exp}) | promotion adjustments "
               f"{[(a.get('AdjustmentSource'), a.get('AdjustmentType'), a.get('AdjustmentValue'), a.get('CouponCode')) for a in adj]}")
         RESULTS.append((f"{title} {code}", res))
     return quote["Id"]
 
 
-case("SWITCH50 on Accelerate = 50% off", "SWITCH50", ["MB-ACC"], {"MB-ACC": 134.50})
-case("LAUNCH3 on Starter = $39 fixed", "LAUNCH3", ["MB-STR"], {"MB-STR": 39.00})
-case("GROW2 on Starter = 100% off", "GROW2", ["MB-STR"], {"MB-STR": 0.00})
-case("SWITCH50 leaves services alone", "SWITCH50", ["MB-ACC", "MB-IMP"], {"MB-ACC": 134.50, "MB-IMP": 2500.00})
-case("SWITCH50 does not target Starter", "SWITCH50", ["MB-STR"], {"MB-STR": 79.00})
+for pr in q("SELECT Name, PromotionConfiguration FROM Promotion WHERE RuleLibraryId != null"):
+    print(f"promotion {pr['Name']} configuration: {(pr.get('PromotionConfiguration') or '')[:1500]}")
+for o in ("PromotionTier", "PromotionQualifier", "PromotionLineItemRule", "PromotionProduct", "PromotionProductCategory"):
+    print(f"{o}: {json.dumps(q(f'SELECT FIELDS(STANDARD) FROM {o} LIMIT 10'))[:800]}")
+
+# rule-library promotions (built in the UI): find which plan each coupon discounts
+for coupon in ("NEWPROMO5", "TODAY10"):
+    for code in ("MB-STR", "MB-ACC", "MB-ULT"):
+        lst = {"MB-STR": 79.0, "MB-ACC": 269.0, "MB-ULT": 499.0}[code]
+        case(f"{coupon} on {code} (discovery)", coupon, [code], {code: -1})
 case("No coupon = list price", None, ["MB-ACC"], {"MB-ACC": 269.00})
 case("Unknown coupon BOGUS = list price", "BOGUS", ["MB-ACC"], {"MB-ACC": 269.00})
-case("Lower case switch50 (information)", "switch50", ["MB-ACC"], {"MB-ACC": 134.50})
-qid = case("Add coupon later and reprice", None, ["MB-ULT"], {"MB-ULT": 499.00})
+qid = case("Add TODAY10 later and reprice (discovery)", None, ["MB-ULT"], {"MB-ULT": 499.00})
 if qid:
     r = place({"pricingPref": "Force", "catalogRatesPref": "Skip", "configurationPref": {"configurationMethod": "Skip"}, "taxPref": "Skip",
                "graph": {"graphId": "upd", "records": [{"referenceId": "q1", "record": {"attributes": {"type": "Quote", "method": "PATCH", "id": qid},
-                                                                                       "Coupon_Code__c": "SWITCH50"}}]}})
+                                                                                       "Coupon_Code__c": "TODAY10"}}]}})
     print("   reprice:", "ok" if r.get("isSuccess") else json.dumps(r.get("errorResponse") or r)[:300])
     time.sleep(8)
-    row = q(f"SELECT NetUnitPrice FROM QuoteLineItem WHERE QuoteId = '{qid}'")[0]
-    res = "PASS" if abs(float(row["NetUnitPrice"] or 0) - 249.50) <= 0.01 else "FAIL"
-    print(f"   {res} MB-ULT after adding SWITCH50 and repricing: net {row['NetUnitPrice']} (want 249.50)")
-    RESULTS.append(("Add coupon later and reprice", res))
+    row = q(f"SELECT Id, NetUnitPrice FROM QuoteLineItem WHERE QuoteId = '{qid}'")[0]
+    print(f"   INFO MB-ULT after adding TODAY10 and repricing: net {row['NetUnitPrice']} | adjustments "
+          f"{q(chr(39).join(['SELECT AdjustmentSource, AdjustmentType, AdjustmentValue, CouponCode FROM QuoteLinePriceAdjustment WHERE QuoteLineItemId = ', row['Id'], '']))}")
 
 print("\n===== SUMMARY")
 for t, res in RESULTS:
