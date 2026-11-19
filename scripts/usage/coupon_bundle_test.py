@@ -37,9 +37,37 @@ ACC = q("SELECT Id FROM Account WHERE Root_Account__c = null AND (Active_Locatio
 e = q(f"SELECT Id, Product2Id FROM PricebookEntry WHERE Product2.ProductCode = 'MB-ACC' AND Pricebook2Id = '{PB}' AND CurrencyIsoCode = 'USD' "
       f"AND IsActive = true AND ProductSellingModel.Name = 'Term Monthly'")[0]
 
+MODE = os.environ.get("MODE", "QUOTE")
+print("mode", MODE)
 opp = json.loads(run(["sf", "data", "create", "record", "--sobject", "Opportunity", "--values",
                       f"Name='COUPON-BUNDLE {STAMP}' AccountId={ACC} StageName=Prospecting CloseDate={TODAY} Pricebook2Id={PB} CurrencyIsoCode=USD",
                       "--target-org", "target", "--json"]))["result"]["id"]
+CFG = {"configurationMethod": "System", "configurationOptions": {"addDefaultConfiguration": True, "executeConfigurationRules": True,
+                                                                  "validateProductCatalog": True, "validateAmendRenewCancel": True}}
+LINE = {"referenceId": "l0", "record": {"attributes": {"type": "QuoteLineItem", "method": "POST"}, "QuoteId": "@{q1.id}", "Product2Id": e["Product2Id"],
+                                        "PricebookEntryId": e["Id"], "Quantity": 1, "StartDate": TODAY.isoformat(), "LegalEntityId": LE,
+                                        "BillingFrequency": "Monthly", "EndDate": (TODAY + timedelta(days=364)).isoformat(), "PeriodBoundary": "Anniversary"}}
+if MODE == "LINE":
+    r = place({"pricingPref": "System", "catalogRatesPref": "Skip", "taxPref": "Skip", "configurationPref": CFG,
+               "graph": {"graphId": "q", "records": [{"referenceId": "q1", "record": {"attributes": {"type": "Quote", "method": "POST"},
+                         "Name": "COUPON-BUNDLE line flow", "OpportunityId": opp, "Pricebook2Id": PB, "StartDate": TODAY.isoformat(),
+                         "RLM_TermMonths__c": 12, "LegalEntityId": LE, "Coupon_Code__c": "NEWPROMO5"}}]}})
+    print("create quote with coupon:", "ok" if r.get("isSuccess") else json.dumps(r.get("errorResponse") or r)[:400])
+    time.sleep(5)
+    qt = q(f"SELECT Id, QuoteNumber FROM Quote WHERE OpportunityId = '{opp}'")[0]
+    r = place({"pricingPref": "System", "catalogRatesPref": "Skip", "taxPref": "Skip", "configurationPref": CFG,
+               "graph": {"graphId": "add", "records": [{"referenceId": "q1", "record": {"attributes": {"type": "Quote", "method": "PATCH", "id": qt["Id"]}}}, LINE]}})
+    print("add Accelerate bundle:", "ok" if r.get("isSuccess") else json.dumps(r.get("errorResponse") or r)[:400])
+    lines = lambda: q(f"SELECT Product2.ProductCode, NetUnitPrice FROM QuoteLineItem WHERE QuoteId = '{qt['Id']}' ORDER BY Product2.ProductCode")
+    fmt = lambda ls: [(x["Product2"]["ProductCode"], x["NetUnitPrice"]) for x in ls]
+    for s_ in (3, 10, 20, 30, 45, 60, 90):
+        time.sleep(3 if s_ == 3 else 10)
+        now = lines()
+        print(f"  ~{s_}s: {len(now)} lines {fmt(now)[:3]}")
+    now = lines()
+    acc = next((x["NetUnitPrice"] for x in now if x["Product2"]["ProductCode"] == "MB-ACC"), None)
+    print(("PASS" if len(now) == 9 and acc == 134.5 else "FAIL") + f": {len(now)} lines, Accelerate net {acc}")
+    raise SystemExit(0)
 r = place({"pricingPref": "System", "catalogRatesPref": "Skip", "taxPref": "Skip",
            "configurationPref": {"configurationMethod": "System", "configurationOptions": {"addDefaultConfiguration": True, "executeConfigurationRules": True,
                                                                                          "validateProductCatalog": True, "validateAmendRenewCancel": True}},
