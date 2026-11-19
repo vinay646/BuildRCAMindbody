@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Coupon_Code__c</fullName>
+    <label>Coupon Code</label>
+    <description>Promotion coupon for the whole quote. The pricing procedure (context attribute MbQuoteCouponCode) copies it to every line's coupon code before Apply promotions, so the standard promotion that owns this Coupon applies to its eligible products.</description>
+    <inlineHelpText>Enter a promotion coupon (for example SWITCH50). It is applied to every eligible product when the quote is priced.</inlineHelpText>
+    <type>Text</type>
+    <length>50</length>
+    <required>false</required>
+    <unique>false</unique>
+    <externalId>false</externalId>
+    <trackHistory>false</trackHistory>
+</CustomField>

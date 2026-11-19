@@ -440,6 +440,16 @@
                     <name>uiBehavior</name>
                     <value>none</value>
                 </fieldInstanceProperties>
+                <fieldItem>Record.Coupon_Code__c</fieldItem>
+                <identifier>MbRecordCouponCodecField</identifier>
+            </fieldInstance>
+        </itemInstances>
+        <itemInstances>
+            <fieldInstance>
+                <fieldInstanceProperties>
+                    <name>uiBehavior</name>
+                    <value>none</value>
+                </fieldInstanceProperties>
                 <fieldItem>Record.MB_Billing_Frequency__c</fieldItem>
                 <identifier>MbRecordMBBillingFrequencycField</identifier>
             </fieldInstance>
