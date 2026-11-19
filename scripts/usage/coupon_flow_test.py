@@ -117,28 +117,31 @@ def _check(label, qid, want, quiet=False):
     return allok
 
 
-print("\n===== 1. Rep enters the coupon on an existing quote (lower case); no manual reprice")
-qt = new_quote("enter later", ["MB-ACC"])
-if qt:
-    print("   quote", qt["QuoteNumber"])
-    set_coupon(qt["Id"], "newpromo5"); check("after entering", qt["Id"], {"MB-ACC": (134.5, {"NEWPROMO5"})})
-    print("\n===== 2. Rep changes the coupon to TODAY10 (Evergreen only, so no discount on a Term line)")
-    set_coupon(qt["Id"], "TODAY10"); check("after change", qt["Id"], {"MB-ACC": (269.0, {"TODAY10"})})
-    print("\n===== 3. Rep clears the coupon")
-    set_coupon(qt["Id"], None); check("after clearing", qt["Id"], {"MB-ACC": (269.0, set())})
+if not os.environ.get("ONLY5"):
+  print("\n===== 1. Rep enters the coupon on an existing quote (lower case); no manual reprice")
+  qt = new_quote("enter later", ["MB-ACC"])
+  if qt:
+      print("   quote", qt["QuoteNumber"])
+      set_coupon(qt["Id"], "newpromo5"); check("after entering", qt["Id"], {"MB-ACC": (134.5, {"NEWPROMO5"})})
+      print("\n===== 2. Rep changes the coupon to TODAY10 (Evergreen only, so no discount on a Term line)")
+      set_coupon(qt["Id"], "TODAY10"); check("after change", qt["Id"], {"MB-ACC": (269.0, {"TODAY10"})})
+      print("\n===== 3. Rep clears the coupon")
+      set_coupon(qt["Id"], None); check("after clearing", qt["Id"], {"MB-ACC": (269.0, set())})
 
-print("\n===== 4. Coupon on the quote when it is created, with an eligible and an ineligible line")
-qt = new_quote("coupon at create", ["MB-ACC", "MB-IMP"], coupon="NEWPROMO5")
-if qt:
-    print("   quote", qt["QuoteNumber"])
-    check("after create", qt["Id"], {"MB-ACC": (134.5, {"NEWPROMO5"}), "MB-IMP": (2500.0, {"NEWPROMO5"})})
+  print("\n===== 4. Coupon on the quote when it is created, with an eligible and an ineligible line")
+  qt = new_quote("coupon at create", ["MB-ACC", "MB-IMP"], coupon="NEWPROMO5")
+  if qt:
+      print("   quote", qt["QuoteNumber"])
+      check("after create", qt["Id"], {"MB-ACC": (134.5, {"NEWPROMO5"}), "MB-IMP": (2500.0, {"NEWPROMO5"})})
 
 print("\n===== 5. Rep adds an Accelerate line to a quote that already has a coupon")
 qt = new_quote("add line later", ["MB-IMP"], coupon="NEWPROMO5")
 if qt:
     print("   quote", qt["QuoteNumber"])
     r = place({"pricingPref": "System", "catalogRatesPref": "Skip", "configurationPref": {"configurationMethod": "Skip"}, "taxPref": "Skip",
-               "graph": {"graphId": "add", "records": [line_rec("l9", "MB-ACC", qref=qt["Id"])]}})
+               "graph": {"graphId": "add", "records": [
+                   {"referenceId": "q1", "record": {"attributes": {"type": "Quote", "method": "PATCH", "id": qt["Id"]}}},
+                   line_rec("l9", "MB-ACC", qref="@{q1.id}")]}})
     print("   add line:", "ok" if r.get("isSuccess") else json.dumps(r.get("errorResponse") or r)[:300])
     check("after adding the line", qt["Id"], {"MB-ACC": (134.5, {"NEWPROMO5"}), "MB-IMP": (2500.0, {"NEWPROMO5"})})
 
