@@ -23,6 +23,10 @@
     {
       "path": "deploy/pricing-v6",
       "default": false
+    },
+    {
+      "path": "probe/rst",
+      "default": false
     }
   ],
   "name": "mindbody-arm-build",
