@@ -1,7 +1,7 @@
 /**
  * Reprices quotes through the standard Place Sales Transaction Apex API (RevSalesTrxn.PlaceSalesTransactionExecutor):
- * PATCH the quote with no field changes and pricing preference Force, so the pricing procedure and the promotion
- * engine run again and the results are saved.
+ * PATCH the quote with no field changes, pricing preference Force and configuration Skip, so the pricing procedure and
+ * the promotion engine run again and the results are saved; the bundle configuration is not touched.
  *
  * Called from the record-triggered flows MB Quote Coupon Code / MB Quote Line Coupon Code in the same save, so the
  * rep sees the new prices as soon as the save finishes. If the immediate reprice is not possible in that save (for
@@ -47,12 +47,10 @@ public class RepriceQuotesPST {
     /** Reprices each quote and deletes its coupon placeholders; throws when Place Sales Transaction reports an error. */
     public static void reprice(Set<String> quoteIds) {
         RevSalesTrxn.PricingPreferenceEnum pricingPreference = RevSalesTrxn.PricingPreferenceEnum.FORCE;
-        RevSalesTrxn.ConfigurationExecutionEnum configEnum = RevSalesTrxn.ConfigurationExecutionEnum.SYSTEM;
+        // Pricing only: the configurator is skipped. Running it here (SYSTEM with rules and validation) made the line
+        // editor flag the Accelerate bundle ("Select products from at least ... child groups") on repriced quotes.
+        RevSalesTrxn.ConfigurationExecutionEnum configEnum = RevSalesTrxn.ConfigurationExecutionEnum.SKIP;
         RevSalesTrxn.ConfigurationOptionsInput config = new RevSalesTrxn.ConfigurationOptionsInput();
-        config.addDefaultConfiguration = true;
-        config.executeConfigurationRules = true;
-        config.validateAmendRenewCancel = true;
-        config.validateProductCatalog = true;
 
         for (String id : quoteIds) {
             RevSalesTrxn.RecordResource quoteRecord = new RevSalesTrxn.RecordResource(Quote.getSObjectType(), 'PATCH', id);
