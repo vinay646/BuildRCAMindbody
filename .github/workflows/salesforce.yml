@@ -360,6 +360,7 @@ jobs:
           elif [ "$DEPLOY_PATH" = "trace-read" ]; then ./scripts/usage/trace_read.sh
           elif [ "$DEPLOY_PATH" = "trace-one" ]; then ./scripts/usage/trace_one.sh
           elif [ "$DEPLOY_PATH" = "flow-status" ]; then ./scripts/usage/flow_status.sh
+          elif [ "$DEPLOY_PATH" = "reprice-mode" ]; then ./scripts/usage/reprice_mode.sh
           elif [ "$DEPLOY_PATH" = "coupon-last" ]; then ./scripts/usage/coupon_last.sh
           elif [ "$DEPLOY_PATH" = "coupon-bundle" ]; then python3 scripts/usage/coupon_bundle_test.py
           elif [ "$DEPLOY_PATH" = "coupon-bundle-line" ]; then MODE=LINE python3 scripts/usage/coupon_bundle_test.py
