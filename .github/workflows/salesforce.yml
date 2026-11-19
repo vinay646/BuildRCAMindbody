@@ -353,6 +353,8 @@ jobs:
           elif [ "$DEPLOY_PATH" = "billfreq-check" ]; then ./scripts/usage/billfreq_check.sh
           elif [ "${DEPLOY_PATH%%:*}" = "apex" ]; then ./scripts/run-apex.sh "scripts/usage/apex/${DEPLOY_PATH#*:}.apex" "${DEPLOY_PATH#*:}" || true
           elif [ "$DEPLOY_PATH" = "coupon-flow" ]; then python3 scripts/usage/coupon_flow_test.py
+          elif [ "$DEPLOY_PATH" = "trace-on" ]; then ./scripts/usage/trace_on.sh
+          elif [ "$DEPLOY_PATH" = "trace-read" ]; then ./scripts/usage/trace_read.sh
           elif [ "$DEPLOY_PATH" = "coupon-bundle" ]; then python3 scripts/usage/coupon_bundle_test.py
           elif [ "$DEPLOY_PATH" = "coupon-bundle-line" ]; then MODE=LINE python3 scripts/usage/coupon_bundle_test.py
           elif [ "$DEPLOY_PATH" = "coupon-ui-check" ]; then ./scripts/usage/coupon_ui_check.sh
