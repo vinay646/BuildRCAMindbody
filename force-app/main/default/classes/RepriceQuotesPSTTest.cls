@@ -11,6 +11,8 @@ private class RepriceQuotesPSTTest {
             System.debug('Place Sales Transaction not available in the test context: ' + e.getMessage());
         }
         Test.stopTest();
+        RepriceQuotesPST.deletePlaceholders(new Set<String>());
+        RepriceQuotesPST.deletePlaceholders(new Set<String>{ '0Q0000000000000AAA' });
         System.assert(true);
     }
 }

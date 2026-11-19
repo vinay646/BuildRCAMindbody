@@ -114,7 +114,7 @@ def _check(label, qid, want, quiet=False):
             continue
         res = "PASS" if ok else "FAIL"
         print(f"   {res} {label} {code}: net {r['NetUnitPrice']} (want {net}) | coupon adjustments "
-              f"{[(a['AdjustmentValue'], a.get('CouponCode'), 'promotion' if a.get('PriceAdjustmentCauseId') else 'placeholder') for a in adj]} (want codes {sorted(coupons)})")
+              f"{[(a['AdjustmentValue'], a.get('CouponCode'), 'promotion' if a.get('PriceAdjustmentCauseId') else 'placeholder') for a in adj]} (want codes {sorted(coupons)}, no placeholder)")
         RESULTS.append((f"{label} {code}", res))
     return allok
 
@@ -128,7 +128,7 @@ if not os.environ.get("ONLY5"):
       print("\n===== 1b. Manual reprice after the placeholder is gone keeps the promotion")
       reprice(qt["Id"]); check("after manual reprice", qt["Id"], {"MB-ACC": (134.5, {"NEWPROMO5"})}, wait=40)
       print("\n===== 2. Rep changes the coupon to TODAY10 (Evergreen only, so no discount on a Term line)")
-      set_coupon(qt["Id"], "TODAY10"); check("after change", qt["Id"], {"MB-ACC": (269.0, {"TODAY10"})})
+      set_coupon(qt["Id"], "TODAY10"); check("after change", qt["Id"], {"MB-ACC": (269.0, set())})
       print("\n===== 3. Rep clears the coupon")
       set_coupon(qt["Id"], None); check("after clearing", qt["Id"], {"MB-ACC": (269.0, set())})
 
@@ -136,7 +136,7 @@ if not os.environ.get("ONLY5"):
   qt = new_quote("coupon at create", ["MB-ACC", "MB-IMP"], coupon="NEWPROMO5")
   if qt:
       print("   quote", qt["QuoteNumber"])
-      check("after create", qt["Id"], {"MB-ACC": (134.5, {"NEWPROMO5"}), "MB-IMP": (2500.0, {"NEWPROMO5"})})
+      check("after create", qt["Id"], {"MB-ACC": (134.5, {"NEWPROMO5"}), "MB-IMP": (2500.0, set())})
 
 print("\n===== 5. Rep adds an Accelerate line to a quote that already has a coupon")
 qt = new_quote("add line later", ["MB-IMP"], coupon="NEWPROMO5")
@@ -147,7 +147,7 @@ if qt:
                    {"referenceId": "q1", "record": {"attributes": {"type": "Quote", "method": "PATCH", "id": qt["Id"]}}},
                    line_rec("l9", "MB-ACC", qref="@{q1.id}")]}})
     print("   add line:", "ok" if r.get("isSuccess") else json.dumps(r.get("errorResponse") or r)[:300])
-    check("after adding the line", qt["Id"], {"MB-ACC": (134.5, {"NEWPROMO5"}), "MB-IMP": (2500.0, {"NEWPROMO5"})})
+    check("after adding the line", qt["Id"], {"MB-ACC": (134.5, {"NEWPROMO5"}), "MB-IMP": (2500.0, set())})
 
 print("\n===== SUMMARY")
 for t, res in RESULTS:
