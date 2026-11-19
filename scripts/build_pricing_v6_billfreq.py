@@ -20,7 +20,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent.parent
 SRC = ROOT / "deploy/pricing-v5/main/default/expressionSetDefinition/RLM_DefaultPricingProcedure.expressionSetDefinition-meta.xml"
 OUT = ROOT / "deploy/pricing-v6/main/default/expressionSetDefinition/RLM_DefaultPricingProcedure.expressionSetDefinition-meta.xml"
-STAGE = int(os.environ.get("STAGE", "9"))
+STAGE = int(os.environ.get("STAGE", "2"))  # 3+ adds the coupon-tag step (does not work: the line coupon lives on a price adjustment record)
 SEQ = 16  # first billing-months group
 FREQS = ("Monthly", "Quarterly", "Semi-Annual", "Annual")
 FLAGS = ("<shouldExposExecPathMsgOnly>true</shouldExposExecPathMsgOnly><shouldExposeConditionDetails>false</shouldExposeConditionDetails>"

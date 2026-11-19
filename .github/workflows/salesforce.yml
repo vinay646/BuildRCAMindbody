@@ -351,6 +351,7 @@ jobs:
           elif [ "$DEPLOY_PATH" = "copy-perms" ]; then ./scripts/usage/copy_perms.sh
           elif [ "$DEPLOY_PATH" = "license-holders" ]; then ./scripts/usage/license_holders.sh
           elif [ "$DEPLOY_PATH" = "billfreq-check" ]; then ./scripts/usage/billfreq_check.sh
+          elif [ "$DEPLOY_PATH" = "coupon-flow" ]; then python3 scripts/usage/coupon_flow_test.py
           elif [ "$DEPLOY_PATH" = "coupon-probe2" ]; then python3 scripts/usage/coupon_probe2.py
           elif [ "$DEPLOY_PATH" = "coupon-probe" ]; then python3 scripts/usage/coupon_probe.py
           elif [ "$DEPLOY_PATH" = "coupon-diag" ]; then ./scripts/usage/coupon_diag.sh
