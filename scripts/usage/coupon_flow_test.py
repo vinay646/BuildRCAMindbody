@@ -106,7 +106,9 @@ def _check(label, qid, want, quiet=False):
             continue
         adj = q(f"SELECT AdjustmentSource, AdjustmentValue, CouponCode, PriceAdjustmentCauseId FROM QuoteLinePriceAdjustment WHERE QuoteLineItemId = '{r['Id']}'")
         got = {a["CouponCode"] for a in adj if a.get("CouponCode")}
-        ok = abs(float(r["NetUnitPrice"] or 0) - net) <= 0.01 and got == coupons
+        applied = any(a.get("PriceAdjustmentCauseId") for a in adj)
+        leftover = applied and any(a.get("CouponCode") and not a.get("PriceAdjustmentCauseId") for a in adj)
+        ok = abs(float(r["NetUnitPrice"] or 0) - net) <= 0.01 and got == coupons and not leftover
         allok = allok and ok
         if quiet:
             continue
@@ -122,7 +124,9 @@ if not os.environ.get("ONLY5"):
   qt = new_quote("enter later", ["MB-ACC"])
   if qt:
       print("   quote", qt["QuoteNumber"])
-      set_coupon(qt["Id"], "newpromo5"); check("after entering", qt["Id"], {"MB-ACC": (134.5, {"NEWPROMO5"})})
+      set_coupon(qt["Id"], "newpromo5"); check("after entering (one record: the promotion)", qt["Id"], {"MB-ACC": (134.5, {"NEWPROMO5"})})
+      print("\n===== 1b. Manual reprice after the placeholder is gone keeps the promotion")
+      reprice(qt["Id"]); check("after manual reprice", qt["Id"], {"MB-ACC": (134.5, {"NEWPROMO5"})}, wait=40)
       print("\n===== 2. Rep changes the coupon to TODAY10 (Evergreen only, so no discount on a Term line)")
       set_coupon(qt["Id"], "TODAY10"); check("after change", qt["Id"], {"MB-ACC": (269.0, {"TODAY10"})})
       print("\n===== 3. Rep clears the coupon")
