@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
-"""CREATES test quotes "COUPON-FLOW ...". Quote Coupon Code -> flows MB Quote Coupon Code / MB Quote Line Coupon Code -> promotion
-applied on the next pricing run. Uses the rule-library promotion NewPromo (coupon NEWPROMO5: 50% off Accelerate, Term Monthly)."""
+"""CREATES test quotes "COUPON-FLOW ...". Quote Coupon Code -> flows MB Quote Coupon Code / MB Quote Line Coupon Code -> automatic
+reprice (Apex RepriceQuotesPST on the Run Asynchronously path) -> promotion applied, with no manual reprice. Uses the rule-library promotion NewPromo (coupon NEWPROMO5: 50% off Accelerate, Term Monthly)."""
 import json, os, subprocess, time
 from datetime import date, timedelta
 
@@ -83,39 +83,64 @@ def reprice(qid):
     time.sleep(6)
 
 
-def check(label, qid, want):
-    """want: {code: (net, set of coupon codes expected on its adjustments)}"""
+def check(label, qid, want, wait=90):
+    """want: {code: (net, set of coupon codes expected on its adjustments)}; polls until it matches or `wait` seconds pass."""
+    t0 = time.time()
+    while True:
+        if _check(label, qid, want, quiet=True) or time.time() - t0 > wait:
+            break
+        time.sleep(10)
+    print(f"   (checked after {int(time.time() - t0)}s)")
+    _check(label, qid, want)
+
+
+def _check(label, qid, want, quiet=False):
+    allok = True
     rows = q(f"SELECT Id, Product2.ProductCode, ListPrice, NetUnitPrice FROM QuoteLineItem WHERE QuoteId = '{qid}'")
     for code, (net, coupons) in want.items():
         r = next((x for x in rows if x["Product2"]["ProductCode"] == code), None)
         if not r:
-            print(f"   FAIL {label} {code}: no line"); RESULTS.append((f"{label} {code}", "FAIL")); continue
+            allok = False
+            if not quiet:
+                print(f"   FAIL {label} {code}: no line"); RESULTS.append((f"{label} {code}", "FAIL"))
+            continue
         adj = q(f"SELECT AdjustmentSource, AdjustmentValue, CouponCode, PriceAdjustmentCauseId FROM QuoteLinePriceAdjustment WHERE QuoteLineItemId = '{r['Id']}'")
         got = {a["CouponCode"] for a in adj if a.get("CouponCode")}
         ok = abs(float(r["NetUnitPrice"] or 0) - net) <= 0.01 and got == coupons
+        allok = allok and ok
+        if quiet:
+            continue
         res = "PASS" if ok else "FAIL"
         print(f"   {res} {label} {code}: net {r['NetUnitPrice']} (want {net}) | coupon adjustments "
               f"{[(a['AdjustmentValue'], a.get('CouponCode'), 'promotion' if a.get('PriceAdjustmentCauseId') else 'placeholder') for a in adj]} (want codes {sorted(coupons)})")
         RESULTS.append((f"{label} {code}", res))
+    return allok
 
 
-print("\n===== 1. Rep enters the coupon on an existing quote (lower case), then reprices")
+print("\n===== 1. Rep enters the coupon on an existing quote (lower case); no manual reprice")
 qt = new_quote("enter later", ["MB-ACC"])
 if qt:
     print("   quote", qt["QuoteNumber"])
-    set_coupon(qt["Id"], "newpromo5"); check("after entering, before reprice", qt["Id"], {"MB-ACC": (269.0, {"NEWPROMO5"})})
-    reprice(qt["Id"]); check("after reprice", qt["Id"], {"MB-ACC": (134.5, {"NEWPROMO5"})})
+    set_coupon(qt["Id"], "newpromo5"); check("after entering", qt["Id"], {"MB-ACC": (134.5, {"NEWPROMO5"})})
     print("\n===== 2. Rep changes the coupon to TODAY10 (Evergreen only, so no discount on a Term line)")
-    set_coupon(qt["Id"], "TODAY10"); reprice(qt["Id"]); check("after change + reprice", qt["Id"], {"MB-ACC": (269.0, {"TODAY10"})})
+    set_coupon(qt["Id"], "TODAY10"); check("after change", qt["Id"], {"MB-ACC": (269.0, {"TODAY10"})})
     print("\n===== 3. Rep clears the coupon")
-    set_coupon(qt["Id"], None); reprice(qt["Id"]); check("after clearing + reprice", qt["Id"], {"MB-ACC": (269.0, set())})
+    set_coupon(qt["Id"], None); check("after clearing", qt["Id"], {"MB-ACC": (269.0, set())})
 
 print("\n===== 4. Coupon on the quote when it is created, with an eligible and an ineligible line")
 qt = new_quote("coupon at create", ["MB-ACC", "MB-IMP"], coupon="NEWPROMO5")
 if qt:
     print("   quote", qt["QuoteNumber"])
-    check("right after create", qt["Id"], {"MB-ACC": (134.5, {"NEWPROMO5"}), "MB-IMP": (2500.0, {"NEWPROMO5"})})
-    reprice(qt["Id"]); check("after reprice", qt["Id"], {"MB-ACC": (134.5, {"NEWPROMO5"}), "MB-IMP": (2500.0, {"NEWPROMO5"})})
+    check("after create", qt["Id"], {"MB-ACC": (134.5, {"NEWPROMO5"}), "MB-IMP": (2500.0, {"NEWPROMO5"})})
+
+print("\n===== 5. Rep adds an Accelerate line to a quote that already has a coupon")
+qt = new_quote("add line later", ["MB-IMP"], coupon="NEWPROMO5")
+if qt:
+    print("   quote", qt["QuoteNumber"])
+    r = place({"pricingPref": "System", "catalogRatesPref": "Skip", "configurationPref": {"configurationMethod": "Skip"}, "taxPref": "Skip",
+               "graph": {"graphId": "add", "records": [line_rec("l9", "MB-ACC", qref=qt["Id"])]}})
+    print("   add line:", "ok" if r.get("isSuccess") else json.dumps(r.get("errorResponse") or r)[:300])
+    check("after adding the line", qt["Id"], {"MB-ACC": (134.5, {"NEWPROMO5"}), "MB-IMP": (2500.0, {"NEWPROMO5"})})
 
 print("\n===== SUMMARY")
 for t, res in RESULTS:

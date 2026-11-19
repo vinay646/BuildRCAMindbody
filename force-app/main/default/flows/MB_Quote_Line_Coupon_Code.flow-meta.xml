@@ -1,7 +1,21 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Flow xmlns="http://soap.sforce.com/2006/04/metadata">
+    <actionCalls>
+        <name>Reprice_Quote</name>
+        <label>Reprice quote</label>
+        <locationX>600</locationX>
+        <locationY>200</locationY>
+        <actionName>RepriceQuotesPST</actionName>
+        <actionType>apex</actionType>
+        <flowTransactionModel>CurrentTransaction</flowTransactionModel>
+        <inputParameters>
+            <name>ids</name>
+            <value><elementReference>$Record.QuoteId</elementReference></value>
+        </inputParameters>
+        <storeOutputAutomatically>true</storeOutputAutomatically>
+    </actionCalls>
     <apiVersion>62.0</apiVersion>
-    <description>A line added to a quote that has a Coupon Code gets a 0% Promotion price adjustment carrying that code (upper case), so the next pricing run applies the coupon's promotion to it when the product is eligible.</description>
+    <description>A line added to a quote that has a Coupon Code gets a 0% Promotion price adjustment carrying that code (upper case), and the Run Asynchronously path reprices the quote (Apex action RepriceQuotesPST, after the save commits), which applies the coupon's promotion to it when the product is eligible.</description>
     <environments>Default</environments>
     <formulas>
         <name>fCoupon</name>
@@ -58,6 +72,12 @@
         <filterFormula>NOT(ISBLANK({!$Record.Quote.Coupon_Code__c}))</filterFormula>
         <object>QuoteLineItem</object>
         <recordTriggerType>Create</recordTriggerType>
+        <scheduledPaths>
+            <name>Reprice_After_Commit</name>
+            <connector><targetReference>Reprice_Quote</targetReference></connector>
+            <label>Reprice after commit</label>
+            <pathType>AsyncAfterCommit</pathType>
+        </scheduledPaths>
         <triggerType>RecordAfterSave</triggerType>
     </start>
     <status>Active</status>

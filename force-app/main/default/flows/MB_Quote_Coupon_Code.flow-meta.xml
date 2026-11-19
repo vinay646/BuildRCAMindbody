@@ -1,5 +1,19 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Flow xmlns="http://soap.sforce.com/2006/04/metadata">
+    <actionCalls>
+        <name>Reprice_Quote</name>
+        <label>Reprice quote</label>
+        <locationX>600</locationX>
+        <locationY>200</locationY>
+        <actionName>RepriceQuotesPST</actionName>
+        <actionType>apex</actionType>
+        <flowTransactionModel>CurrentTransaction</flowTransactionModel>
+        <inputParameters>
+            <name>ids</name>
+            <value><elementReference>$Record.Id</elementReference></value>
+        </inputParameters>
+        <storeOutputAutomatically>true</storeOutputAutomatically>
+    </actionCalls>
     <apiVersion>62.0</apiVersion>
     <assignments>
         <name>Add_Line_Id</name>
@@ -121,7 +135,7 @@
             <label>Yes</label>
         </rules>
     </decisions>
-    <description>Quote Coupon Code -> promotions. When the quote's Coupon Code changes: the old coupon's line price adjustments (the 0% placeholders and the promotion discounts they produced) are deleted, and every line gets a 0% Promotion price adjustment carrying the new code (upper case). The next pricing run (Reprice, or any save in the line editor) applies the promotion that owns that Coupon to its eligible products; other products keep the 0% placeholder and their price.</description>
+    <description>Quote Coupon Code -> promotions. When the quote's Coupon Code changes: the old coupon's line price adjustments (the 0% placeholders and the promotion discounts they produced) are deleted, and every line gets a 0% Promotion price adjustment carrying the new code (upper case). The Run Asynchronously path then reprices the quote (Apex action RepriceQuotesPST, after the save commits), which applies the promotion that owns that Coupon to its eligible products; other products keep the 0% placeholder and their price.</description>
     <environments>Default</environments>
     <formulas>
         <name>fNewCoupon</name>
@@ -227,6 +241,12 @@
         <filterFormula>ISCHANGED({!$Record.Coupon_Code__c})</filterFormula>
         <object>Quote</object>
         <recordTriggerType>Update</recordTriggerType>
+        <scheduledPaths>
+            <name>Reprice_After_Commit</name>
+            <connector><targetReference>Reprice_Quote</targetReference></connector>
+            <label>Reprice after commit</label>
+            <pathType>AsyncAfterCommit</pathType>
+        </scheduledPaths>
         <triggerType>RecordAfterSave</triggerType>
     </start>
     <status>Active</status>
