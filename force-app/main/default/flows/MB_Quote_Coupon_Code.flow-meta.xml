@@ -117,6 +117,7 @@
         <label>Has a coupon now?</label>
         <locationX>176</locationX>
         <locationY>1055</locationY>
+        <defaultConnector><targetReference>Reprice_Quote</targetReference></defaultConnector>
         <defaultConnectorLabel>No</defaultConnectorLabel>
         <rules>
             <name>New_Coupon</name>
@@ -135,7 +136,7 @@
             <label>Yes</label>
         </rules>
     </decisions>
-    <description>Quote Coupon Code -> promotions. When the quote's Coupon Code changes: the old coupon's line price adjustments (the 0% placeholders and the promotion discounts they produced) are deleted, and every line gets a 0% Promotion price adjustment carrying the new code (upper case). The Run Asynchronously path then reprices the quote (Apex action RepriceQuotesPST, after the save commits), which applies the promotion that owns that Coupon to its eligible products; other products keep the 0% placeholder and their price.</description>
+    <description>Quote Coupon Code -> promotions. When the quote's Coupon Code changes: the old coupon's line price adjustments (the 0% placeholders and the promotion discounts they produced) are deleted, and every line gets a 0% Promotion price adjustment carrying the new code (upper case). The flow then reprices the quote in the same save (Apex action RepriceQuotesPST), which applies the promotion that owns that Coupon to its eligible products; other products keep the 0% placeholder and their price.</description>
     <environments>Default</environments>
     <formulas>
         <name>fNewCoupon</name>
@@ -183,6 +184,7 @@
         <label>Create coupon placeholders</label>
         <locationX>176</locationX>
         <locationY>1463</locationY>
+        <connector><targetReference>Reprice_Quote</targetReference></connector>
         <inputReference>placeholders</inputReference>
     </recordCreates>
     <recordDeletes>
@@ -246,11 +248,6 @@
         </filters>
         <object>Quote</object>
         <recordTriggerType>Update</recordTriggerType>
-        <scheduledPaths>
-            <name>Reprice_After_Commit</name>
-            <connector><targetReference>Reprice_Quote</targetReference></connector>
-            <pathType>AsyncAfterCommit</pathType>
-        </scheduledPaths>
         <triggerType>RecordAfterSave</triggerType>
     </start>
     <status>Active</status>

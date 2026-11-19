@@ -1,17 +1,51 @@
 /**
  * Reprices quotes through the standard Place Sales Transaction Apex API (RevSalesTrxn.PlaceSalesTransactionExecutor):
- * PATCH the quote with no field changes and pricing preference Force, so the pricing procedure (and the promotion
- * engine) run again and the results are saved. Called from record-triggered flows after a price-impacting change,
- * e.g. MB Quote Coupon Code / MB Quote Line Coupon Code (Run Asynchronously path, after the save commits).
- * After the reprice, the 0% "Quote coupon code" placeholders those flows add are deleted: the promotion engine has
- * then applied the coupon (its own promotion adjustment carries the code), and a placeholder is a Promotion
- * adjustment without a promotion, which the line editor's Promotions tab cannot show.
+ * PATCH the quote with no field changes and pricing preference Force, so the pricing procedure and the promotion
+ * engine run again and the results are saved.
+ *
+ * Called from the record-triggered flows MB Quote Coupon Code / MB Quote Line Coupon Code in the same save, so the
+ * rep sees the new prices as soon as the save finishes. If the immediate reprice is not possible in that save (for
+ * example the line editor's own pricing call is still running), it is rolled back and done by a queued job instead,
+ * so the save never fails because of it.
+ *
+ * After the reprice the 0% "Quote coupon code" placeholders those flows add are deleted: the promotion engine has then
+ * applied the coupon (its own promotion adjustment carries the code), and a placeholder is a Promotion adjustment
+ * without a promotion, which the line editor's Promotions tab cannot show.
  */
 public class RepriceQuotesPST {
     public static final String PLACEHOLDER = 'Quote coupon code';
+    @TestVisible static Boolean running = false;
 
-    @InvocableMethod(label='repriceQuotesPST' category='Quote' description='Reprices each quote (pricing Force) through Place Sales Transaction.')
+    public class RepriceException extends Exception {}
+
+    @InvocableMethod(label='repriceQuotesPST' category='Quote' description='Reprices each quote (pricing Force) through Place Sales Transaction, now or, if that is not possible in this save, in a queued job.')
     public static void repriceQuotesPST(List<String> ids) {
+        Set<String> quoteIds = new Set<String>();
+        for (String id : ids) {
+            if (String.isNotBlank(id)) {
+                quoteIds.add(id);
+            }
+        }
+        if (quoteIds.isEmpty() || running) {
+            return;
+        }
+        Savepoint sp = Database.setSavepoint();
+        try {
+            running = true;
+            reprice(quoteIds);
+        } catch (Exception e) {
+            Database.rollback(sp);
+            System.debug(LoggingLevel.WARN, 'Immediate reprice not possible, queued instead: ' + e.getMessage());
+            if (Limits.getQueueableJobs() < Limits.getLimitQueueableJobs()) {
+                System.enqueueJob(new RepriceJob(quoteIds));
+            }
+        } finally {
+            running = false;
+        }
+    }
+
+    /** Reprices each quote and deletes its coupon placeholders; throws when Place Sales Transaction reports an error. */
+    public static void reprice(Set<String> quoteIds) {
         RevSalesTrxn.PricingPreferenceEnum pricingPreference = RevSalesTrxn.PricingPreferenceEnum.FORCE;
         RevSalesTrxn.ConfigurationExecutionEnum configEnum = RevSalesTrxn.ConfigurationExecutionEnum.SYSTEM;
         RevSalesTrxn.ConfigurationOptionsInput config = new RevSalesTrxn.ConfigurationOptionsInput();
@@ -20,22 +54,18 @@ public class RepriceQuotesPST {
         config.validateAmendRenewCancel = true;
         config.validateProductCatalog = true;
 
-        // one reprice per quote, even when several lines of the same quote ask for it in one transaction
-        Set<String> seen = new Set<String>();
-        for (String id : ids) {
-            if (String.isBlank(id) || !seen.add(id)) {
-                continue;
-            }
+        for (String id : quoteIds) {
             RevSalesTrxn.RecordResource quoteRecord = new RevSalesTrxn.RecordResource(Quote.getSObjectType(), 'PATCH', id);
             RevSalesTrxn.RecordWithReferenceRequest quoteObject = new RevSalesTrxn.RecordWithReferenceRequest('refQuote', quoteRecord);
-
-            List<RevSalesTrxn.RecordWithReferenceRequest> records = new List<RevSalesTrxn.RecordWithReferenceRequest>();
-            records.add(quoteObject);
-
+            List<RevSalesTrxn.RecordWithReferenceRequest> records = new List<RevSalesTrxn.RecordWithReferenceRequest>{ quoteObject };
             RevSalesTrxn.GraphRequest graph = new RevSalesTrxn.GraphRequest('myGraphId', records);
-            RevSalesTrxn.PlaceSalesTransactionExecutor.execute(graph, pricingPreference, configEnum, config, null);
+            Object response = RevSalesTrxn.PlaceSalesTransactionExecutor.execute(graph, pricingPreference, configEnum, config, null);
+            Map<String, Object> r = (Map<String, Object>) JSON.deserializeUntyped(JSON.serialize(response));
+            if (r != null && r.get('isSuccess') == false) {
+                throw new RepriceException('Quote ' + id + ': ' + JSON.serialize(r.get('errorResponse')));
+            }
         }
-        deletePlaceholders(seen);
+        deletePlaceholders(quoteIds);
     }
 
     /** Deletes the coupon placeholders on the quotes' lines (Promotion, no promotion linked, description PLACEHOLDER). */
@@ -53,6 +83,17 @@ public class RepriceQuotesPST {
         }
         if (!rows.isEmpty()) {
             Database.delete(rows, false);
+        }
+    }
+
+    /** Fallback when the reprice cannot run inside the save. */
+    public class RepriceJob implements Queueable {
+        private final Set<String> quoteIds;
+        public RepriceJob(Set<String> quoteIds) {
+            this.quoteIds = quoteIds;
+        }
+        public void execute(QueueableContext ctx) {
+            reprice(quoteIds);
         }
     }
 }

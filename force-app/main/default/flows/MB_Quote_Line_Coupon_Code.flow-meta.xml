@@ -15,7 +15,7 @@
         <storeOutputAutomatically>true</storeOutputAutomatically>
     </actionCalls>
     <apiVersion>62.0</apiVersion>
-    <description>A line added to a quote that has a Coupon Code gets a 0% Promotion price adjustment carrying that code (upper case), and the Run Asynchronously path reprices the quote (Apex action RepriceQuotesPST, after the save commits), which applies the coupon's promotion to it when the product is eligible.</description>
+    <description>A line added to a quote that has a Coupon Code gets a 0% Promotion price adjustment carrying that code (upper case), and the flow reprices the quote in the same save (Apex action RepriceQuotesPST), which applies the coupon's promotion to it when the product is eligible.</description>
     <environments>Default</environments>
     <formulas>
         <name>fCoupon</name>
@@ -38,6 +38,7 @@
         <label>Create coupon placeholder</label>
         <locationX>176</locationX>
         <locationY>323</locationY>
+        <connector><targetReference>Reprice_Quote</targetReference></connector>
         <inputAssignments>
             <field>QuoteLineItemId</field>
             <value><elementReference>$Record.Id</elementReference></value>
@@ -72,11 +73,6 @@
         <filterFormula>NOT(ISBLANK({!$Record.Quote.Coupon_Code__c}))</filterFormula>
         <object>QuoteLineItem</object>
         <recordTriggerType>Create</recordTriggerType>
-        <scheduledPaths>
-            <name>Reprice_After_Commit</name>
-            <connector><targetReference>Reprice_Quote</targetReference></connector>
-            <pathType>AsyncAfterCommit</pathType>
-        </scheduledPaths>
         <triggerType>RecordAfterSave</triggerType>
     </start>
     <status>Active</status>
