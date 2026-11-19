@@ -75,7 +75,6 @@
         <scheduledPaths>
             <name>Reprice_After_Commit</name>
             <connector><targetReference>Reprice_Quote</targetReference></connector>
-            <label>Reprice after commit</label>
             <pathType>AsyncAfterCommit</pathType>
         </scheduledPaths>
         <triggerType>RecordAfterSave</triggerType>

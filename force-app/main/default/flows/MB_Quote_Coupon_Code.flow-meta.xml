@@ -238,13 +238,17 @@
         <locationX>50</locationX>
         <locationY>0</locationY>
         <connector><targetReference>Get_Lines</targetReference></connector>
-        <filterFormula>ISCHANGED({!$Record.Coupon_Code__c})</filterFormula>
+        <filterLogic>and</filterLogic>
+        <filters>
+            <field>Coupon_Code__c</field>
+            <operator>IsChanged</operator>
+            <value><booleanValue>true</booleanValue></value>
+        </filters>
         <object>Quote</object>
         <recordTriggerType>Update</recordTriggerType>
         <scheduledPaths>
             <name>Reprice_After_Commit</name>
             <connector><targetReference>Reprice_Quote</targetReference></connector>
-            <label>Reprice after commit</label>
             <pathType>AsyncAfterCommit</pathType>
         </scheduledPaths>
         <triggerType>RecordAfterSave</triggerType>
