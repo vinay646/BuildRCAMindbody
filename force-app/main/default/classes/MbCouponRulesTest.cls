@@ -30,10 +30,11 @@ private class MbCouponRulesTest {
     static void rules() {
         Account newLogo = new Account(Name = 'New logo');
         insert newLogo;
-        Id ok = quoteFor(newLogo, 'Vagaro', 24, new List<String>{ 'MB-STR', 'MB-PAY', 'MB-ACC', 'MB-DCV' });
+        Id ok = quoteFor(newLogo, 'Vagaro', 24, new List<String>{ 'MB-STR', 'MB-PAY' });
         System.assertEquals(null, run(ok, 'launch3'));
-        System.assertEquals(null, run(ok, 'SWITCH50'));
         System.assertNotEquals(null, run(ok, 'GROW2'));
+        Id sw = quoteFor(newLogo, 'Vagaro', 24, new List<String>{ 'MB-ULT', 'MB-DCV' });
+        System.assertEquals(null, run(sw, 'SWITCH50'));
         System.assertEquals(null, run(ok, 'OTHER'));
         System.assertEquals(null, run(ok, ''));
 
