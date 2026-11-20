@@ -8,4 +8,4 @@ cp "$f" before.xml; python3 "$R/scripts/qa_build/ctx_patch.py" "$f" || exit 1
 echo "size before $(wc -c < before.xml), after $(wc -c < "$f")"
 if [ "${DRY:-1}" = "1" ]; then flag="--dry-run"; echo "CHECK ONLY"; else flag=""; fi
 sf project deploy start $flag --source-dir force-app/main/default/contextDefinitions --target-org target --wait 30 --json > r.json || true
-jq -c '{status: .result.status, success: .result.success, errors: [.result.details.componentFailures? | if type=="array" then .[] else . end | select(.!=null) | .problem]}' r.json 2>/dev/null || head -c 1500 r.json
+python3 -c "import json,sys;d=json.load(open('r.json'));r=d.get('result') or {};det=r.get('details') or {};cf=det.get('componentFailures') or [];cf=cf if isinstance(cf,list) else [cf];print('status',d.get('status'),r.get('status'),r.get('success'),d.get('message','')[:500]);[print(' fail',c.get('fullName'),c.get('problem')) for c in cf]" || head -c 1500 r.json
