@@ -65,7 +65,7 @@ def case(title, story, term, lines, coupon, prior=None, want=None, account=None,
             rec |= {"BillingFrequency": "Monthly", "PeriodBoundary": "Anniversary"}
             if model != "Evergreen Monthly":
                 rec["EndDate"] = (TODAY + timedelta(days=int(term * 30.44))).isoformat()
-        if discount and i == 0:
+        if discount and i == 0 and not coupon:
             rec["Discount"] = discount
         recs.append({"referenceId": f"l{i}", "record": rec})
     r = place({"pricingPref": "System", "catalogRatesPref": "Skip", "configurationPref": {"configurationMethod": "Skip"}, "taxPref": "Skip",
@@ -85,6 +85,13 @@ def case(title, story, term, lines, coupon, prior=None, want=None, account=None,
             ok = ok and good
             print(f"   {'PASS' if good else 'FAIL'} {code} quote {qt['QuoteNumber']}: net {r['NetUnitPrice']} floor {r['MB_Floor_Price__c']} below floor {r['MB_Below_Floor__c']} (want {below}) promotion applied {r['MB_Promotion_Applied__c']} (want {promo})")
         RESULTS.append((story, title, "PASS" if ok else "FAIL")); return qt
+    if discount and coupon:
+        # a rep's manual discount: a Discretionary price adjustment on the first line (kept by every reprice)
+        l0 = q(f"SELECT Id FROM QuoteLineItem WHERE QuoteId = '{qt['Id']}' AND Product2.ProductCode = '{lines[0][0]}' LIMIT 1")[0]["Id"]
+        adj = run(["sf", "data", "create", "record", "--sobject", "QuoteLinePriceAdjustment", "--values",
+                   f"QuoteLineItemId={l0} AdjustmentSource=Discretionary AdjustmentType=AdjustmentPercentage AdjustmentValue={discount} AdjustmentAmountScope=Unit",
+                   "--target-org", "target", "--json"])
+        print(f"   manual {discount}% discount:", "ok" if '"status": 0' in adj else adj[:300])
     out = json.loads(run(["sf", "data", "update", "record", "--sobject", "Quote", "--record-id", qt["Id"], "--values", f"Coupon_Code__c='{coupon}'",
                           "--target-org", "target", "--json"]))
     print(f"   quote {qt['QuoteNumber']}: coupon set:", "ok" if out.get("status") == 0 else "REJECTED - " + out.get("message", "")[:300])
