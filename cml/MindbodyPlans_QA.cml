@@ -12,7 +12,7 @@
 // ----------------------------------------------------------------------------
 
 // CR-12: locations (QA: Quote > Location Count) from the sales transaction context
-@(contextPath = "SalesTransaction.Locationcount__c")
+@(contextPath = "SalesTransaction.SalesTransaction_Locationcount__c")
 extern decimal HierarchyLocations;
 
 // CR-11: the customer's prior system (QA: Quote > Prior System)
