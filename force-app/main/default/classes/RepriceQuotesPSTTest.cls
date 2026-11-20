@@ -10,6 +10,8 @@ private class RepriceQuotesPSTTest {
         Test.stopTest();
         RepriceQuotesPST.deletePlaceholders(new Set<String>());
         RepriceQuotesPST.deletePlaceholders(new Set<String>{ '0Q0000000000000AAA' });
+        RepriceQuotesPST.markPromotionLines(new Set<String>());
+        RepriceQuotesPST.markPromotionLines(new Set<String>{ '0Q0000000000000AAA' });
         System.assert(true);
     }
 

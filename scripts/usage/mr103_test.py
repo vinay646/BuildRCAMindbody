@@ -45,7 +45,7 @@ def entry(code, model="Term Monthly"):
     return next((x for x in es if (x.get("ProductSellingModel") or {}).get("Name") == model), es[0])
 
 
-def case(title, story, term, lines, coupon, prior=None, want=None, account=None):
+def case(title, story, term, lines, coupon, prior=None, want=None, account=None, discount=None, floor_want=None):
     """lines: [(code, selling model or None for one-time)]; want: {code: expected net or None = list (no promotion)}"""
     print(f"\n===== {story} | {title} (term {term}, prior system {prior}, coupon {coupon})")
     opp_vals = f"Name='MR103 {STAMP}' AccountId={account or ACC} StageName=Prospecting CloseDate={TODAY} Pricebook2Id={PB} CurrencyIsoCode=USD"
@@ -65,6 +65,8 @@ def case(title, story, term, lines, coupon, prior=None, want=None, account=None)
             rec |= {"BillingFrequency": "Monthly", "PeriodBoundary": "Anniversary"}
             if model != "Evergreen Monthly":
                 rec["EndDate"] = (TODAY + timedelta(days=int(term * 30.44))).isoformat()
+        if discount and i == 0:
+            rec["Discount"] = discount
         recs.append({"referenceId": f"l{i}", "record": rec})
     r = place({"pricingPref": "System", "catalogRatesPref": "Skip", "configurationPref": {"configurationMethod": "Skip"}, "taxPref": "Skip",
                "graph": {"graphId": "all", "records": recs}})
@@ -72,8 +74,17 @@ def case(title, story, term, lines, coupon, prior=None, want=None, account=None)
         print("   place failed:", json.dumps(r.get("errorResponse") or r)[:400]); RESULTS.append((story, title, "ERROR (quote not created)")); return
     time.sleep(5)
     qt = q(f"SELECT Id, QuoteNumber FROM Quote WHERE OpportunityId = '{oid}'")[0]
-    if not coupon:
+    if not coupon and floor_want is None:
         print(f"   quote {qt['QuoteNumber']} {qt['Id']} created (no coupon)"); return qt
+    if not coupon:
+        time.sleep(4)
+        ok = True
+        for code, (below, promo) in floor_want.items():
+            r = q(f"SELECT ListPrice, NetUnitPrice, MB_Floor_Price__c, MB_Below_Floor__c, MB_Promotion_Applied__c FROM QuoteLineItem WHERE QuoteId = '{qt['Id']}' AND Product2.ProductCode = '{code}'")[0]
+            good = r["MB_Below_Floor__c"] == below and r["MB_Promotion_Applied__c"] == promo
+            ok = ok and good
+            print(f"   {'PASS' if good else 'FAIL'} {code} quote {qt['QuoteNumber']}: net {r['NetUnitPrice']} floor {r['MB_Floor_Price__c']} below floor {r['MB_Below_Floor__c']} (want {below}) promotion applied {r['MB_Promotion_Applied__c']} (want {promo})")
+        RESULTS.append((story, title, "PASS" if ok else "FAIL")); return qt
     out = json.loads(run(["sf", "data", "update", "record", "--sobject", "Quote", "--record-id", qt["Id"], "--values", f"Coupon_Code__c='{coupon}'",
                           "--target-org", "target", "--json"]))
     print(f"   quote {qt['QuoteNumber']}: coupon set:", "ok" if out.get("status") == 0 else "REJECTED - " + out.get("message", "")[:300])
@@ -92,6 +103,12 @@ def case(title, story, term, lines, coupon, prior=None, want=None, account=None)
         good = row is not None and abs(float(net or 0) - float(target)) <= 0.01 and (bool(promo) == (exp is not None))
         ok = ok and good
         print(f"   {'PASS' if good else 'FAIL'} {code}: list {row and row['ListPrice']} -> net {net} (want {target}{'' if exp is not None else ', no promotion'}) | promotion adjustments {promo}")
+        if row:
+            fl = q(f"SELECT MB_Floor_Price__c, MB_Below_Floor__c, MB_Promotion_Applied__c FROM QuoteLineItem WHERE Id = '{row['Id']}'")[0]
+            fgood = (fl["MB_Promotion_Applied__c"] == bool(promo)) and (not fl["MB_Below_Floor__c"] if promo else True)
+            ok = ok and fgood
+            print(f"   {'PASS' if fgood else 'FAIL'} floor check {code}: floor {fl['MB_Floor_Price__c']} below floor {fl['MB_Below_Floor__c']} promotion applied {fl['MB_Promotion_Applied__c']}"
+                  f" (want promotion applied {bool(promo)}{', not below floor' if promo else ''})")
     RESULTS.append((story, title, "PASS" if ok else "FAIL"))
 
 
@@ -110,6 +127,8 @@ case("LAUNCH3 for an existing customer", "AC5b", 12, [("MB-STR", "Term Monthly")
 # AC6: SWITCH50 when prior system is None: rejected
 case("SWITCH50 Accelerate 24 months, prior system None", "AC6", 24, [("MB-ACC", "Term Monthly"), ("MB-DCV", None)], "SWITCH50",
      prior="None", want={"MB-ACC": None})
+# PRC-18: an ordinary discount below the floor is still flagged (no promotion)
+case("Accelerate 40% manual discount, no coupon", "PRC-18", 12, [("MB-ACC", "Term Monthly")], None, discount=40, floor_want={"MB-ACC": (True, False)})
 # control: a rule-library promotion (NewPromo, 50% Accelerate) through the same path
 case("Control: NEWPROMO5 Accelerate", "control", 12, [("MB-ACC", "Term Monthly")], "NEWPROMO5", want={"MB-ACC": 134.5})
 

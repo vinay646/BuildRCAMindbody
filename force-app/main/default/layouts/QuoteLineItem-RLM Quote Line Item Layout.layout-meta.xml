@@ -90,6 +90,10 @@
                 <field>MB_Below_Floor__c</field>
             </layoutItems>
             <layoutItems>
+                <behavior>Readonly</behavior>
+                <field>MB_Promotion_Applied__c</field>
+            </layoutItems>
+            <layoutItems>
                 <behavior>Edit</behavior>
                 <field>DiscountAmount</field>
             </layoutItems>

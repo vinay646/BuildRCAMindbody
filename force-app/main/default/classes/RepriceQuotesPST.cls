@@ -11,6 +11,9 @@
  * After the reprice the 0% "Quote coupon code" placeholders those flows add are deleted: the promotion engine has then
  * applied the coupon (its own promotion adjustment carries the code), and a placeholder is a Promotion adjustment
  * without a promotion, which the line editor's Promotions tab cannot show.
+ *
+ * Finally each line's Promotion Applied flag is set from its promotion adjustments: promotional lines are exempt from
+ * the floor price check (Below Floor, PRC-18).
  */
 public class RepriceQuotesPST {
     public static final String PLACEHOLDER = 'Quote coupon code';
@@ -64,6 +67,29 @@ public class RepriceQuotesPST {
             }
         }
         deletePlaceholders(quoteIds);
+        markPromotionLines(quoteIds);
+    }
+
+    /** Sets Quote Line Item > Promotion Applied: true when the line has a Promotion adjustment linked to a promotion. */
+    public static void markPromotionLines(Set<String> quoteIds) {
+        if (quoteIds.isEmpty()) {
+            return;
+        }
+        Set<Id> promoted = new Set<Id>();
+        for (QuoteLinePriceAdjustment a : [SELECT QuoteLineItemId FROM QuoteLinePriceAdjustment
+                WHERE QuoteLineItem.QuoteId IN :quoteIds AND AdjustmentSource = 'Promotion' AND PriceAdjustmentCauseId != null]) {
+            promoted.add(a.QuoteLineItemId);
+        }
+        List<QuoteLineItem> changed = new List<QuoteLineItem>();
+        for (QuoteLineItem l : [SELECT Id, MB_Promotion_Applied__c FROM QuoteLineItem WHERE QuoteId IN :quoteIds]) {
+            Boolean want = promoted.contains(l.Id);
+            if (l.MB_Promotion_Applied__c != want) {
+                changed.add(new QuoteLineItem(Id = l.Id, MB_Promotion_Applied__c = want));
+            }
+        }
+        if (!changed.isEmpty()) {
+            Database.update(changed, false);
+        }
     }
 
     /** Deletes the coupon placeholders on the quotes' lines (Promotion, no promotion linked, description PLACEHOLDER). */

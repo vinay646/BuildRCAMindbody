@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>MB_Promotion_Applied__c</fullName>
+    <label>Promotion Applied</label>
+    <description>A promotion (coupon) discounts this line: it has a Promotion price adjustment linked to a promotion. Set by RepriceQuotesPST when the quote's Coupon Code is applied or removed. Promotional lines are exempt from the floor price check (PRC-18, decision 13 Nov).</description>
+    <inlineHelpText>Checked when a promotion discounts this line. Promotional lines don't need floor price approval.</inlineHelpText>
+    <type>Checkbox</type>
+    <defaultValue>false</defaultValue>
+    <externalId>false</externalId>
+</CustomField>
