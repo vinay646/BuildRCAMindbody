@@ -11,7 +11,7 @@ for v in re.findall(r'<versions>.*?</versions>', s, re.S):
     if st != 'Active': continue
     print('\n#### ACTIVE', fn, 'end', (re.search(r'<endDate>([^<]+)</endDate>', v) or [None, None])[1])
     for step in re.findall(r'<steps>(?:(?!<steps>).)*?</steps>', v, re.S):
-        if '<actionType>VolumeDiscount</actionType>' not in step: continue
+        continue
         outer = re.sub(r'<customElement>.*?</customElement>', '', step, flags=re.S)
         print('  STEP', re.search(r'<label>([^<]+)</label>', outer).group(1), '| parent', (re.search(r'<parentStep>([^<]+)</parentStep>', outer) or [0, '-'])[1])
         for p in re.findall(r'<parameters>(.*?)</parameters>', step, re.S):
@@ -20,8 +20,11 @@ for v in re.findall(r'<versions>.*?</versions>', s, re.S):
             print(f'     {io} {n} = {t and t.group(1)}:{val and val.group(1)}')
     for var in re.findall(r'<variables>(.*?)</variables>', v, re.S):
         n = re.search(r'<name>([^<]+)</name>', var); val = re.search(r'<value>([^<]*)</value>', var)
-        if n and ('olume' in n.group(1) or 'Schedule' in n.group(1) or 'PAS' in n.group(1) or 'Term' in n.group(1) or 'Frequency' in n.group(1)):
+        if n and 'illing' in n.group(1).lower() or (n and 'frequency' in n.group(1).lower()):
             print('  VAR', n.group(1), '=', val and val.group(1), '|', ' '.join(re.findall(r'<(\w+)>([^<]{1,40})</\1>', var)[0:0]) , re.sub(r'\s+', ' ', var)[:260])
 PY
 echo "== schedules"
 sf data query --query "SELECT Id, Name, IsActive, ScheduleType, AdjustmentMethod FROM PriceAdjustmentSchedule" --target-org target 2>&1 | tail -12
+echo "== Billing_Frequency_Value__c on quote lines"
+sf sobject describe --sobject QuoteLineItem --target-org target --json | jq -c '.result.fields[] | select(.name=="Billing_Frequency_Value__c") | {name, type, calculated, calculatedFormula}'
+sf data query --query "SELECT Quote.QuoteNumber, Product2.ProductCode, BillingFrequency, Billing_Frequency_Value__c, SubscriptionTerm FROM QuoteLineItem WHERE Quote.QuoteNumber IN ('00000119','00000122','00000105') AND Product2.ProductCode = 'MB-ACC'" --target-org target 2>&1 | tail -6
