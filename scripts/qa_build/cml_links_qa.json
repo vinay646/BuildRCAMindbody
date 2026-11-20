@@ -1,0 +1,211 @@
+{
+ "apiName": "Mindbody_Plans",
+ "types": {
+  "Starter": "MB-STR",
+  "Accelerate": "MB-ACC",
+  "Ultimate": "MB-ULT",
+  "Enterprise": "MB-ENT",
+  "BrandedApp": "MB-APP",
+  "BrandedAppSetup": "MB-APP-SET",
+  "AiConcierge": "MB-F-AIC",
+  "BusinessManagementFeature": "MB-F-BM",
+  "MindbodyAppListingFeature": "MB-F-APPL",
+  "PosAndOnlinePaymentsFeature": "MB-F-POS",
+  "BrandedWebWidgetsFeature": "MB-F-WEB",
+  "ResourceManagementPickASpotFeature": "MB-F-RES-PAS",
+  "AdvancedReportingFeature": "MB-F-REP",
+  "PromoCodesFeature": "MB-F-PROMO",
+  "EmailAndSmsMarketingFeature": "MB-F-MKTG",
+  "LeadManagementDashboardFeature": "MB-F-LEAD-CDB",
+  "CountertopPaymentTerminal": "MB-HW-TRM",
+  "CustomDataConversion": "MB-DCV",
+  "DoorAccessKit": "MB-HW-DOOR",
+  "MarketplaceFee": "MB-MKT",
+  "MindbodyPayments": "MB-PAY",
+  "MobileCardReader": "MB-HW-RDR",
+  "SmsOverage": "MB-SMS",
+  "TechnicalAccountManagement": "MB-TAM"
+ },
+ "ports": [
+  {
+   "tag": "str_businessmanagementfeature",
+   "parent": "MB-STR",
+   "child": "MB-F-BM"
+  },
+  {
+   "tag": "str_mindbodyapplistingfeature",
+   "parent": "MB-STR",
+   "child": "MB-F-APPL"
+  },
+  {
+   "tag": "str_posandonlinepaymentsfeature",
+   "parent": "MB-STR",
+   "child": "MB-F-POS"
+  },
+  {
+   "tag": "str_brandedwebwidgetsfeature",
+   "parent": "MB-STR",
+   "child": "MB-F-WEB"
+  },
+  {
+   "tag": "acc_businessmanagementfeature",
+   "parent": "MB-ACC",
+   "child": "MB-F-BM"
+  },
+  {
+   "tag": "acc_mindbodyapplistingfeature",
+   "parent": "MB-ACC",
+   "child": "MB-F-APPL"
+  },
+  {
+   "tag": "acc_posandonlinepaymentsfeature",
+   "parent": "MB-ACC",
+   "child": "MB-F-POS"
+  },
+  {
+   "tag": "acc_brandedwebwidgetsfeature",
+   "parent": "MB-ACC",
+   "child": "MB-F-WEB"
+  },
+  {
+   "tag": "acc_resourcemanagementpickaspotfeature",
+   "parent": "MB-ACC",
+   "child": "MB-F-RES-PAS"
+  },
+  {
+   "tag": "acc_advancedreportingfeature",
+   "parent": "MB-ACC",
+   "child": "MB-F-REP"
+  },
+  {
+   "tag": "acc_promocodesfeature",
+   "parent": "MB-ACC",
+   "child": "MB-F-PROMO"
+  },
+  {
+   "tag": "acc_aiconcierge",
+   "parent": "MB-ACC",
+   "child": "MB-F-AIC"
+  },
+  {
+   "tag": "acc_brandedapp",
+   "parent": "MB-ACC",
+   "child": "MB-APP"
+  },
+  {
+   "tag": "ult_businessmanagementfeature",
+   "parent": "MB-ULT",
+   "child": "MB-F-BM"
+  },
+  {
+   "tag": "ult_mindbodyapplistingfeature",
+   "parent": "MB-ULT",
+   "child": "MB-F-APPL"
+  },
+  {
+   "tag": "ult_posandonlinepaymentsfeature",
+   "parent": "MB-ULT",
+   "child": "MB-F-POS"
+  },
+  {
+   "tag": "ult_brandedwebwidgetsfeature",
+   "parent": "MB-ULT",
+   "child": "MB-F-WEB"
+  },
+  {
+   "tag": "ult_resourcemanagementpickaspotfeature",
+   "parent": "MB-ULT",
+   "child": "MB-F-RES-PAS"
+  },
+  {
+   "tag": "ult_advancedreportingfeature",
+   "parent": "MB-ULT",
+   "child": "MB-F-REP"
+  },
+  {
+   "tag": "ult_promocodesfeature",
+   "parent": "MB-ULT",
+   "child": "MB-F-PROMO"
+  },
+  {
+   "tag": "ult_emailandsmsmarketingfeature",
+   "parent": "MB-ULT",
+   "child": "MB-F-MKTG"
+  },
+  {
+   "tag": "ult_leadmanagementdashboardfeature",
+   "parent": "MB-ULT",
+   "child": "MB-F-LEAD-CDB"
+  },
+  {
+   "tag": "ult_aiconcierge",
+   "parent": "MB-ULT",
+   "child": "MB-F-AIC"
+  },
+  {
+   "tag": "ult_brandedapp",
+   "parent": "MB-ULT",
+   "child": "MB-APP"
+  },
+  {
+   "tag": "ent_businessmanagementfeature",
+   "parent": "MB-ENT",
+   "child": "MB-F-BM"
+  },
+  {
+   "tag": "ent_mindbodyapplistingfeature",
+   "parent": "MB-ENT",
+   "child": "MB-F-APPL"
+  },
+  {
+   "tag": "ent_posandonlinepaymentsfeature",
+   "parent": "MB-ENT",
+   "child": "MB-F-POS"
+  },
+  {
+   "tag": "ent_brandedwebwidgetsfeature",
+   "parent": "MB-ENT",
+   "child": "MB-F-WEB"
+  },
+  {
+   "tag": "ent_resourcemanagementpickaspotfeature",
+   "parent": "MB-ENT",
+   "child": "MB-F-RES-PAS"
+  },
+  {
+   "tag": "ent_advancedreportingfeature",
+   "parent": "MB-ENT",
+   "child": "MB-F-REP"
+  },
+  {
+   "tag": "ent_promocodesfeature",
+   "parent": "MB-ENT",
+   "child": "MB-F-PROMO"
+  },
+  {
+   "tag": "ent_emailandsmsmarketingfeature",
+   "parent": "MB-ENT",
+   "child": "MB-F-MKTG"
+  },
+  {
+   "tag": "ent_leadmanagementdashboardfeature",
+   "parent": "MB-ENT",
+   "child": "MB-F-LEAD-CDB"
+  },
+  {
+   "tag": "ent_aiconcierge",
+   "parent": "MB-ENT",
+   "child": "MB-F-AIC"
+  },
+  {
+   "tag": "ent_brandedapp",
+   "parent": "MB-ENT",
+   "child": "MB-APP"
+  },
+  {
+   "tag": "app_brandedappsetup",
+   "parent": "MB-APP",
+   "child": "MB-APP-SET"
+  }
+ ]
+}
