@@ -83,3 +83,27 @@ def show(quote_id, log=print):
                f"FROM QuoteLineItem WHERE QuoteId = '{quote_id}' ORDER BY StartDate"):
         log("   line", l["Product2"]["ProductCode"], l["QuoteLineGroupId"], l["StartDate"], l["EndDate"], l["SegmentIdentifier"], l["IsPrimarySegment"],
             l["ListPrice"], l["NetUnitPrice"], l["TotalPrice"])
+
+
+def ramp_then_add(quote_id, start, months, term, product_code, model, pb, le, log=print):
+    """Segments first (months 1..months and months+1..term), then the product is added to segment 1; the platform
+    copies it into every segment (standard ramp deal behaviour)."""
+    e1 = add_months(start, months) - timedelta(days=1); s2 = e1 + timedelta(days=1); e2 = add_months(start, term) - timedelta(days=1)
+    mk = lambda vals: (json.loads(run(["sf", "data", "create", "record", "--sobject", "QuoteLineGroup", "--values", vals, "--target-org", "target", "--json"])).get("result") or {}).get("id")
+    pid = mk(f"QuoteId={quote_id} Name='Promotion ramp' Type=RampScheduleGroup StartDate={start} EndDate={e2}")
+    g0 = mk(f"QuoteId={quote_id} Name='Months 1-{months}' ParentQuoteLineGroupId={pid} IsRamped=true SegmentType=Custom StartDate={start} EndDate={e1}")
+    g1 = mk(f"QuoteId={quote_id} Name='Months {months + 1}-{term}' ParentQuoteLineGroupId={pid} IsRamped=true SegmentType=Custom StartDate={s2} EndDate={e2}")
+    log("   groups:", pid, g0, g1)
+    e = q(f"SELECT Id, Product2Id, ProductSellingModel.Name FROM PricebookEntry WHERE Product2.ProductCode = '{product_code}' AND Pricebook2Id = '{pb}' "
+          f"AND CurrencyIsoCode = 'USD' AND IsActive = true")
+    e = next((x for x in e if (x.get("ProductSellingModel") or {}).get("Name") == model), e[0])
+    rec = {"attributes": {"type": "QuoteLineItem", "method": "POST"}, "QuoteId": quote_id, "QuoteLineGroupId": g0, "Product2Id": e["Product2Id"],
+           "PricebookEntryId": e["Id"], "Quantity": 1, "StartDate": str(start), "EndDate": str(e1), "LegalEntityId": le,
+           "BillingFrequency": "Monthly", "PeriodBoundary": "Anniversary"}
+    r = _rest("/connect/rev/sales-transaction/actions/place", {"pricingPref": "System", "catalogRatesPref": "Skip", "configurationPref": {"configurationMethod": "Skip"},
+              "taxPref": "Skip", "graph": {"graphId": "addRamped", "records": [
+                  {"referenceId": quote_id, "record": {"attributes": {"type": "Quote", "method": "PATCH", "id": quote_id}}},
+                  {"referenceId": "l1", "record": rec}]}})
+    log("   add to segment 1:", json.dumps(r)[:400])
+    time.sleep(8)
+    return g0, g1
