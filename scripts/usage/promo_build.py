@@ -43,7 +43,7 @@ print("rule library", LIB_ID, "| selling models", PSM)
 
 # 1. remove the old script-loaded promotions (no rule library) and their coupons
 for name in ("LAUNCH3", "SWITCH50", "GROW2"):
-    for p in q(f"SELECT Id FROM Promotion WHERE Name = '{name}'"):
+    for p in q(f"SELECT Id FROM Promotion WHERE Name = '{name}' AND RuleLibraryId = null"):
         for c in q(f"SELECT Id FROM Coupon WHERE PromotionId = '{p['Id']}'"):
             print(f"   delete coupon {c['Id']}:", run(["sf", "data", "delete", "record", "--sobject", "Coupon", "--record-id", c["Id"], "--target-org", "target"]).strip()[:120])
         for t in q(f"SELECT Id FROM PromotionTarget WHERE PromotionId = '{p['Id']}'"):
@@ -65,11 +65,13 @@ def body(name, coupon, codes, rewards, description):
                                  "ruleLibrary": {"id": LIB_ID},
                                  "promotionEligibility": {"eligibleCoupons": [{"couponCode": coupon, "startDateTime": START, "status": "Active"}],
                                                           "eligibleProducts": [{"id": P[c], "productCode": c, "name": NAMES[c], "productType": "BundledProduct"} for c in codes]}},
-            "rules": [{"ruleName": f"{name}{NAMES[r['scopeDetails'][0]['productCode']]}", "priority": i + 1, "journalType": "Customer Purchase",
-                       "templateName": "GetRewardsBasedOnSellingModel", "eventConfiguration": [], "rewardConfiguration": [r]} for i, r in enumerate(rewards)]}
+            "rules": [{"ruleName": f"{name}Reward", "priority": 1, "journalType": "Customer Purchase",
+                       "templateName": "GetRewardsBasedOnSellingModel", "eventConfiguration": [], "rewardConfiguration": rewards}]}
 
 
 def create(name, coupon, codes, reward_options, description):
+    if q(f"SELECT Id FROM Promotion WHERE Name = '{name}' AND RuleLibraryId != null"):
+        print(f"   {name} already built, skipped"); return None
     for rewards in reward_options:
         r = rest("POST", "/global-promotions-management/promotions", body(name, coupon, codes, rewards, description))
         ok = isinstance(r, dict) and (r.get("promotionId") or r.get("id") or (r.get("promotionDetails") or {}).get("id") or r.get("isSuccess"))
