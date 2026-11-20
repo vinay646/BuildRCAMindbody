@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<PermissionSet xmlns="http://soap.sforce.com/2006/04/metadata">
+    <label>MB Floor Price</label>
+    <description>PRC-18: see Quote Line Item › Floor Price and Below Floor (set by the MB Quote Line Floor Price flow).</description>
+    <hasActivationRequired>false</hasActivationRequired>
+    <fieldPermissions>
+        <editable>false</editable>
+        <field>QuoteLineItem.MB_Floor_Price__c</field>
+        <readable>true</readable>
+    </fieldPermissions>
+    <fieldPermissions>
+        <editable>false</editable>
+        <field>QuoteLineItem.MB_Below_Floor__c</field>
+        <readable>true</readable>
+    </fieldPermissions>
+</PermissionSet>
