@@ -8,7 +8,8 @@ API = f"/services/data/v{os.environ.get('ORG_API', '68.0')}"
 
 
 def run(a):
-    return subprocess.run(a, capture_output=True, text=True).stdout
+    r = subprocess.run(a, capture_output=True, text=True)
+    return r.stdout + r.stderr
 
 
 def q(soql):
@@ -44,7 +45,7 @@ print("rule library", LIB_ID, "| selling models", PSM)
 
 # 1. remove the old script-loaded promotions (no rule library) and their coupons
 for name in ("LAUNCH3", "SWITCH50", "GROW2"):
-    for p in q(f"SELECT Id FROM Promotion WHERE Name = '{name}'" + ("" if os.environ.get("REBUILD") else " AND RuleLibraryId = null")):
+    for p in q(f"SELECT Id FROM Promotion WHERE Name = '{name}'" + " AND RuleLibraryId = null AND CreatedDate < 2026-11-20T00:00:00Z"):
         for c in q(f"SELECT Id FROM Coupon WHERE PromotionId = '{p['Id']}'"):
             print(f"   delete coupon {c['Id']}:", run(["sf", "data", "delete", "record", "--sobject", "Coupon", "--record-id", c["Id"], "--target-org", "target"]).strip()[:120])
         for t in q(f"SELECT Id FROM PromotionTarget WHERE PromotionId = '{p['Id']}'"):
@@ -77,6 +78,15 @@ def body(name, coupon, codes, rewards, description):
 
 
 def create(name, coupon, codes, reward_options, description):
+    ex = q(f"SELECT Id FROM Promotion WHERE Name = '{name}'")
+    if ex and os.environ.get("REBUILD"):
+        b = body(name, coupon, codes, reward_options[0], description)
+        for meth in ("PATCH", "PUT"):
+            r = rest(meth, f"/global-promotions-management/promotions/{ex[0]['Id']}", b)
+            print(f"   {meth} {name}:", json.dumps(r)[:500])
+            if isinstance(r, dict) and (r.get("promotionDetails") or {}).get("id"):
+                return r
+        return None
     if q(f"SELECT Id FROM Promotion WHERE Name = '{name}' AND RuleLibraryId != null"):
         print(f"   {name} already built, skipped"); return None
     for rewards in reward_options:
