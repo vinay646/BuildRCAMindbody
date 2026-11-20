@@ -11,6 +11,17 @@ WANT = {'MbHierarchyLocationCount': ('number', 'Location_count__c'), 'MbPriorSys
 path = sys.argv[1]; tree = ET.parse(path); root = tree.getroot()
 ver = next(v for v in root.findall(n('contextDefinitionVersions')) if v.findtext(n('isActive')) == 'true')
 st = next(x for x in ver.iter(n('contextNodes')) if x.findtext(n('title')) == 'SalesTransaction')
+# reuse attributes that already read the same Quote field (QA has its own, e.g. PriorSystem__c)
+_qm = next(m for m in ver.findall(n('contextMappings')) if m.findtext(n('title')) == 'QuoteEntitiesMapping')
+_nm = next(x for x in _qm.findall(n('contextNodeMappings')) if x.findtext(n('contextNode')) == 'SalesTransaction')
+for _m in _nm.findall(n('contextAttributeMappings')):
+    _f = _m.findtext(n('contextAttrHydrationDetails/') + n('queryAttribute')) if False else (_m.find(n('contextAttrHydrationDetails')).findtext(n('queryAttribute')) if _m.find(n('contextAttrHydrationDetails')) is not None else None)
+    for _name, (_t, _field) in list(WANT.items()):
+        if _f and _f.lower() == _field.lower():
+            _a = _m.findtext(n('contextAttribute'))
+            _dt = next((a.findtext(n('dataType')) for a in st.findall(n('contextAttributes')) if a.findtext(n('title')) == _a), '?')
+            print(f'REUSE {_name} -> existing attribute {_a} ({_dt}) already reads Quote.{_field}')
+            WANT.pop(_name)
 have = {a.findtext(n('title')) for a in st.findall(n('contextAttributes'))}
 template = next(a for a in st.findall(n('contextAttributes')) if a.find(n('inheritedFrom')) is None) if any(a.find(n('inheritedFrom')) is None for a in st.findall(n('contextAttributes'))) else None
 for name, (dtype, field) in WANT.items():
