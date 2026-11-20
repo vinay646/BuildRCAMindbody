@@ -1,0 +1,7 @@
+#!/usr/bin/env bash
+# READ ONLY: decision table refresh state vs. the tier data it reads
+sf sobject describe --sobject DecisionTable --target-org target --json | jq -r '[.result.fields[] | select(.name|test("Sync|Refresh|Date|Status|Count";"i")) | .name] | join(" ")'
+f=$(sf sobject describe --sobject DecisionTable --target-org target --json | jq -r '[.result.fields[] | select(.name|test("Sync|Refresh|Status|Count|LastModifiedDate";"i")) | .name] | join(",")')
+sf data query --query "SELECT DeveloperName, $f FROM DecisionTable WHERE DeveloperName IN ('Price_Adjustment_Tier_Decision_Table','Contract_Pricing_Volume_Tiers','Price_Book_Entry_Decision_Table_v2')" --target-org target --json | jq -c '.result.records[] | del(.attributes)'
+echo "tiers: count $(sf data query --query "SELECT COUNT() FROM PriceAdjustmentTier" --target-org target --json | jq -r .result.totalSize), last change $(sf data query --query "SELECT LastModifiedDate FROM PriceAdjustmentTier ORDER BY LastModifiedDate DESC LIMIT 1" --target-org target --json | jq -r '.result.records[0].LastModifiedDate'), deleted rows: $(sf data query --all-rows --query "SELECT COUNT() FROM PriceAdjustmentTier WHERE IsDeleted = true" --target-org target --json | jq -r .result.totalSize)"
+echo "schedules last change $(sf data query --query "SELECT Name, LastModifiedDate FROM PriceAdjustmentSchedule ORDER BY LastModifiedDate DESC LIMIT 3" --target-org target --json | jq -c '[.result.records[] | {Name, LastModifiedDate}]')"
