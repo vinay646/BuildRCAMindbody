@@ -59,6 +59,12 @@ def reward(codes, models, dtype, value):
             "childItems": [], "type": "PSMDiscount", "isPrimaryReward": False}
 
 
+def cat_reward(scope, value):
+    return {"scope": scope, "scopeDetails": [{"id": "0ZGhm0000003Fk5GAE", "name": "Subscriptions"}], "doNotDefineRewards": False,
+            "rewardDetailsList": [{"productSellingModel": {"name": "Term Monthly", "id": PSM["Term Monthly"]}, "discountType": "PercentageOff", "discountValue": value}],
+            "childItems": [], "type": "PSMDiscount", "isPrimaryReward": False}
+
+
 def body(name, coupon, codes, rewards, description):
     # one rule per product: the rule template allows one product in a reward scope
     return {"promotionDetails": {"name": name, "description": description, "currencyIsoCode": "USD", "isAutomatic": False, "startDateTime": START,
@@ -85,7 +91,7 @@ def create(name, coupon, codes, reward_options, description):
 
 create("SWITCH50", "SWITCH50", ["MB-ACC", "MB-ULT"], [[reward([c], ["Term Monthly"], "PercentageOff", 50) for c in ("MB-ACC", "MB-ULT")]],
        "Competitor switch: 50% off Accelerate or Ultimate for the first 6 months (spec PRC-07, CR-10).")
-create("GROW2", "GROW2", ["MB-STR", "MB-ACC", "MB-ULT"], [[reward([c], ["Term Monthly"], "PercentageOff", 100) for c in ("MB-STR", "MB-ACC", "MB-ULT")]],
+create("GROW2", "GROW2", ["MB-STR", "MB-ACC", "MB-ULT"], [[cat_reward(sc, 100)] for sc in ("Category", "ProductCategory", "category")],
        "Existing customer adding a location: 2 months free on the new location (spec PRC-07, CR-10).")
 create("LAUNCH3", "LAUNCH3", ["MB-STR"],
        [[reward(["MB-STR"], ["Term Monthly"], t, v)] for t, v in (("PriceOverride", 39),)],
