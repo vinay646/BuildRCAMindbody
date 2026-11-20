@@ -72,6 +72,8 @@ def case(title, story, term, lines, coupon, prior=None, want=None, account=None)
         print("   place failed:", json.dumps(r.get("errorResponse") or r)[:400]); RESULTS.append((story, title, "ERROR (quote not created)")); return
     time.sleep(5)
     qt = q(f"SELECT Id, QuoteNumber FROM Quote WHERE OpportunityId = '{oid}'")[0]
+    if not coupon:
+        print(f"   quote {qt['QuoteNumber']} {qt['Id']} created (no coupon)"); return qt
     out = json.loads(run(["sf", "data", "update", "record", "--sobject", "Quote", "--record-id", qt["Id"], "--values", f"Coupon_Code__c='{coupon}'",
                           "--target-org", "target", "--json"]))
     print(f"   quote {qt['QuoteNumber']}: coupon set:", "ok" if out.get("status") == 0 else "REJECTED - " + out.get("message", "")[:300])
