@@ -365,6 +365,7 @@ jobs:
           elif [ "$DEPLOY_PATH" = "adj-compare" ]; then ./scripts/usage/adj_compare.sh
           elif [ "$DEPLOY_PATH" = "coupon-recheck" ]; then ./scripts/usage/coupon_recheck.sh
           elif [ "$DEPLOY_PATH" = "adj-deleted" ]; then ./scripts/usage/adj_deleted.sh; ./scripts/run-apex.sh scripts/usage/apex/reprice_sync_probe.apex sync || true
+          elif [ "$DEPLOY_PATH" = "ramp-trace" ]; then ./scripts/usage/trace_on.sh; S=$(date -u +%Y-%m-%dT%H:%M:%SZ); python3 scripts/usage/ramp_probe.py; sleep 10; SINCE=$S ./scripts/usage/trace_read.sh
           elif [ "$DEPLOY_PATH" = "trace-on" ]; then ./scripts/usage/trace_on.sh
           elif [ "$DEPLOY_PATH" = "trace-read" ]; then ./scripts/usage/trace_read.sh
           elif [ "$DEPLOY_PATH" = "trace-one" ]; then ./scripts/usage/trace_one.sh
