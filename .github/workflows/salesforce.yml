@@ -354,6 +354,7 @@ jobs:
           elif [ "${DEPLOY_PATH%%:*}" = "apex" ]; then ./scripts/run-apex.sh "scripts/usage/apex/${DEPLOY_PATH#*:}.apex" "${DEPLOY_PATH#*:}" || true
           elif [ "$DEPLOY_PATH" = "coupon-flow" ]; then python3 scripts/usage/coupon_flow_test.py
           elif [ "$DEPLOY_PATH" = "promo-state" ]; then ./scripts/usage/promo_state.sh
+          elif [ "$DEPLOY_PATH" = "promo-build" ]; then python3 scripts/usage/promo_build.py
           elif [ "$DEPLOY_PATH" = "promo-get" ]; then ./scripts/usage/promo_get.sh
           elif [ "$DEPLOY_PATH" = "ramp-src" ]; then ./scripts/usage/ramp_src.sh
           elif [ "$DEPLOY_PATH" = "promo-api-probe" ]; then ./scripts/usage/promo_api_probe.sh
