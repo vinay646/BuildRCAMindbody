@@ -47,13 +47,14 @@ def ramp(quote_id, start, months, term, line_codes, log=print):
     log("   EditGroup:", json.dumps(r)[:400])
     time.sleep(4)
     log("   after EditGroup:", q(f"SELECT Product2.ProductCode, RampIdentifier, SegmentIdentifier, SegmentType, IsPrimarySegment FROM QuoteLineItem WHERE QuoteLineGroupId = '{g0}'"))
-    for opts in ({}, {"lineScope": "AllLines"}, {"lineScope": "RampedLinesOnly"}):
+    for opts in ({"lineScope": "RampedLinesOnly"},):
         body = {"recordIds": [g0], "salesTransactionId": quote_id}
         if opts:
             body["options"] = opts
         r = _rest("/connect/rev/sales-transaction/actions/clone", body)
         log("   Clone", opts, json.dumps(r)[:300])
         time.sleep(5)
+        log("   lines after clone:", [(l["Product2"]["ProductCode"], l["QuoteLineGroupId"], l["StartDate"], l["EndDate"]) for l in q(f"SELECT Product2.ProductCode, QuoteLineGroupId, StartDate, EndDate FROM QuoteLineItem WHERE QuoteId = '{quote_id}'")])
         segs = q(f"SELECT Id, Name FROM QuoteLineGroup WHERE ParentQuoteLineGroupId = '{pid}' ORDER BY CreatedDate")
         if len(segs) >= 2 and q(f"SELECT Id FROM QuoteLineItem WHERE QuoteLineGroupId = '{segs[-1]['Id']}'"):
             break
