@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>MB_Price_Before_Promotion__c</fullName>
+    <label>Price Before Promotion</label>
+    <description>Net unit price with every discount except promotions (volume, term, billing frequency and manual discounts): Net Unit Price + the promotion adjustments' applied amount per unit. Blank when no promotion applies. Set by RepriceQuotesPST. Used by Below Floor so promotion discounts don't need floor approval (PRC-18).</description>
+    <inlineHelpText>Net unit price before the promotion discount. Below Floor compares this price with the floor price, so promotions don't need approval.</inlineHelpText>
+    <type>Currency</type>
+    <precision>16</precision>
+    <scale>2</scale>
+    <required>false</required>
+    <externalId>false</externalId>
+</CustomField>

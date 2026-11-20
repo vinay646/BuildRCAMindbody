@@ -12,8 +12,9 @@
  * applied the coupon (its own promotion adjustment carries the code), and a placeholder is a Promotion adjustment
  * without a promotion, which the line editor's Promotions tab cannot show.
  *
- * Finally each line's Promotion Applied flag is set from its promotion adjustments: promotional lines are exempt from
- * the floor price check (Below Floor, PRC-18).
+ * Finally each line's Promotion Applied flag and Price Before Promotion (net unit price + the promotions' applied amount
+ * per unit) are set from its promotion adjustments, so the floor price check (Below Floor, PRC-18) ignores promotion
+ * discounts but still counts volume, term, billing frequency and manual discounts.
  */
 public class RepriceQuotesPST {
     public static final String PLACEHOLDER = 'Quote coupon code';
@@ -70,43 +71,30 @@ public class RepriceQuotesPST {
         markPromotionLines(quoteIds);
     }
 
-    /** Sets Quote Line Item > Promotion Applied: true when the line has a Promotion adjustment linked to a promotion. */
+    /**
+     * Sets Quote Line Item > Promotion Applied (a Promotion adjustment linked to a promotion) and Price Before Promotion
+     * (Net Unit Price + those adjustments' applied amount per unit; blank without a promotion).
+     */
     public static void markPromotionLines(Set<String> quoteIds) {
         if (quoteIds.isEmpty()) {
             return;
         }
-        Set<Id> promoted = new Set<Id>();
-        for (QuoteLinePriceAdjustment a : [SELECT QuoteLineItemId FROM QuoteLinePriceAdjustment
+        Map<Id, Decimal> promoAmount = new Map<Id, Decimal>();
+        for (QuoteLinePriceAdjustment a : [SELECT QuoteLineItemId, AppliedAdjustmentAmount FROM QuoteLinePriceAdjustment
                 WHERE QuoteLineItem.QuoteId IN :quoteIds AND AdjustmentSource = 'Promotion' AND PriceAdjustmentCauseId != null]) {
-            promoted.add(a.QuoteLineItemId);
+            Decimal sofar = promoAmount.containsKey(a.QuoteLineItemId) ? promoAmount.get(a.QuoteLineItemId) : 0;
+            promoAmount.put(a.QuoteLineItemId, sofar + (a.AppliedAdjustmentAmount == null ? 0 : a.AppliedAdjustmentAmount));
         }
         List<QuoteLineItem> changed = new List<QuoteLineItem>();
-        for (QuoteLineItem l : [SELECT Id, MB_Promotion_Applied__c FROM QuoteLineItem WHERE QuoteId IN :quoteIds]) {
-            Boolean want = promoted.contains(l.Id);
-            if (l.MB_Promotion_Applied__c != want) {
-                changed.add(new QuoteLineItem(Id = l.Id, MB_Promotion_Applied__c = want));
+        for (QuoteLineItem l : [SELECT Id, NetUnitPrice, MB_Promotion_Applied__c, MB_Price_Before_Promotion__c FROM QuoteLineItem WHERE QuoteId IN :quoteIds]) {
+            Boolean promoted = promoAmount.containsKey(l.Id);
+            Decimal before = promoted && l.NetUnitPrice != null ? (l.NetUnitPrice + promoAmount.get(l.Id)).setScale(2) : null;
+            if (l.MB_Promotion_Applied__c != promoted || l.MB_Price_Before_Promotion__c != before) {
+                changed.add(new QuoteLineItem(Id = l.Id, MB_Promotion_Applied__c = promoted, MB_Price_Before_Promotion__c = before));
             }
         }
         if (!changed.isEmpty()) {
             Database.update(changed, false);
-        }
-    }
-
-    /** Deletes the coupon placeholders on the quotes' lines (Promotion, no promotion linked, description PLACEHOLDER). */
-    public static void deletePlaceholders(Set<String> quoteIds) {
-        if (quoteIds.isEmpty()) {
-            return;
-        }
-        List<QuoteLinePriceAdjustment> rows = new List<QuoteLinePriceAdjustment>();
-        for (QuoteLinePriceAdjustment a : [SELECT Id, Description FROM QuoteLinePriceAdjustment
-                WHERE QuoteLineItem.QuoteId IN :quoteIds AND AdjustmentSource = 'Promotion'
-                AND PriceAdjustmentCauseId = null AND CouponCode != null]) {
-            if (a.Description == PLACEHOLDER) {
-                rows.add(a);
-            }
-        }
-        if (!rows.isEmpty()) {
-            Database.delete(rows, false);
         }
     }
 

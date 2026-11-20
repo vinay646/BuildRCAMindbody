@@ -45,7 +45,7 @@ def entry(code, model="Term Monthly"):
     return next((x for x in es if (x.get("ProductSellingModel") or {}).get("Name") == model), es[0])
 
 
-def case(title, story, term, lines, coupon, prior=None, want=None, account=None, discount=None, floor_want=None):
+def case(title, story, term, lines, coupon, prior=None, want=None, account=None, discount=None, floor_want=None, qty=1, below_want=None):
     """lines: [(code, selling model or None for one-time)]; want: {code: expected net or None = list (no promotion)}"""
     print(f"\n===== {story} | {title} (term {term}, prior system {prior}, coupon {coupon})")
     opp_vals = f"Name='MR103 {STAMP}' AccountId={account or ACC} StageName=Prospecting CloseDate={TODAY} Pricebook2Id={PB} CurrencyIsoCode=USD"
@@ -60,7 +60,7 @@ def case(title, story, term, lines, coupon, prior=None, want=None, account=None,
     for i, (code, model) in enumerate(lines):
         e = entry(code, model or "One-Time")
         rec = {"attributes": {"type": "QuoteLineItem", "method": "POST"}, "QuoteId": "@{q1.id}", "Product2Id": e["Product2Id"], "PricebookEntryId": e["Id"],
-               "Quantity": 1, "StartDate": TODAY.isoformat(), "LegalEntityId": LE}
+               "Quantity": qty if i == 0 else 1, "StartDate": TODAY.isoformat(), "LegalEntityId": LE}
         if model:
             rec |= {"BillingFrequency": "Monthly", "PeriodBoundary": "Anniversary"}
             if model != "Evergreen Monthly":
@@ -100,15 +100,25 @@ def case(title, story, term, lines, coupon, prior=None, want=None, account=None,
         promo = [(a["AdjustmentValue"], a.get("CouponCode")) for a in adj if a.get("PriceAdjustmentCauseId")]
         net = row["NetUnitPrice"] if row else None
         target = row["ListPrice"] if (row and exp is None) else exp
-        good = row is not None and abs(float(net or 0) - float(target)) <= 0.01 and (bool(promo) == (exp is not None))
+        if exp == "any":
+            good = row is not None and bool(promo)
+        else:
+            good = row is not None and abs(float(net or 0) - float(target)) <= 0.01 and (bool(promo) == (exp is not None))
         ok = ok and good
         print(f"   {'PASS' if good else 'FAIL'} {code}: list {row and row['ListPrice']} -> net {net} (want {target}{'' if exp is not None else ', no promotion'}) | promotion adjustments {promo}")
         if row:
-            fl = q(f"SELECT MB_Floor_Price__c, MB_Below_Floor__c, MB_Promotion_Applied__c FROM QuoteLineItem WHERE Id = '{row['Id']}'")[0]
-            fgood = (fl["MB_Promotion_Applied__c"] == bool(promo)) and (not fl["MB_Below_Floor__c"] if promo else True)
+            fl = q(f"SELECT NetUnitPrice, MB_Floor_Price__c, MB_Below_Floor__c, MB_Promotion_Applied__c, MB_Price_Before_Promotion__c FROM QuoteLineItem WHERE Id = '{row['Id']}'")[0]
+            amt = sum(float(a.get("AppliedAdjustmentAmount") or 0) for a in q(f"SELECT AppliedAdjustmentAmount FROM QuoteLinePriceAdjustment WHERE QuoteLineItemId = '{row['Id']}' AND AdjustmentSource = 'Promotion' AND PriceAdjustmentCauseId != null"))
+            floor = fl["MB_Floor_Price__c"]
+            exp_before = round(float(fl["NetUnitPrice"] or 0) + amt, 2) if promo else None
+            exp_below = (floor is not None) and ((exp_before if promo else float(fl["NetUnitPrice"] or 0)) < float(floor))
+            if below_want is not None:
+                exp_below = below_want
+            got_before = fl["MB_Price_Before_Promotion__c"]
+            fgood = (fl["MB_Promotion_Applied__c"] == bool(promo)) and fl["MB_Below_Floor__c"] == exp_below and \
+                    ((got_before is None and exp_before is None) or (got_before is not None and exp_before is not None and abs(float(got_before) - exp_before) <= 0.01))
             ok = ok and fgood
-            print(f"   {'PASS' if fgood else 'FAIL'} floor check {code}: floor {fl['MB_Floor_Price__c']} below floor {fl['MB_Below_Floor__c']} promotion applied {fl['MB_Promotion_Applied__c']}"
-                  f" (want promotion applied {bool(promo)}{', not below floor' if promo else ''})")
+            print(f"   {'PASS' if fgood else 'FAIL'} floor check {code}: net {fl['NetUnitPrice']} + promotion {round(amt, 2)} = price before promotion {got_before} (want {exp_before}) | floor {floor} | below floor {fl['MB_Below_Floor__c']} (want {exp_below})")
     RESULTS.append((story, title, "PASS" if ok else "FAIL"))
 
 
@@ -129,6 +139,9 @@ case("SWITCH50 Accelerate 24 months, prior system None", "AC6", 24, [("MB-ACC", 
      prior="None", want={"MB-ACC": None})
 # PRC-18: an ordinary discount below the floor is still flagged (no promotion)
 case("Accelerate 40% manual discount, no coupon", "PRC-18", 12, [("MB-ACC", "Term Monthly")], None, discount=40, floor_want={"MB-ACC": (True, False)})
+# PRC-18 with a promotion: the floor check ignores the promotion discount but counts the other discounts
+case("SWITCH50 + 40% manual discount", "PRC-18b", 24, [("MB-ACC", "Term Monthly"), ("MB-DCV", None)], "SWITCH50", prior="Vagaro", want={"MB-ACC": "any"}, discount=40, below_want=True)
+case("SWITCH50 Accelerate x2 locations", "PRC-18c", 24, [("MB-ACC", "Term Monthly"), ("MB-DCV", None)], "SWITCH50", prior="Vagaro", want={"MB-ACC": 127.78}, qty=2, below_want=False)
 # control: a rule-library promotion (NewPromo, 50% Accelerate) through the same path
 case("Control: NEWPROMO5 Accelerate", "control", 12, [("MB-ACC", "Term Monthly")], "NEWPROMO5", want={"MB-ACC": 134.5})
 

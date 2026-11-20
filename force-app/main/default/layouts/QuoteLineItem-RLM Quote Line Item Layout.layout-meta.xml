@@ -94,6 +94,10 @@
                 <field>MB_Promotion_Applied__c</field>
             </layoutItems>
             <layoutItems>
+                <behavior>Readonly</behavior>
+                <field>MB_Price_Before_Promotion__c</field>
+            </layoutItems>
+            <layoutItems>
                 <behavior>Edit</behavior>
                 <field>DiscountAmount</field>
             </layoutItems>
