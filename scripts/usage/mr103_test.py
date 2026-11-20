@@ -125,6 +125,9 @@ def case(title, story, term, lines, coupon, prior=None, want=None, account=None,
             fgood = (fl["MB_Promotion_Applied__c"] == bool(promo)) and fl["MB_Below_Floor__c"] == exp_below and \
                     ((got_before is None and exp_before is None) or (got_before is not None and exp_before is not None and abs(float(got_before) - exp_before) <= 0.01))
             ok = ok and fgood
+            others = q(f"SELECT AdjustmentSource, AdjustmentType, AdjustmentValue, AppliedAdjustmentAmount FROM QuoteLinePriceAdjustment WHERE QuoteLineItemId = '{row['Id']}' AND AdjustmentSource != 'Promotion'")
+            if others:
+                print("   other adjustments:", [(a["AdjustmentSource"], a["AdjustmentValue"], a.get("AppliedAdjustmentAmount")) for a in others])
             print(f"   {'PASS' if fgood else 'FAIL'} floor check {code}: net {fl['NetUnitPrice']} + promotion {round(amt, 2)} = price before promotion {got_before} (want {exp_before}) | floor {floor} | below floor {fl['MB_Below_Floor__c']} (want {exp_below})")
     RESULTS.append((story, title, "PASS" if ok else "FAIL"))
 
@@ -147,7 +150,10 @@ case("SWITCH50 Accelerate 24 months, prior system None", "AC6", 24, [("MB-ACC", 
 # PRC-18: an ordinary discount below the floor is still flagged (no promotion)
 case("Accelerate 40% manual discount, no coupon", "PRC-18", 12, [("MB-ACC", "Term Monthly")], None, discount=40, floor_want={"MB-ACC": (True, False)})
 # PRC-18 with a promotion: the floor check ignores the promotion discount but counts the other discounts
-case("SWITCH50 + 40% manual discount", "PRC-18b", 24, [("MB-ACC", "Term Monthly"), ("MB-DCV", None)], "SWITCH50", prior="Vagaro", want={"MB-ACC": "any"}, discount=40, below_want=True)
+# volume (hierarchy locations) + term + promotion on one line: only the promotion is left out of the floor check
+VOL_ACC = q("SELECT AccountId FROM Quote WHERE QuoteNumber = '00000104'")[0]["AccountId"]
+case("SWITCH50 + volume discount (12 hierarchy locations) + 24-month term", "PRC-18b", 24, [("MB-ACC", "Term Monthly"), ("MB-DCV", None)], "SWITCH50",
+     prior="Vagaro", want={"MB-ACC": "any"}, account=VOL_ACC)
 case("SWITCH50 Accelerate x2 locations", "PRC-18c", 24, [("MB-ACC", "Term Monthly"), ("MB-DCV", None)], "SWITCH50", prior="Vagaro", want={"MB-ACC": 127.78}, qty=2, below_want=False)
 # control: a rule-library promotion (NewPromo, 50% Accelerate) through the same path
 case("Control: NEWPROMO5 Accelerate", "control", 12, [("MB-ACC", "Term Monthly")], "NEWPROMO5", want={"MB-ACC": 134.5})
