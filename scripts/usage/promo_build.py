@@ -60,12 +60,13 @@ def reward(codes, models, dtype, value):
 
 
 def body(name, coupon, codes, rewards, description):
+    # one rule per product: the rule template allows one product in a reward scope
     return {"promotionDetails": {"name": name, "description": description, "currencyIsoCode": "USD", "isAutomatic": False, "startDateTime": START,
                                  "ruleLibrary": {"id": LIB_ID},
                                  "promotionEligibility": {"eligibleCoupons": [{"couponCode": coupon, "startDateTime": START, "status": "Active"}],
                                                           "eligibleProducts": [{"id": P[c], "productCode": c, "name": NAMES[c], "productType": "BundledProduct"} for c in codes]}},
-            "rules": [{"ruleName": f"{name}Reward", "priority": 1, "journalType": "Customer Purchase", "templateName": "GetRewardsBasedOnSellingModel",
-                       "eventConfiguration": [], "rewardConfiguration": rewards}]}
+            "rules": [{"ruleName": f"{name}{NAMES[r['scopeDetails'][0]['productCode']]}", "priority": i + 1, "journalType": "Customer Purchase",
+                       "templateName": "GetRewardsBasedOnSellingModel", "eventConfiguration": [], "rewardConfiguration": [r]} for i, r in enumerate(rewards)]}
 
 
 def create(name, coupon, codes, reward_options, description):
@@ -74,16 +75,18 @@ def create(name, coupon, codes, reward_options, description):
         ok = isinstance(r, dict) and (r.get("promotionId") or r.get("id") or (r.get("promotionDetails") or {}).get("id") or r.get("isSuccess"))
         print(f"   create {name} ({rewards[0]['rewardDetailsList'][0]['discountType']} {rewards[0]['rewardDetailsList'][0]['discountValue']}):", json.dumps(r)[:700])
         if ok:
+            new_id = (r.get("promotionDetails") or {}).get("id") or r.get("promotionId") or r.get("id")
+            print(f"   activate {name}:", run(["sf", "data", "update", "record", "--sobject", "Promotion", "--record-id", new_id, "--values", "IsActive=true", "--target-org", "target"]).strip()[:300])
             return r
     return None
 
 
-create("SWITCH50", "SWITCH50", ["MB-ACC", "MB-ULT"], [[reward(["MB-ACC", "MB-ULT"], ["Term Monthly"], "PercentageOff", 50)]],
+create("SWITCH50", "SWITCH50", ["MB-ACC", "MB-ULT"], [[reward([c], ["Term Monthly"], "PercentageOff", 50) for c in ("MB-ACC", "MB-ULT")]],
        "Competitor switch: 50% off Accelerate or Ultimate for the first 6 months (spec PRC-07, CR-10).")
-create("GROW2", "GROW2", ["MB-STR", "MB-ACC", "MB-ULT"], [[reward(["MB-STR", "MB-ACC", "MB-ULT"], ["Term Monthly"], "PercentageOff", 100)]],
+create("GROW2", "GROW2", ["MB-STR", "MB-ACC", "MB-ULT"], [[reward([c], ["Term Monthly"], "PercentageOff", 100) for c in ("MB-STR", "MB-ACC", "MB-ULT")]],
        "Existing customer adding a location: 2 months free on the new location (spec PRC-07, CR-10).")
 create("LAUNCH3", "LAUNCH3", ["MB-STR"],
-       [[reward(["MB-STR"], ["Term Monthly"], t, v)] for t, v in (("FixedPrice", 39), ("PriceOverride", 39), ("OverridePrice", 39), ("AmountOff", 40), ("FixedAmountOff", 40))],
+       [[reward(["MB-STR"], ["Term Monthly"], t, v)] for t, v in (("PriceOverride", 39),)],
        "New logo: Starter at $39 per location for the first 3 months (spec PRC-07, PRC-08, CR-10).")
 
 print("\n== result")
