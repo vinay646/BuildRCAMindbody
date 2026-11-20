@@ -98,6 +98,24 @@ public class RepriceQuotesPST {
         }
     }
 
+    /** Deletes the coupon placeholders on the quotes' lines (Promotion, no promotion linked, description PLACEHOLDER). */
+    public static void deletePlaceholders(Set<String> quoteIds) {
+        if (quoteIds.isEmpty()) {
+            return;
+        }
+        List<QuoteLinePriceAdjustment> rows = new List<QuoteLinePriceAdjustment>();
+        for (QuoteLinePriceAdjustment a : [SELECT Id, Description FROM QuoteLinePriceAdjustment
+                WHERE QuoteLineItem.QuoteId IN :quoteIds AND AdjustmentSource = 'Promotion'
+                AND PriceAdjustmentCauseId = null AND CouponCode != null]) {
+            if (a.Description == PLACEHOLDER) {
+                rows.add(a);
+            }
+        }
+        if (!rows.isEmpty()) {
+            Database.delete(rows, false);
+        }
+    }
+
     /** Fallback when the reprice cannot run inside the save. */
     public class RepriceJob implements Queueable {
         private final Set<String> quoteIds;
