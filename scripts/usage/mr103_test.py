@@ -35,6 +35,8 @@ PB = q("SELECT Pricebook2Id FROM PricebookEntry WHERE Product2.ProductCode = 'MB
 LE = q("SELECT Id FROM LegalEntity WHERE Name = 'Default Legal Entity - US' LIMIT 1")[0]["Id"]
 ACC = q("SELECT Id FROM Account WHERE Root_Account__c = null AND (Active_Location_Count__c = null OR Active_Location_Count__c = 0) "
         "AND Id NOT IN (SELECT AccountId FROM Asset) AND (NOT Name LIKE 'QUAL-TEST%') ORDER BY CreatedDate DESC LIMIT 1")[0]["Id"]
+# existing customer: an account with assets
+EXISTING = q("SELECT AccountId FROM Asset WHERE AccountId != null ORDER BY CreatedDate DESC LIMIT 1")[0]["AccountId"]
 
 
 def entry(code, model="Term Monthly"):
@@ -43,10 +45,10 @@ def entry(code, model="Term Monthly"):
     return next((x for x in es if (x.get("ProductSellingModel") or {}).get("Name") == model), es[0])
 
 
-def case(title, story, term, lines, coupon, prior=None, want=None):
+def case(title, story, term, lines, coupon, prior=None, want=None, account=None):
     """lines: [(code, selling model or None for one-time)]; want: {code: expected net or None = list (no promotion)}"""
     print(f"\n===== {story} | {title} (term {term}, prior system {prior}, coupon {coupon})")
-    opp_vals = f"Name='MR103 {STAMP}' AccountId={ACC} StageName=Prospecting CloseDate={TODAY} Pricebook2Id={PB} CurrencyIsoCode=USD"
+    opp_vals = f"Name='MR103 {STAMP}' AccountId={account or ACC} StageName=Prospecting CloseDate={TODAY} Pricebook2Id={PB} CurrencyIsoCode=USD"
     if prior:
         opp_vals += f" MB_Prior_System__c='{prior}'"
     opp = json.loads(run(["sf", "data", "create", "record", "--sobject", "Opportunity", "--values", opp_vals, "--target-org", "target", "--json"]))
@@ -72,7 +74,10 @@ def case(title, story, term, lines, coupon, prior=None, want=None):
     qt = q(f"SELECT Id, QuoteNumber FROM Quote WHERE OpportunityId = '{oid}'")[0]
     out = json.loads(run(["sf", "data", "update", "record", "--sobject", "Quote", "--record-id", qt["Id"], "--values", f"Coupon_Code__c='{coupon}'",
                           "--target-org", "target", "--json"]))
-    print(f"   quote {qt['QuoteNumber']}: coupon set:", "ok" if out.get("status") == 0 else out.get("message", "")[:300])
+    print(f"   quote {qt['QuoteNumber']}: coupon set:", "ok" if out.get("status") == 0 else "REJECTED - " + out.get("message", "")[:300])
+    if out.get("status") != 0:
+        expected_reject = all(v is None for v in (want or {}).values())
+        RESULTS.append((story, title, "PASS (coupon rejected)" if expected_reject else "FAIL (coupon rejected)")); return
     time.sleep(6)
     rows = q(f"SELECT Id, Product2.ProductCode, ListPrice, NetUnitPrice FROM QuoteLineItem WHERE QuoteId = '{qt['Id']}'")
     ok = True
@@ -94,9 +99,12 @@ case("LAUNCH3 Starter 12 months with Payments", "AC2", 12, [("MB-STR", "Term Mon
 case("SWITCH50 Accelerate 24 months, competitor, data conversion", "AC3", 24, [("MB-ACC", "Term Monthly"), ("MB-DCV", None)], "SWITCH50",
      prior="Vagaro", want={"MB-ACC": 127.78})
 # AC4: GROW2 2 months free per added location (new location on an existing customer)
-case("GROW2 Accelerate added location", "AC4", 12, [("MB-ACC", "Term Monthly")], "GROW2", want={"MB-ACC": 0.0})
+case("GROW2 Accelerate added location, existing customer", "AC4", 12, [("MB-ACC", "Term Monthly")], "GROW2", want={"MB-ACC": 0.0}, account=EXISTING)
+case("GROW2 on a new customer", "AC4b", 12, [("MB-ACC", "Term Monthly")], "GROW2", want={"MB-ACC": None})
 # AC5: LAUNCH3 on a 6-month term, or without Payments: rejected
-case("LAUNCH3 Starter 6 months, no Payments", "AC5", 6, [("MB-STR", "Term Monthly")], "LAUNCH3", want={"MB-STR": None})
+# (a 6-month term is already blocked by CR-13 for Starter, so the rejection is shown with "no Payments")
+case("LAUNCH3 Starter 12 months, no Payments", "AC5", 12, [("MB-STR", "Term Monthly")], "LAUNCH3", want={"MB-STR": None})
+case("LAUNCH3 for an existing customer", "AC5b", 12, [("MB-STR", "Term Monthly"), ("MB-PAY", "Evergreen Monthly")], "LAUNCH3", want={"MB-STR": None}, account=EXISTING)
 # AC6: SWITCH50 when prior system is None: rejected
 case("SWITCH50 Accelerate 24 months, prior system None", "AC6", 24, [("MB-ACC", "Term Monthly"), ("MB-DCV", None)], "SWITCH50",
      prior="None", want={"MB-ACC": None})

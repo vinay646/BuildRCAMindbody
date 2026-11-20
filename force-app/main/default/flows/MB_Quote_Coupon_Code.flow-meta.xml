@@ -1,6 +1,25 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Flow xmlns="http://soap.sforce.com/2006/04/metadata">
     <actionCalls>
+        <name>Check_Coupon</name>
+        <label>Check coupon rules</label>
+        <locationX>176</locationX>
+        <locationY>100</locationY>
+        <actionName>MbCouponRules</actionName>
+        <actionType>apex</actionType>
+        <connector><targetReference>Coupon_Allowed</targetReference></connector>
+        <flowTransactionModel>CurrentTransaction</flowTransactionModel>
+        <inputParameters>
+            <name>quoteId</name>
+            <value><elementReference>$Record.Id</elementReference></value>
+        </inputParameters>
+        <inputParameters>
+            <name>couponCode</name>
+            <value><elementReference>fNewCoupon</elementReference></value>
+        </inputParameters>
+        <storeOutputAutomatically>true</storeOutputAutomatically>
+    </actionCalls>
+    <actionCalls>
         <name>Reprice_Quote</name>
         <label>Reprice quote</label>
         <locationX>600</locationX>
@@ -69,6 +88,36 @@
         </assignmentItems>
         <connector><targetReference>Loop_Lines</targetReference></connector>
     </assignments>
+    <customErrors>
+        <name>Reject_Coupon</name>
+        <label>Reject coupon</label>
+        <locationX>50</locationX>
+        <locationY>150</locationY>
+        <customErrorMessages>
+            <errorMessage>{!Check_Coupon.message}</errorMessage>
+            <fieldSelection>Coupon_Code__c</fieldSelection>
+            <isFieldError>true</isFieldError>
+        </customErrorMessages>
+    </customErrors>
+    <decisions>
+        <name>Coupon_Allowed</name>
+        <label>Coupon allowed?</label>
+        <locationX>176</locationX>
+        <locationY>150</locationY>
+        <defaultConnector><targetReference>Get_Lines</targetReference></defaultConnector>
+        <defaultConnectorLabel>Yes</defaultConnectorLabel>
+        <rules>
+            <name>Rejected</name>
+            <conditionLogic>and</conditionLogic>
+            <conditions>
+                <leftValueReference>Check_Coupon.message</leftValueReference>
+                <operator>IsBlank</operator>
+                <rightValue><booleanValue>false</booleanValue></rightValue>
+            </conditions>
+            <connector><targetReference>Reject_Coupon</targetReference></connector>
+            <label>No (rejected)</label>
+        </rules>
+    </decisions>
     <decisions>
         <name>Has_Old_Coupon</name>
         <label>Had a coupon before?</label>
@@ -136,7 +185,7 @@
             <label>Yes</label>
         </rules>
     </decisions>
-    <description>Quote Coupon Code -> promotions. When the quote's Coupon Code changes: the old coupon's line price adjustments (the 0% placeholders and the promotion discounts they produced) are deleted, and every line gets a 0% Promotion price adjustment carrying the new code (upper case). The flow then reprices the quote in the same save (Apex action RepriceQuotesPST), which applies the promotion that owns that Coupon to its eligible products; other products keep the 0% placeholder and their price.</description>
+    <description>Quote Coupon Code -> promotions. First the coupon rules are checked (Apex MbCouponRules, spec CR-10); a coupon the quote does not qualify for stops the save with the reason on the Coupon Code field. When the quote's Coupon Code changes: the old coupon's line price adjustments (the 0% placeholders and the promotion discounts they produced) are deleted, and every line gets a 0% Promotion price adjustment carrying the new code (upper case). The flow then reprices the quote in the same save (Apex action RepriceQuotesPST), which applies the promotion that owns that Coupon to its eligible products; other products keep the 0% placeholder and their price.</description>
     <environments>Default</environments>
     <formulas>
         <name>fNewCoupon</name>
@@ -239,7 +288,7 @@
     <start>
         <locationX>50</locationX>
         <locationY>0</locationY>
-        <connector><targetReference>Get_Lines</targetReference></connector>
+        <connector><targetReference>Check_Coupon</targetReference></connector>
         <filterLogic>and</filterLogic>
         <filters>
             <field>Coupon_Code__c</field>

@@ -78,6 +78,8 @@ def body(name, coupon, codes, rewards, description):
 
 
 def create(name, coupon, codes, reward_options, description):
+    if os.environ.get("ONLY") and name not in os.environ["ONLY"].split(","):
+        return None
     if os.environ.get("REBUILD"):
         for ex in q(f"SELECT Id FROM Promotion WHERE Name = '{name}'"):
             print(f"   deactivate {name}:", run(["sf", "data", "update", "record", "--sobject", "Promotion", "--record-id", ex["Id"], "--values", "IsActive=false", "--target-org", "target"]).strip()[:200])
@@ -104,7 +106,7 @@ create("SWITCH50", "SWITCH50", ["MB-ACC", "MB-ULT"], [[reward([c], ["Term Monthl
 create("GROW2", "GROW2", ["MB-STR", "MB-ACC", "MB-ULT"], [[cat_reward(sc, 100)] for sc in ("Category", "ProductCategory", "category")],
        "Existing customer adding a location: 2 months free on the new location (spec PRC-07, CR-10).")
 create("LAUNCH3", "LAUNCH3", ["MB-STR"],
-       [[reward(["MB-STR"], ["Term Monthly"], t, v)] for t, v in (("PriceOverride", 39),)],
+       [[reward(["MB-STR"], ["Term Monthly"], t, v)] for t, v in (("PriceOverride", 40),)],
        "New logo: Starter at $39 per location for the first 3 months (spec PRC-07, PRC-08, CR-10).")
 
 print("\n== result")
