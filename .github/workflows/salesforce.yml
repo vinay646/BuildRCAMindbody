@@ -131,7 +131,7 @@ jobs:
       - name: Run Apex tests
         if: env.ACTION == 'test'
         run: |
-          sf apex run test --target-org target --class-names AccountHierarchyServiceTest --test-level RunSpecifiedTests \
+          sf apex run test --target-org target --class-names "${DEPLOY_PATH:-AccountHierarchyServiceTest}" --test-level RunSpecifiedTests \
             --wait 20 --result-format json > tests.json || true
           ./scripts/test-summary.sh tests.json
 
