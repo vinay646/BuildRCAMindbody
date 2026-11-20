@@ -64,7 +64,7 @@ def body(name, coupon, codes, rewards, description):
                                  "ruleLibrary": {"id": LIB_ID},
                                  "promotionEligibility": {"eligibleCoupons": [{"couponCode": coupon, "startDateTime": START, "status": "Active"}],
                                                           "eligibleProducts": [{"id": P[c], "productCode": c, "name": NAMES[c], "productType": "BundledProduct"} for c in codes]}},
-            "rules": [{"ruleName": f"{name} reward", "priority": 1, "journalType": "Customer Purchase", "templateName": "GetRewardsBasedOnSellingModel",
+            "rules": [{"ruleName": f"{name}Reward", "priority": 1, "journalType": "Customer Purchase", "templateName": "GetRewardsBasedOnSellingModel",
                        "eventConfiguration": [], "rewardConfiguration": rewards}]}
 
 
