@@ -149,7 +149,7 @@
             <label>Repeated</label>
         </rules>
     </decisions>
-    <description>CR-01 one plan per quote and CFG-13 no repeated Payments, TAM, Marketplace fee or SMS line on a quote (design: one quote per account). Hard block, because constraint model constraints only warn and validation rules cannot count sibling lines.</description>
+    <description>CR-01 one plan per quote and CFG-13 no repeated Payments, TAM, Marketplace fee or SMS line on a quote (design: one quote per account). Ramp segment lines (RampIdentifier set) are copies of the same product for later months and are not checked. Hard block, because constraint model constraints only warn and validation rules cannot count sibling lines.</description>
     <environments>Default</environments>
     <formulas>
         <name>fIsPlan</name>
@@ -253,6 +253,11 @@
         <filterLogic>and</filterLogic>
         <filters>
             <field>ParentQuoteLineItemId</field>
+            <operator>IsNull</operator>
+            <value><booleanValue>true</booleanValue></value>
+        </filters>
+        <filters>
+            <field>RampIdentifier</field>
             <operator>IsNull</operator>
             <value><booleanValue>true</booleanValue></value>
         </filters>
