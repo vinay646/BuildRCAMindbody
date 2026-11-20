@@ -53,12 +53,16 @@ def ramp(quote_id, start, months, term, line_codes, log=print):
             body["options"] = opts
         r = _rest("/connect/rev/sales-transaction/actions/clone", body)
         log("   Clone", opts, json.dumps(r)[:300])
-        time.sleep(5)
+        for _ in range(18):
+            time.sleep(5)
+            segs = q(f"SELECT Id FROM QuoteLineGroup WHERE ParentQuoteLineGroupId = '{pid}' ORDER BY CreatedDate")
+            if len(segs) >= 2 and q(f"SELECT Id FROM QuoteLineItem WHERE QuoteLineGroupId = '{segs[-1]['Id']}'"):
+                break
         log("   lines after clone:", [(l["Product2"]["ProductCode"], l["QuoteLineGroupId"], l["StartDate"], l["EndDate"]) for l in q(f"SELECT Product2.ProductCode, QuoteLineGroupId, StartDate, EndDate FROM QuoteLineItem WHERE QuoteId = '{quote_id}'")])
         segs = q(f"SELECT Id, Name FROM QuoteLineGroup WHERE ParentQuoteLineGroupId = '{pid}' ORDER BY CreatedDate")
         if len(segs) >= 2 and q(f"SELECT Id FROM QuoteLineItem WHERE QuoteLineGroupId = '{segs[-1]['Id']}'"):
             break
-        for extra in segs[1:]:
+        for extra in []:
             log("   remove empty segment", run(["sf", "data", "delete", "record", "--sobject", "QuoteLineGroup", "--record-id", extra["Id"], "--target-org", "target"]).strip()[-120:])
     segs = q(f"SELECT Id, Name FROM QuoteLineGroup WHERE ParentQuoteLineGroupId = '{pid}' ORDER BY CreatedDate")
     if len(segs) < 2:
