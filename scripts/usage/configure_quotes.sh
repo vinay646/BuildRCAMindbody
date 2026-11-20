@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 # READ ONLY: run the configurator on the given quote numbers (QN env) and print messages/recommendations
 API="/services/data/v$ORG_API"
+if [ -n "${QSOQL:-}" ]; then QN=$(sf data query --query "$QSOQL" --target-org target --json | jq -r "[.result.records[].QuoteNumber] | join(\" \")"); fi
 for n in ${QN:-00000122 00000123 00000124}; do
   id=$(sf data query --query "SELECT Id FROM Quote WHERE QuoteNumber = '$n'" --target-org target --json | jq -r '.result.records[0].Id')
   echo "== $n $id"
