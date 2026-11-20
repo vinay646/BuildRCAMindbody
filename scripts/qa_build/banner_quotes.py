@@ -34,7 +34,7 @@ CONF = {"configurationMethod": "System", "configurationOptions": {"executeConfig
 def plan_quote(name, code, qvals):
     e = [x for x in q(f"SELECT Id, Product2Id, ProductSellingModel.SellingModelType FROM PricebookEntry WHERE Product2.ProductCode = '{code}' "
                       f"AND Pricebook2Id = '{PB}' AND CurrencyIsoCode = 'USD' AND IsActive = true") if (x.get("ProductSellingModel") or {}).get("SellingModelType") == "TermDefined"][0]
-    body = {"pricingPref": "System", "catalogRatesPref": "Skip", "taxPref": "Skip", "configurationPref": CONF, "graph": {"graphId": "b", "records": [
+    body = {"pricingPref": os.environ.get("PRICING", "Skip"), "catalogRatesPref": "Skip", "taxPref": "Skip", "configurationPref": CONF, "graph": {"graphId": "b", "records": [
         {"referenceId": "q", "record": {"attributes": {"type": "Quote", "method": "POST"}, "Name": f"CML TEST banner {name}", "Pricebook2Id": PB,
                                         "RLM_TermMonths__c": 12, **qvals}},
         {"referenceId": "l1", "record": {"attributes": {"type": "QuoteLineItem", "method": "POST"}, "QuoteId": "@{q.id}", "Product2Id": e["Product2Id"],
