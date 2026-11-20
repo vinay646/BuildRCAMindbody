@@ -36,14 +36,15 @@ def pid(code):
 
 PSM = {r["Name"]: r["Id"] for r in q("SELECT Id, Name FROM ProductSellingModel WHERE Name IN ('Term Monthly','Evergreen Monthly')")}
 LIB_ID = q("SELECT RuleLibraryId FROM Promotion WHERE Name = 'NewPromo' AND RuleLibraryId != null LIMIT 1")[0]["RuleLibraryId"]
-START = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%S.000Z")
+# start well before today: the engine compares with the quote date in the org time zone (Pacific)
+START = "2026-11-01T08:00:00.000Z"
 P = {c: pid(c) for c in ("MB-STR", "MB-ACC", "MB-ULT", "MB-ENT")}
 NAMES = {"MB-STR": "Starter", "MB-ACC": "Accelerate", "MB-ULT": "Ultimate", "MB-ENT": "Enterprise"}
 print("rule library", LIB_ID, "| selling models", PSM)
 
 # 1. remove the old script-loaded promotions (no rule library) and their coupons
 for name in ("LAUNCH3", "SWITCH50", "GROW2"):
-    for p in q(f"SELECT Id FROM Promotion WHERE Name = '{name}' AND RuleLibraryId = null"):
+    for p in q(f"SELECT Id FROM Promotion WHERE Name = '{name}'" + ("" if os.environ.get("REBUILD") else " AND RuleLibraryId = null")):
         for c in q(f"SELECT Id FROM Coupon WHERE PromotionId = '{p['Id']}'"):
             print(f"   delete coupon {c['Id']}:", run(["sf", "data", "delete", "record", "--sobject", "Coupon", "--record-id", c["Id"], "--target-org", "target"]).strip()[:120])
         for t in q(f"SELECT Id FROM PromotionTarget WHERE PromotionId = '{p['Id']}'"):
