@@ -46,9 +46,19 @@ def ramp(quote_id, start, months, term, line_codes, log=print):
     r = _place("EditGroup", quote_id, [_grp(g0, {"IsRamped": True, "SegmentType": "Custom", "StartDate": str(start), "EndDate": str(e1)})])
     log("   EditGroup:", json.dumps(r)[:400])
     time.sleep(4)
-    r = _rest("/connect/rev/sales-transaction/actions/clone", {"recordIds": [g0], "salesTransactionId": quote_id, "options": {"lineScope": "RampedLinesOnly"}})
-    log("   Clone:", json.dumps(r)[:400])
-    time.sleep(4)
+    log("   after EditGroup:", q(f"SELECT Product2.ProductCode, RampIdentifier, SegmentIdentifier, SegmentType, IsPrimarySegment FROM QuoteLineItem WHERE QuoteLineGroupId = '{g0}'"))
+    for opts in ({}, {"lineScope": "AllLines"}, {"lineScope": "RampedLinesOnly"}):
+        body = {"recordIds": [g0], "salesTransactionId": quote_id}
+        if opts:
+            body["options"] = opts
+        r = _rest("/connect/rev/sales-transaction/actions/clone", body)
+        log("   Clone", opts, json.dumps(r)[:300])
+        time.sleep(5)
+        segs = q(f"SELECT Id, Name FROM QuoteLineGroup WHERE ParentQuoteLineGroupId = '{pid}' ORDER BY CreatedDate")
+        if len(segs) >= 2 and q(f"SELECT Id FROM QuoteLineItem WHERE QuoteLineGroupId = '{segs[-1]['Id']}'"):
+            break
+        for extra in segs[1:]:
+            log("   remove empty segment", run(["sf", "data", "delete", "record", "--sobject", "QuoteLineGroup", "--record-id", extra["Id"], "--target-org", "target"]).strip()[-120:])
     segs = q(f"SELECT Id, Name FROM QuoteLineGroup WHERE ParentQuoteLineGroupId = '{pid}' ORDER BY CreatedDate")
     if len(segs) < 2:
         log("   no second segment:", segs); return None
