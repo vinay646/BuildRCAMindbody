@@ -78,15 +78,14 @@ def body(name, coupon, codes, rewards, description):
 
 
 def create(name, coupon, codes, reward_options, description):
-    ex = q(f"SELECT Id FROM Promotion WHERE Name = '{name}'")
-    if ex and os.environ.get("REBUILD"):
-        b = body(name, coupon, codes, reward_options[0], description)
-        for meth in ("PATCH", "PUT"):
-            r = rest(meth, f"/global-promotions-management/promotions/{ex[0]['Id']}", b)
-            print(f"   {meth} {name}:", json.dumps(r)[:500])
-            if isinstance(r, dict) and (r.get("promotionDetails") or {}).get("id"):
-                return r
-        return None
+    if os.environ.get("REBUILD"):
+        for ex in q(f"SELECT Id FROM Promotion WHERE Name = '{name}'"):
+            print(f"   deactivate {name}:", run(["sf", "data", "update", "record", "--sobject", "Promotion", "--record-id", ex["Id"], "--values", "IsActive=false", "--target-org", "target"]).strip()[:200])
+            print(f"   GPM delete {name}:", json.dumps(rest("DELETE", f"/global-promotions-management/promotions/{ex['Id']}"))[:300])
+            if q(f"SELECT Id FROM Promotion WHERE Id = '{ex['Id']}'"):
+                for c in q(f"SELECT Id FROM Coupon WHERE PromotionId = '{ex['Id']}'"):
+                    run(["sf", "data", "delete", "record", "--sobject", "Coupon", "--record-id", c["Id"], "--target-org", "target"])
+                print(f"   data delete {name}:", run(["sf", "data", "delete", "record", "--sobject", "Promotion", "--record-id", ex["Id"], "--target-org", "target"]).strip()[:300])
     if q(f"SELECT Id FROM Promotion WHERE Name = '{name}' AND RuleLibraryId != null"):
         print(f"   {name} already built, skipped"); return None
     for rewards in reward_options:
