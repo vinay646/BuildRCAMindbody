@@ -81,13 +81,13 @@ def create(name, coupon, codes, reward_options, description):
     if os.environ.get("ONLY") and name not in os.environ["ONLY"].split(","):
         return None
     if os.environ.get("REBUILD"):
+        # in use on quotes, so update in place: deactivate, PUT the full definition, activate
         for ex in q(f"SELECT Id FROM Promotion WHERE Name = '{name}'"):
-            print(f"   deactivate {name}:", run(["sf", "data", "update", "record", "--sobject", "Promotion", "--record-id", ex["Id"], "--values", "IsActive=false", "--target-org", "target"]).strip()[:200])
-            print(f"   GPM delete {name}:", json.dumps(rest("DELETE", f"/global-promotions-management/promotions/{ex['Id']}"))[:300])
-            if q(f"SELECT Id FROM Promotion WHERE Id = '{ex['Id']}'"):
-                for c in q(f"SELECT Id FROM Coupon WHERE PromotionId = '{ex['Id']}'"):
-                    run(["sf", "data", "delete", "record", "--sobject", "Coupon", "--record-id", c["Id"], "--target-org", "target"])
-                print(f"   data delete {name}:", run(["sf", "data", "delete", "record", "--sobject", "Promotion", "--record-id", ex["Id"], "--target-org", "target"]).strip()[:300])
+            print(f"   deactivate {name}:", run(["sf", "data", "update", "record", "--sobject", "Promotion", "--record-id", ex["Id"], "--values", "IsActive=false", "--target-org", "target"]).strip()[-80:])
+            r = rest("PUT", f"/global-promotions-management/promotions/{ex['Id']}", body(name, coupon, codes, reward_options[0], description))
+            print(f"   PUT {name}:", json.dumps(r)[:400])
+            print(f"   activate {name}:", run(["sf", "data", "update", "record", "--sobject", "Promotion", "--record-id", ex["Id"], "--values", "IsActive=true", "--target-org", "target"]).strip()[-200:])
+            return r
     if q(f"SELECT Id FROM Promotion WHERE Name = '{name}' AND RuleLibraryId != null"):
         print(f"   {name} already built, skipped"); return None
     for rewards in reward_options:
