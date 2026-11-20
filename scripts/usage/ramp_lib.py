@@ -48,7 +48,7 @@ def ramp(quote_id, start, months, term, line_codes, log=print):
     log("   EditGroup:", json.dumps(r)[:400])
     time.sleep(4)
     log("   after EditGroup:", q(f"SELECT Product2.ProductCode, RampIdentifier, SegmentIdentifier, SegmentType, IsPrimarySegment FROM QuoteLineItem WHERE QuoteLineGroupId = '{g0}'"))
-    for opts in ({"lineScope": os.environ.get("LINE_SCOPE", "AllLines")},):
+    for opts in ({"lineScope": os.environ.get("LINE_SCOPE", "RampedLinesOnly")},):
         body = {"recordIds": [g0], "salesTransactionId": quote_id}
         if opts:
             body["options"] = opts
