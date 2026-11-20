@@ -35,8 +35,7 @@ def pid(code):
 
 
 PSM = {r["Name"]: r["Id"] for r in q("SELECT Id, Name FROM ProductSellingModel WHERE Name IN ('Term Monthly','Evergreen Monthly')")}
-LIB = q("SELECT Id, MasterLabel FROM RuleLibrary WHERE DeveloperName = 'RLM_RuleLibrary' LIMIT 1") or q("SELECT RuleLibraryId Id FROM Promotion WHERE Name = 'NewPromo' LIMIT 1")
-LIB_ID = LIB[0]["Id"]
+LIB_ID = q("SELECT RuleLibraryId FROM Promotion WHERE Name = 'NewPromo' AND RuleLibraryId != null LIMIT 1")[0]["RuleLibraryId"]
 START = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%S.000Z")
 P = {c: pid(c) for c in ("MB-STR", "MB-ACC", "MB-ULT", "MB-ENT")}
 NAMES = {"MB-STR": "Starter", "MB-ACC": "Accelerate", "MB-ULT": "Ultimate", "MB-ENT": "Enterprise"}
