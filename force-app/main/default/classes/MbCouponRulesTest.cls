@@ -9,7 +9,7 @@ private class MbCouponRulesTest {
         insert q;
         List<QuoteLineItem> lines = new List<QuoteLineItem>();
         for (String code : productCodes) {
-            Product2 p = new Product2(Name = code, ProductCode = code, IsActive = true);
+            Product2 p = new Product2(Name = code, ProductCode = code, IsActive = true, Family = 'Recurring');
             insert p;
             PricebookEntry e = new PricebookEntry(Pricebook2Id = Test.getStandardPricebookId(), Product2Id = p.Id, UnitPrice = 10, IsActive = true);
             insert e;
