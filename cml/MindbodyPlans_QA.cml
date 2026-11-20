@@ -67,13 +67,17 @@ type Quote {
     // CR-12: recommend Technical Account Management at 10+ locations in the hierarchy, Enterprise at 25+
     rule(HierarchyLocations >= 10 && lineitems[TechnicalAccountManagement] == 0, "recommend", "type", "TechnicalAccountManagement",
         "message", "10 or more locations in this customer's hierarchy – recommend Technical Account Management.");
-    rule(HierarchyLocations >= 25 && lineitems[Enterprise] == 0, "recommend", "type", "Enterprise",
-        "message", "25 or more locations in this customer's hierarchy – recommend the Enterprise plan.");
+    rule(HierarchyLocations >= 25 && (lineitems[Starter] + lineitems[Accelerate] + lineitems[Ultimate]) > 0, "recommend", "type", "Enterprise",
+        "message", "25 or more locations in this customer's hierarchy – recommend the Enterprise plan instead of the selected plan.");
     // ... and the same advice as a banner on the quote (Quote Lines tab), until the product is added
     message(HierarchyLocations >= 10 && lineitems[TechnicalAccountManagement] == 0,
         "Recommended: Technical Account Management – this customer has 10 or more locations.", "Warning");
-    message(HierarchyLocations >= 25 && lineitems[Enterprise] == 0,
-        "Recommended: the Enterprise plan – this customer has 25 or more locations.", "Warning");
+    message(HierarchyLocations >= 25 && lineitems[Starter] > 0,
+        "Recommended: the Enterprise plan instead of Starter – this customer has 25 or more locations.", "Warning");
+    message(HierarchyLocations >= 25 && lineitems[Accelerate] > 0,
+        "Recommended: the Enterprise plan instead of Accelerate – this customer has 25 or more locations.", "Warning");
+    message(HierarchyLocations >= 25 && lineitems[Ultimate] > 0,
+        "Recommended: the Enterprise plan instead of Ultimate – this customer has 25 or more locations.", "Warning");
 
     // CR-11: recommend Custom data conversion when the opportunity's prior system is a competitor
     rule(PriorSystem != "None" && PriorSystem != "" && lineitems[CustomDataConversion] == 0, "recommend", "type", "CustomDataConversion",
