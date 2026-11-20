@@ -33,8 +33,9 @@ type Quote {
     message(lineitems[Starter] > 0 && lineitems[BrandedApp] > 0,
         "Starter can't add Branded app – choose Accelerate or Ultimate.", "Error");
 
-    // CR-01 (one plan per quote) is enforced by the flow MB Quote Line One Plan No Duplicates, not here: a ramp deal
-    // (MR-103 promotion months) repeats the plan once per ramp segment, and a CML count would remove those copies.
+    // CR-01: one tier per location = one plan per quote (the quote's account is the location)
+    constraint(lineitems[Starter] + lineitems[Accelerate] + lineitems[Ultimate] + lineitems[Enterprise] <= 1,
+        "Only one plan (Starter, Accelerate, Ultimate or Enterprise) per quote – quote each location on its own account.");
 
     // CFG-13: no duplicate product per Ship-To = per quote. Tiers are covered by CR-01; add-ons sit in the
     // bundles (max 1); hardware and services may repeat (quantity). Recurring and usage products once only:
