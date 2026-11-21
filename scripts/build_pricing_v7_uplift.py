@@ -4,7 +4,8 @@
 New top-level List Group "Mindbody renewal uplift", right after the standard "Apply uplifts to ramped subscriptions items
 during amendment" group, built the same way:
   filter: renewal lines (SalesTransactionActionType = 'Renew') with a Unit Price Uplift and quantity > 0
-  formula: NetUnitPrice + NetUnitPrice * ItemUnitPriceUplift__std  (the standard uplift formula)
+  formula: NetUnitPrice + NetUnitPrice * ItemUnitPriceUplift__std (standard uplift formula), and records it in
+          ApplUnitPriceUpliftPct__std; the filter skips lines where it is already recorded, so a bundle line priced in two passes gets it once
 Assets and contracts get a 5% Unit Price Uplift (flows MB Asset Renewal Term / MB Order Auto Activate).
 """
 import re
@@ -47,17 +48,19 @@ crit = lambda i, f, op, v=None, vt="Literal": (f"<criteria><operator>{op}</opera
 new = (
     f"<steps><hasNestedExplainability>false</hasNestedExplainability><label>Mindbody renewal uplift</label><name>{name}</name>"
     f"<resultIncluded>false</resultIncluded><sequenceNumber>{SEQ}</sequenceNumber>{FLAGS}<stepType>ListGroup</stepType></steps>"
-    f"<steps><advancedCondition><conditionLogic>1 AND 2 AND 3 AND 4</conditionLogic>"
+    f"<steps><advancedCondition><conditionLogic>1 AND 2 AND 3 AND 4 AND 5</conditionLogic>"
     + crit(1, "ItemUnitPriceUplift__std", "IsNotNull") + crit(2, "ItemUnitPriceUplift__std", "GreaterThan", "0")
     + crit(3, "SalesTransactionActionType", "Equals", "&apos;Renew&apos;") + crit(4, "LineItemQuantity", "GreaterThan", "0")
+    + crit(5, "ApplUnitPriceUpliftPct__std", "IsNull")
     + f"</advancedCondition><hasNestedExplainability>false</hasNestedExplainability><label>Filter renewal lines with an uplift</label>"
     f"<name>{name}Filter</name><parentStep>{name}</parentStep><resultIncluded>false</resultIncluded><sequenceNumber>1</sequenceNumber>{FLAGS}"
     f"<stepType>AdvancedListFilter</stepType></steps>"
     f"<steps><actionType>FormulaBasedPricing</actionType><customElement>"
     + P("formula-section-0-input", "Formula", "NetUnitPrice + NetUnitPrice * ItemUnitPriceUplift__std") + P("writeBackData", "Literal", "[]")
-    + P("formulaSectionCount", "Literal", "1") + P("HideWaterfall", "Literal", "false") + P("sectionCount", "Literal", "0")
+    + P("formula-section-1-input", "Formula", "ItemUnitPriceUplift__std") + P("formulaSectionCount", "Literal", "2") + P("HideWaterfall", "Literal", "false") + P("sectionCount", "Literal", "0")
     + P("selectedFunction", "Literal", "Get") + P("IsRealTime", "Literal", "false")
-    + P("formula-section-0-output", "Parameter", "NetUnitPrice", out=True) + P("Output Variable", "Parameter", "NetUnitPrice", out=True)
+    + P("formula-section-0-output", "Parameter", "NetUnitPrice", out=True) + P("formula-section-1-output", "Parameter", "ApplUnitPriceUpliftPct__std", out=True)
+    + P("Output Variable", "Parameter", "NetUnitPrice", out=True)
     + f"</customElement><description>Formula Based Pricing</description><hasNestedExplainability>false</hasNestedExplainability>"
     f"<label>Renewal uplift</label><name>{name}Formula</name><parentStep>{name}</parentStep><resultIncluded>false</resultIncluded>"
     f"<sequenceNumber>2</sequenceNumber>{FLAGS}<stepType>BusinessKnowledgeModel</stepType></steps>"
