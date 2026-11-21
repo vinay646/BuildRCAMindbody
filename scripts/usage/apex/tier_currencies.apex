@@ -7,7 +7,7 @@ Set<String> have = new Set<String>();
 for (AggregateResult a : Database.query('SELECT PriceAdjustmentScheduleId s, CurrencyIsoCode c FROM PriceAdjustmentTier GROUP BY PriceAdjustmentScheduleId, CurrencyIsoCode')) have.add(a.get('s') + '|' + a.get('c'));
 List<SObject> ins = new List<SObject>(); Integer amt = 0;
 for (SObject t : src) {
-  if (String.valueOf(t.get('TierType')) != 'PercentBasedAdjustment') { amt++; continue; }
+  if (!String.valueOf(t.get('TierType')).containsIgnoreCase('percent')) { amt++; if (amt == 1) System.debug(LoggingLevel.ERROR, 'TYPE ' + t.get('TierType')); continue; }
   for (String c : cur) if (!have.contains(t.get('PriceAdjustmentScheduleId') + '|' + c)) { SObject n = t.clone(false, true); n.put('CurrencyIsoCode', c); ins.add(n); }
 }
 Database.SaveResult[] r = Database.insert(ins, false); Integer ok = 0; String err = '';
