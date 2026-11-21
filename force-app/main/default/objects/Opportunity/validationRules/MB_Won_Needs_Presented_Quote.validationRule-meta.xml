@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ValidationRule xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>MB_Won_Needs_Presented_Quote</fullName>
+    <active>true</active>
+    <description>MR-119 T3 / MR-120 2.1–2.3: Closed Won needs a synced quote that is Approved and Presented to the customer.</description>
+    <errorConditionFormula>AND(ISCHANGED(StageName), ISPICKVAL(StageName, "Closed Won"), OR(ISBLANK(SyncedQuoteId), NOT(OR(ISPICKVAL(SyncedQuote.Status, "Presented"), ISPICKVAL(SyncedQuote.Status, "Accepted")))))</errorConditionFormula>
+    <errorDisplayField>StageName</errorDisplayField>
+    <errorMessage>Sync a quote, get it approved and present it to the customer before closing this opportunity as won.</errorMessage>
+</ValidationRule>

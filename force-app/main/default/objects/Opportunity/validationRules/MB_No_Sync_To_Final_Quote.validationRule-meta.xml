@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ValidationRule xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>MB_No_Sync_To_Final_Quote</fullName>
+    <active>true</active>
+    <description>MR-119 1b.3: a Voided, Accepted or Denied quote can&apos;t be (re-)synced.</description>
+    <errorConditionFormula>AND(ISCHANGED(SyncedQuoteId), NOT(ISBLANK(SyncedQuoteId)), OR(ISPICKVAL(SyncedQuote.Status, "Voided"), ISPICKVAL(SyncedQuote.Status, "Denied")))</errorConditionFormula>
+    <errorMessage>That quote is final (Voided or Denied) and can&apos;t be synced. Clone it to make a new quote.</errorMessage>
+</ValidationRule>

@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ValidationRule xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>MB_Final_Quote_Lines_Locked</fullName>
+    <active>true</active>
+    <description>MR-119 1b.3: lines of a Voided, Accepted or Denied quote can&apos;t be added or changed.</description>
+    <errorConditionFormula>AND(OR(ISPICKVAL(Quote.Status, "Voided"), ISPICKVAL(Quote.Status, "Accepted"), ISPICKVAL(Quote.Status, "Denied")), OR(ISNEW(), ISCHANGED(Quantity), ISCHANGED(Discount), ISCHANGED(UnitPrice), ISCHANGED(Product2Id)))</errorConditionFormula>
+    <errorMessage>The quote is final (Voided, Accepted or Denied); its lines can&apos;t be changed. Clone the quote to make changes.</errorMessage>
+</ValidationRule>
