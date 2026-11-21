@@ -1,11 +1,4 @@
-// CHANGES the org: adds the running user to the MB approver groups; sets Discount 30% on test quote 00000231 (Accelerate) to trigger the over-limit rule.
-Id me = UserInfo.getUserId();
-List<GroupMember> gm = new List<GroupMember>();
-Set<Id> have = new Set<Id>();
-for (GroupMember m : [SELECT GroupId FROM GroupMember WHERE UserOrGroupId = :me]) have.add(m.GroupId);
-for (Group g : [SELECT Id, DeveloperName FROM Group WHERE DeveloperName IN ('MB_Sales_Manager','MB_Deal_Desk','MB_VP_Sales','MB_Finance')]) if (!have.contains(g.Id)) gm.add(new GroupMember(GroupId = g.Id, UserOrGroupId = me));
-insert gm;
-System.debug(LoggingLevel.ERROR, 'groups joined: ' + gm.size());
+// CHANGES test quote 00000231 only (Discount 30% on Accelerate), then evaluates the approval criteria on test quotes
 QuoteLineItem l = [SELECT Id FROM QuoteLineItem WHERE Quote.QuoteNumber = '00000231' AND Product2.ProductCode = 'MB-ACC' LIMIT 1];
 l.Discount = 30; update l;
 List<String> qns = new List<String>{ '00000231', '00000263', '00000040' };
