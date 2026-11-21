@@ -161,3 +161,5 @@ case("Control: NEWPROMO5 Accelerate", "control", 12, [("MB-ACC", "Term Monthly")
 print("\n===== SUMMARY")
 for s, t, r in RESULTS:
     print(f"  {r}  {s}  {t}")
+import sys
+sys.exit(1 if any(r.startswith("FAIL") or r.startswith("ERROR") for _, _, r in RESULTS) else 0)
