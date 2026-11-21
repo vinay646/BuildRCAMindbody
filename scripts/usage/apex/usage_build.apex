@@ -17,20 +17,25 @@ ProductUsageResourcePolicy csPol = [SELECT Id, RatingFrequencyPolicyId, UsageOve
 Id aggId = [SELECT Id FROM UsageResourceBillingPolicy WHERE Name = 'Monthly Total' LIMIT 1].Id;
 RateCardEntry csRce = [SELECT Id, RateUnitOfMeasureClassId, RateUnitOfMeasureId FROM RateCardEntry WHERE ProductId = :cs.Id AND RateCardType = 'Base' LIMIT 1];
 Id evm = [SELECT Id FROM ProductSellingModel WHERE Name = 'Evergreen Monthly' LIMIT 1].Id;
-// 1 UoM class + UoM for texts (marketplace uses the money class USD)
-Id txtClass, txtUom;
-List<UnitOfMeasureClass> uc = [SELECT Id FROM UnitOfMeasureClass WHERE Name = 'Texts'];
-if (uc.isEmpty()) { SObject c = ins(cl('UnitOfMeasureClass', csUr.UnitOfMeasureClassId, new Map<String, Object>{ 'Name' => 'Texts', 'Code' => 'TEXTS' }), 'uomClass'); txtClass = c?.Id; } else txtClass = uc[0].Id;
-List<UnitOfMeasure> uu = [SELECT Id FROM UnitOfMeasure WHERE UnitOfMeasureClassId = :txtClass];
-if (uu.isEmpty() && txtClass != null) { SObject u = ins(cl('UnitOfMeasure', csUr.DefaultUnitOfMeasureId, new Map<String, Object>{ 'Name' => 'Text', 'UnitCode' => 'TXT', 'UnitOfMeasureClassId' => txtClass }), 'uom'); txtUom = u?.Id; } else if (!uu.isEmpty()) txtUom = uu[0].Id;
-if (txtClass != null && txtUom != null) { UnitOfMeasureClass c = new UnitOfMeasureClass(Id = txtClass); c.put('DefaultUnitOfMeasureId', txtUom); try { update c; } catch (Exception e) { log += 'classDefault ' + e.getMessage().left(80) + '; '; } }
+// 1 UoM classes + UoMs (count type, cloned from the CS class): texts, and fee amount (1 unit = 1 currency unit, so the fee is rated at 1.00)
+Map<String, Id[]> uoms = new Map<String, Id[]>();
+for (String[] d : new List<String[]>{ new String[]{ 'Texts', 'TEXTS', 'Text', 'TXT' }, new String[]{ 'Fee Amount', 'FEEAMT', 'Fee Unit', 'FEEU' } }) {
+  Id cId, uId;
+  List<UnitOfMeasureClass> uc = [SELECT Id FROM UnitOfMeasureClass WHERE Name = :d[0]];
+  if (uc.isEmpty()) cId = ins(cl('UnitOfMeasureClass', csUr.UnitOfMeasureClassId, new Map<String, Object>{ 'Name' => d[0], 'Code' => d[1] }), 'uomClass ' + d[1])?.Id; else cId = uc[0].Id;
+  List<UnitOfMeasure> uu = [SELECT Id FROM UnitOfMeasure WHERE UnitOfMeasureClassId = :cId];
+  if (uu.isEmpty() && cId != null) uId = ins(cl('UnitOfMeasure', csUr.DefaultUnitOfMeasureId, new Map<String, Object>{ 'Name' => d[2], 'UnitCode' => d[3], 'UnitOfMeasureClassId' => cId }), 'uom ' + d[3])?.Id; else if (!uu.isEmpty()) uId = uu[0].Id;
+  if (cId != null && uId != null) { UnitOfMeasureClass c = new UnitOfMeasureClass(Id = cId); c.put('DefaultUnitOfMeasureId', uId); try { update c; } catch (Exception e) { log += 'classDefault ' + e.getMessage().left(80) + '; '; } }
+  uoms.put(d[1], new Id[]{ cId, uId });
+}
+Id txtClass = uoms.get('TEXTS')[0], txtUom = uoms.get('TEXTS')[1];
 // rate card
 List<RateCard> rcs = [SELECT Id FROM RateCard WHERE Name = 'Mindbody Usage Base'];
 Id rcId = rcs.isEmpty() ? ins(cl('RateCard', [SELECT RateCardId FROM RateCardEntry WHERE Id = :csRce.Id].RateCardId, new Map<String, Object>{ 'Name' => 'Mindbody Usage Base' }), 'rateCard')?.Id : rcs[0].Id;
 // per product
 Map<String, List<Object>> spec = new Map<String, List<Object>>{
   'MB-SMS' => new List<Object>{ 'SMS Messages', 'MB-UR-SMS', txtClass, txtUom, 0.008 },
-  'MB-MKT' => new List<Object>{ 'Marketplace New-Client Fees', 'MB-UR-MKT', csRce.RateUnitOfMeasureClassId, csRce.RateUnitOfMeasureId, 1.0 } };
+  'MB-MKT' => new List<Object>{ 'Marketplace New-Client Fees', 'MB-UR-MKT', uoms.get('FEEAMT')[0], uoms.get('FEEAMT')[1], 1.0 } };
 for (String code : spec.keySet()) {
   List<Object> s = spec.get(code);
   Product2 p = [SELECT Id, UsageModelType FROM Product2 WHERE ProductCode = :code];
