@@ -46,7 +46,7 @@ for (String code : spec.keySet()) {
   if ([SELECT COUNT() FROM UsagePrdGrantBindingPolicy WHERE Product2Id = :p.Id] == 0)
     ins(new UsagePrdGrantBindingPolicy(Name = code + ' Binding Policy', Product2Id = p.Id, GrantBindingType = 'Self'), code + ' binding');
   if (rcId != null && [SELECT COUNT() FROM RateCardEntry WHERE RateCardId = :rcId AND UsageResourceId = :urId] == 0)
-    ins(cl('RateCardEntry', csRce.Id, new Map<String, Object>{ 'RateCardId' => rcId, 'ProductId' => p.Id, 'UsageProductId' => p.Id, 'UsageResourceId' => urId, 'ProductSellingModelId' => evm, 'Rate' => s[4], 'DefaultUnitOfMeasureClassId' => s[2], 'DefaultUnitOfMeasureId' => s[3] }), code + ' rate');
+    ins(cl('RateCardEntry', csRce.Id, new Map<String, Object>{ 'RateCardId' => rcId, 'ProductId' => p.Id, 'UsageResourceId' => urId, 'ProductSellingModelId' => evm, 'Rate' => s[4], 'DefaultUnitOfMeasureClassId' => s[2], 'DefaultUnitOfMeasureId' => s[3] }), code + ' rate');
 }
 // link rate card to the Mindbody USD price book
 if (rcId != null) for (Pricebook2 pb : [SELECT Id FROM Pricebook2 WHERE Name IN ('North America & Asia (USD)', 'Standard Price Book')])
