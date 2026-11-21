@@ -11,7 +11,7 @@ BT = one("SELECT Id FROM BillingTreatment WHERE Name = 'Mindbody - UK - Advance'
 TT = one("SELECT Id FROM TaxTreatment WHERE Name = 'Tax - UK VAT'")["Id"]
 e = one(f"SELECT Id, Product2Id FROM PricebookEntry WHERE Product2.ProductCode = 'MB-ACC' AND Pricebook2Id = '{UKPB}' AND CurrencyIsoCode = 'GBP' AND IsActive = true")
 addr = "BillingStreet='10 Downing St' BillingCity='London' BillingPostalCode='SW1A 2AA' BillingCountry='United Kingdom' ShippingStreet='10 Downing St' ShippingCity='London' ShippingPostalCode='SW1A 2AA' ShippingCountry='United Kingdom'"
-ACCT = json.loads(run(["sf", "data", "create", "record", "--sobject", "Account", "--values", f"Name='MB T06 UK {STAMP}' CurrencyIsoCode=GBP {addr}", "--target-org", "target", "--json"]))["result"]["id"]
+ACCT = (one("SELECT Id FROM Account WHERE Name LIKE 'MB T06 UK%' LIMIT 1").get("Id")) or json.loads(run(["sf", "data", "create", "record", "--sobject", "Account", "--values", f"Name='MB T06 UK {STAMP}' CurrencyIsoCode=GBP {addr}", "--target-org", "target", "--json"]))["result"]["id"]
 print("contact:", run(["sf", "data", "create", "record", "--sobject", "Contact", "--values", f"LastName='Billing' AccountId={ACCT} Email=billing@example.com", "--target-org", "target", "--json"])[:200])
 opp = json.loads(run(["sf", "data", "create", "record", "--sobject", "Opportunity", "--values", f"Name='MB T06 UK {STAMP}' AccountId={ACCT} StageName=Prospecting CloseDate={TODAY} Pricebook2Id={UKPB} CurrencyIsoCode=GBP", "--target-org", "target", "--json"]))["result"]["id"]
 end = (TODAY + timedelta(days=364)).isoformat()
