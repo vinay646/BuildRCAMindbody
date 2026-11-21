@@ -2,7 +2,7 @@
 <ValidationRule xmlns="http://soap.sforce.com/2006/04/metadata">
     <fullName>MB_No_Products_From_Opportunity</fullName>
     <active>true</active>
-    <description>MR-118 1.5 (one-way sync): a product added directly on an opportunity with a synced quote syncs back as a new quote line that already points to an opportunity product. Lines created on the quote never do, so this blocks only products added on the opportunity (the opportunity product is rolled back with it).</description>
+    <description>MR-118 1.5 one-way sync: blocks quote lines that come from a product added directly on the synced opportunity (they already point to an opportunity product); the opportunity product is rolled back.</description>
     <errorConditionFormula>AND(ISNEW(), NOT(ISBLANK(OpportunityLineItemId)))</errorConditionFormula>
     <errorMessage>Add or change products on the quote, not on the opportunity – the opportunity follows its synced quote.</errorMessage>
 </ValidationRule>
