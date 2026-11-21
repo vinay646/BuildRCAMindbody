@@ -65,5 +65,14 @@ invoice)
   BS=$(q "SELECT Id FROM BillingSchedule WHERE BillingAccountId = '$ACC'" | jq -c '[.[].Id]')
   echo "generate: $(rest POST /commerce/invoicing/invoices/collection/actions/generate "$(jq -nc --argjson ids "$BS" --arg d "$(date -u +%Y-%m-%d)" '{billingScheduleIds: $ids, action: "Draft", invoiceDate: $d, targetDate: $d}')" | tr -d '\n' | head -c 300)"
   sleep 120; show ;;
+diag)
+  echo "TUE $(q "SELECT UsageResource.Code, EntitlementProcessingStatus FROM TransactionUsageEntitlement WHERE AccountId = '$ACC'")"
+  echo "UEA $(q "SELECT Name, EffectiveStartDateTime, BillingPeriodStartDateTime, BillingPeriodEndDateTime FROM UsageEntitlementAccount WHERE AccountId = '$ACC'")"
+  echo "POLICIES $(q "SELECT UsageResource.Code, UsageAggregationPolicyId, RatingFrequencyPolicyId, UsageOveragePolicyId FROM BindingObjUsageRsrcPlcy WHERE BindingObjectId IN (SELECT Id FROM Asset WHERE AccountId = '$ACC')")"
+  echo "ASSET RATE CARD ENTRIES $(q "SELECT RateCard.Name, UsageResource.Code FROM AssetRateCardEntry WHERE Asset.AccountId = '$ACC'")"
+  echo "EMPTY SUMMARY FAILS $(q "SELECT BatchJobPart.Name, ErrorMessage, CreatedDate FROM BatchJobPartFailedRecord ORDER BY CreatedDate DESC LIMIT 3")"
+  echo "PARTS TODAY $(q "SELECT Name, Status, InputRecordCount, OutputRecordCount, FailedRecordCount FROM BatchJobPart WHERE CreatedDate = TODAY ORDER BY CreatedDate DESC LIMIT 12" | jq -c '[.[] | [.Name, .Status, .InputRecordCount, .OutputRecordCount, .FailedRecordCount]]')"
+  echo "OLD WORKING JOURNAL $(q "SELECT Status, ReferenceRecordId, UsageResource.Code, ActivityDate FROM TransactionJournal WHERE Status = 'Processed' ORDER BY CreatedDate DESC LIMIT 1")"
+  ;;
 *) show ;;
 esac
