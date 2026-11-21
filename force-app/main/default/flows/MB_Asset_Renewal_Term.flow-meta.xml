@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Flow xmlns="http://soap.sforce.com/2006/04/metadata">
+    <apiVersion>62.0</apiVersion>
+    <assignments>
+        <name>Set_Renewal_Term</name>
+        <label>Default renewal term 12 months</label>
+        <locationX>0</locationX>
+        <locationY>0</locationY>
+        <assignmentItems><assignToReference>$Record.RenewalTerm</assignToReference><operator>Assign</operator><value><numberValue>12.0</numberValue></value></assignmentItems>
+        <assignmentItems><assignToReference>$Record.RenewalTermUnit</assignToReference><operator>Assign</operator><value><stringValue>Months</stringValue></value></assignmentItems>
+    </assignments>
+    <description>MR-122: the standard Renew action needs RenewalTerm / RenewalTermUnit on every asset; assets created from orders get a 12-month renewal term when none is set.</description>
+    <environments>Default</environments>
+    <interviewLabel>MB Asset Renewal Term {!$Flow.CurrentDateTime}</interviewLabel>
+    <label>MB Asset Renewal Term</label>
+    <processMetadataValues><name>BuilderType</name><value><stringValue>LightningFlowBuilder</stringValue></value></processMetadataValues>
+    <processMetadataValues><name>CanvasMode</name><value><stringValue>AUTO_LAYOUT_CANVAS</stringValue></value></processMetadataValues>
+    <processType>AutoLaunchedFlow</processType>
+    <start>
+        <locationX>0</locationX>
+        <locationY>0</locationY>
+        <connector><targetReference>Set_Renewal_Term</targetReference></connector>
+        <filterLogic>and</filterLogic>
+        <filters><field>RenewalTerm</field><operator>IsNull</operator><value><booleanValue>true</booleanValue></value></filters>
+        <object>Asset</object>
+        <recordTriggerType>Create</recordTriggerType>
+        <triggerType>RecordBeforeSave</triggerType>
+    </start>
+    <status>Active</status>
+</Flow>

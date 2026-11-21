@@ -1,0 +1,144 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Flow xmlns="http://soap.sforce.com/2006/04/metadata">
+    <actionCalls>
+        <name>Renew</name>
+        <label>Create the renewal quote (standard Renew)</label>
+        <locationX>0</locationX>
+        <locationY>0</locationY>
+        <actionName>initiateRenewal</actionName>
+        <actionType>initiateRenewal</actionType>
+        <connector><targetReference>Task_To_CSM</targetReference></connector>
+        <faultConnector><targetReference>Record_Error</targetReference></faultConnector>
+        <flowTransactionModel>CurrentTransaction</flowTransactionModel>
+        <inputParameters><name>renewAssetIds</name><value><elementReference>assetIds</elementReference></value></inputParameters>
+        <inputParameters><name>renewOutputType</name><value><stringValue>Quote</stringValue></value></inputParameters>
+        <storeOutputAutomatically>true</storeOutputAutomatically>
+    </actionCalls>
+    <apiVersion>62.0</apiVersion>
+    <assignments>
+        <name>Add_Asset</name>
+        <label>Collect asset Id</label>
+        <locationX>0</locationX>
+        <locationY>0</locationY>
+        <assignmentItems><assignToReference>assetIds</assignToReference><operator>Add</operator><value><elementReference>Loop_Assets.Id</elementReference></value></assignmentItems>
+        <connector><targetReference>Loop_Assets</targetReference></connector>
+    </assignments>
+    <decisions>
+        <name>Due</name>
+        <label>Ends in the renewal window and no open renewal?</label>
+        <locationX>0</locationX>
+        <locationY>0</locationY>
+        <defaultConnectorLabel>No</defaultConnectorLabel>
+        <rules>
+            <name>Due_Yes</name>
+            <conditionLogic>and</conditionLogic>
+            <conditions><leftValueReference>fDue</leftValueReference><operator>EqualTo</operator><rightValue><booleanValue>true</booleanValue></rightValue></conditions>
+            <conditions><leftValueReference>Get_Open_Renewal</leftValueReference><operator>IsNull</operator><rightValue><booleanValue>true</booleanValue></rightValue></conditions>
+            <connector><targetReference>Get_Assets</targetReference></connector>
+            <label>Yes</label>
+        </rules>
+    </decisions>
+    <description>MR-122 4.15–4.19: daily, for each Activated term contract not marked Do Not Renew whose end date is in 90 days and whose account has no open renewal opportunity, calls the standard Renew action for the account's assets (the flow MB Amend Renew Quote Opportunity then creates the Renewal opportunity) and gives the account owner (CSM) a task. Failures are written to Renewal Error on the contract, with a task; the next run retries. Evergreen contracts (no end date) are skipped.</description>
+    <environments>Default</environments>
+    <formulas>
+        <name>fDue</name>
+        <dataType>Boolean</dataType>
+        <expression>AND(NOT(ISBLANK({!$Record.EndDate})), {!$Record.EndDate} = TODAY() + 90)</expression>
+    </formulas>
+    <formulas>
+        <name>fTask</name>
+        <dataType>String</dataType>
+        <expression>"Renewal quote created for " &amp; {!$Record.Account.Name} &amp; ", contract ends " &amp; TEXT({!$Record.EndDate}) &amp; "."</expression>
+    </formulas>
+    <interviewLabel>MB Scheduled Contract Renewal {!$Flow.CurrentDateTime}</interviewLabel>
+    <label>MB Scheduled Contract Renewal</label>
+    <loops>
+        <name>Loop_Assets</name>
+        <label>Loop assets</label>
+        <locationX>0</locationX>
+        <locationY>0</locationY>
+        <collectionReference>Get_Assets</collectionReference>
+        <iterationOrder>Asc</iterationOrder>
+        <nextValueConnector><targetReference>Add_Asset</targetReference></nextValueConnector>
+        <noMoreValuesConnector><targetReference>Renew</targetReference></noMoreValuesConnector>
+    </loops>
+    <processMetadataValues><name>BuilderType</name><value><stringValue>LightningFlowBuilder</stringValue></value></processMetadataValues>
+    <processMetadataValues><name>CanvasMode</name><value><stringValue>AUTO_LAYOUT_CANVAS</stringValue></value></processMetadataValues>
+    <processType>AutoLaunchedFlow</processType>
+    <recordCreates>
+        <name>Task_To_CSM</name>
+        <label>Task to the CSM</label>
+        <locationX>0</locationX>
+        <locationY>0</locationY>
+        <inputAssignments><field>OwnerId</field><value><elementReference>$Record.Account.OwnerId</elementReference></value></inputAssignments>
+        <inputAssignments><field>Subject</field><value><elementReference>fTask</elementReference></value></inputAssignments>
+        <inputAssignments><field>WhatId</field><value><elementReference>$Record.Id</elementReference></value></inputAssignments>
+        <object>Task</object>
+        <storeOutputAutomatically>true</storeOutputAutomatically>
+    </recordCreates>
+    <recordLookups>
+        <name>Get_Assets</name>
+        <label>Get the account's renewable assets</label>
+        <locationX>0</locationX>
+        <locationY>0</locationY>
+        <assignNullValuesIfNoRecordsFound>false</assignNullValuesIfNoRecordsFound>
+        <connector><targetReference>Loop_Assets</targetReference></connector>
+        <filterLogic>and</filterLogic>
+        <filters><field>AccountId</field><operator>EqualTo</operator><value><elementReference>$Record.AccountId</elementReference></value></filters>
+        <filters><field>RenewalTerm</field><operator>IsNull</operator><value><booleanValue>false</booleanValue></value></filters>
+        <getFirstRecordOnly>false</getFirstRecordOnly>
+        <object>Asset</object>
+        <queriedFields>Id</queriedFields>
+        <storeOutputAutomatically>true</storeOutputAutomatically>
+    </recordLookups>
+    <recordLookups>
+        <name>Get_Open_Renewal</name>
+        <label>Get the account's open renewal opportunity</label>
+        <locationX>0</locationX>
+        <locationY>0</locationY>
+        <assignNullValuesIfNoRecordsFound>true</assignNullValuesIfNoRecordsFound>
+        <connector><targetReference>Due</targetReference></connector>
+        <filterLogic>and</filterLogic>
+        <filters><field>AccountId</field><operator>EqualTo</operator><value><elementReference>$Record.AccountId</elementReference></value></filters>
+        <filters><field>Type</field><operator>EqualTo</operator><value><stringValue>Renewal</stringValue></value></filters>
+        <filters><field>IsClosed</field><operator>EqualTo</operator><value><booleanValue>false</booleanValue></value></filters>
+        <getFirstRecordOnly>true</getFirstRecordOnly>
+        <object>Opportunity</object>
+        <queriedFields>Id</queriedFields>
+        <storeOutputAutomatically>true</storeOutputAutomatically>
+    </recordLookups>
+    <recordUpdates>
+        <name>Record_Error</name>
+        <label>Record the renewal error</label>
+        <locationX>0</locationX>
+        <locationY>0</locationY>
+        <filterLogic>and</filterLogic>
+        <filters><field>Id</field><operator>EqualTo</operator><value><elementReference>$Record.Id</elementReference></value></filters>
+        <inputAssignments><field>MB_Renewal_Error__c</field><value><elementReference>$Flow.FaultMessage</elementReference></value></inputAssignments>
+        <object>Contract</object>
+    </recordUpdates>
+    <start>
+        <locationX>0</locationX>
+        <locationY>0</locationY>
+        <connector><targetReference>Get_Open_Renewal</targetReference></connector>
+        <filterLogic>and</filterLogic>
+        <filters><field>Status</field><operator>EqualTo</operator><value><stringValue>Activated</stringValue></value></filters>
+        <filters><field>MB_Do_Not_Renew__c</field><operator>EqualTo</operator><value><booleanValue>false</booleanValue></value></filters>
+        <filters><field>EndDate</field><operator>IsNull</operator><value><booleanValue>false</booleanValue></value></filters>
+        <object>Contract</object>
+        <schedule>
+            <frequency>Daily</frequency>
+            <startDate>2026-11-22</startDate>
+            <startTime>07:17:00.000Z</startTime>
+        </schedule>
+        <triggerType>Scheduled</triggerType>
+    </start>
+    <status>Active</status>
+    <variables>
+        <name>assetIds</name>
+        <dataType>String</dataType>
+        <isCollection>true</isCollection>
+        <isInput>false</isInput>
+        <isOutput>false</isOutput>
+    </variables>
+</Flow>

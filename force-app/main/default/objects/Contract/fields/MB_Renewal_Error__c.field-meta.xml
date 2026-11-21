@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>MB_Renewal_Error__c</fullName>
+    <label>Renewal Error</label>
+    <description>MR-122 4.19: why the scheduled renewal quote could not be created; the next daily run retries.</description>
+    <type>LongTextArea</type><length>3000</length><visibleLines>3</visibleLines>
+</CustomField>

@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>MB_Do_Not_Renew__c</fullName>
+    <label>Do Not Renew</label>
+    <description>MR-122 4.13 / 4.16: the contract is not renewing – the daily renewal job skips it.</description>
+    <type>Checkbox</type><defaultValue>false</defaultValue>
+</CustomField>

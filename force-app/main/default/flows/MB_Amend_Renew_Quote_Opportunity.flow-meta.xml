@@ -1,0 +1,184 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Flow xmlns="http://soap.sforce.com/2006/04/metadata">
+    <apiVersion>62.0</apiVersion>
+    <decisions>
+        <name>Join_Open_Renewal</name>
+        <label>Renewal with an open renewal opportunity?</label>
+        <locationX>0</locationX>
+        <locationY>0</locationY>
+        <defaultConnector><targetReference>Create_Opportunity</targetReference></defaultConnector>
+        <defaultConnectorLabel>No – create the opportunity</defaultConnectorLabel>
+        <rules>
+            <name>Join</name>
+            <conditionLogic>and</conditionLogic>
+            <conditions><leftValueReference>fIsRenew</leftValueReference><operator>EqualTo</operator><rightValue><booleanValue>true</booleanValue></rightValue></conditions>
+            <conditions><leftValueReference>Get_Open_Renewal</leftValueReference><operator>IsNull</operator><rightValue><booleanValue>false</booleanValue></rightValue></conditions>
+            <connector><targetReference>Link_To_Open_Renewal</targetReference></connector>
+            <label>Yes – attach to it</label>
+        </rules>
+    </decisions>
+    <description>MR-122 (MB-Q2C-05): amendment and renewal quotes (Original Action Type Amend / Renew) are created without an opportunity. This flow finds the account (quote account, else the account of the line's source asset), creates the opportunity – Renewal, or for amendments Downgrade (value down), Upsell (a line reduced, e.g. tier change) or Add Location – named "Account – Type – date", owned by the quote creator (amendment) or the account owner (renewal), close date = quote start date, and links and syncs the quote. A renewal quote is attached to the account's open renewal opportunity when there is one.</description>
+    <environments>Default</environments>
+    <formulas>
+        <name>fAccountId</name>
+        <dataType>String</dataType>
+        <expression>BLANKVALUE({!$Record.AccountId}, BLANKVALUE({!$Record.QuoteAccountId}, {!Get_Source_Line.QuoteAction.SourceAsset.AccountId}))</expression>
+    </formulas>
+    <formulas>
+        <name>fClose</name>
+        <dataType>Date</dataType>
+        <expression>BLANKVALUE({!$Record.StartDate}, TODAY())</expression>
+    </formulas>
+    <formulas>
+        <name>fIsRenew</name>
+        <dataType>Boolean</dataType>
+        <expression>ISPICKVAL({!$Record.OriginalActionType}, "Renew")</expression>
+    </formulas>
+    <formulas>
+        <name>fName</name>
+        <dataType>String</dataType>
+        <expression>LEFT({!Get_Account.Name} &amp; " – " &amp; {!fType} &amp; " – " &amp; TEXT(TODAY()), 120)</expression>
+    </formulas>
+    <formulas>
+        <name>fOwner</name>
+        <dataType>String</dataType>
+        <expression>IF({!fIsRenew}, {!Get_Account.OwnerId}, {!$Record.CreatedById})</expression>
+    </formulas>
+    <formulas>
+        <name>fType</name>
+        <dataType>String</dataType>
+        <expression>IF({!fIsRenew}, "Renewal", IF({!$Record.MB_MRR__c} &lt; 0, "Downgrade", IF(NOT(ISBLANK({!Get_Negative_Line.Id})), "Upsell", "Add Location")))</expression>
+    </formulas>
+    <interviewLabel>MB Amend Renew Quote Opportunity {!$Flow.CurrentDateTime}</interviewLabel>
+    <label>MB Amend Renew Quote Opportunity</label>
+    <processMetadataValues><name>BuilderType</name><value><stringValue>LightningFlowBuilder</stringValue></value></processMetadataValues>
+    <processMetadataValues><name>CanvasMode</name><value><stringValue>AUTO_LAYOUT_CANVAS</stringValue></value></processMetadataValues>
+    <processType>AutoLaunchedFlow</processType>
+    <recordCreates>
+        <name>Create_Opportunity</name>
+        <label>Create the opportunity</label>
+        <locationX>0</locationX>
+        <locationY>0</locationY>
+        <connector><targetReference>Link_Quote</targetReference></connector>
+        <inputAssignments><field>AccountId</field><value><elementReference>fAccountId</elementReference></value></inputAssignments>
+        <inputAssignments><field>CloseDate</field><value><elementReference>fClose</elementReference></value></inputAssignments>
+        <inputAssignments><field>CurrencyIsoCode</field><value><elementReference>$Record.CurrencyIsoCode</elementReference></value></inputAssignments>
+        <inputAssignments><field>Name</field><value><elementReference>fName</elementReference></value></inputAssignments>
+        <inputAssignments><field>OwnerId</field><value><elementReference>fOwner</elementReference></value></inputAssignments>
+        <inputAssignments><field>Pricebook2Id</field><value><elementReference>$Record.Pricebook2Id</elementReference></value></inputAssignments>
+        <inputAssignments><field>StageName</field><value><stringValue>Prospecting</stringValue></value></inputAssignments>
+        <inputAssignments><field>Type</field><value><elementReference>fType</elementReference></value></inputAssignments>
+        <object>Opportunity</object>
+        <storeOutputAutomatically>true</storeOutputAutomatically>
+    </recordCreates>
+    <recordLookups>
+        <name>Get_Account</name>
+        <label>Get the account</label>
+        <locationX>0</locationX>
+        <locationY>0</locationY>
+        <assignNullValuesIfNoRecordsFound>true</assignNullValuesIfNoRecordsFound>
+        <connector><targetReference>Get_Open_Renewal</targetReference></connector>
+        <filterLogic>and</filterLogic>
+        <filters><field>Id</field><operator>EqualTo</operator><value><elementReference>fAccountId</elementReference></value></filters>
+        <getFirstRecordOnly>true</getFirstRecordOnly>
+        <object>Account</object>
+        <queriedFields>Id</queriedFields>
+        <queriedFields>Name</queriedFields>
+        <queriedFields>OwnerId</queriedFields>
+        <storeOutputAutomatically>true</storeOutputAutomatically>
+    </recordLookups>
+    <recordLookups>
+        <name>Get_Negative_Line</name>
+        <label>Get a reduced line</label>
+        <locationX>0</locationX>
+        <locationY>0</locationY>
+        <assignNullValuesIfNoRecordsFound>true</assignNullValuesIfNoRecordsFound>
+        <connector><targetReference>Get_Account</targetReference></connector>
+        <filterLogic>and</filterLogic>
+        <filters><field>QuoteId</field><operator>EqualTo</operator><value><elementReference>$Record.Id</elementReference></value></filters>
+        <filters><field>Quantity</field><operator>LessThan</operator><value><numberValue>0.0</numberValue></value></filters>
+        <getFirstRecordOnly>true</getFirstRecordOnly>
+        <object>QuoteLineItem</object>
+        <queriedFields>Id</queriedFields>
+        <storeOutputAutomatically>true</storeOutputAutomatically>
+    </recordLookups>
+    <recordLookups>
+        <name>Get_Open_Renewal</name>
+        <label>Get the account's open renewal opportunity</label>
+        <locationX>0</locationX>
+        <locationY>0</locationY>
+        <assignNullValuesIfNoRecordsFound>true</assignNullValuesIfNoRecordsFound>
+        <connector><targetReference>Join_Open_Renewal</targetReference></connector>
+        <filterLogic>and</filterLogic>
+        <filters><field>AccountId</field><operator>EqualTo</operator><value><elementReference>fAccountId</elementReference></value></filters>
+        <filters><field>Type</field><operator>EqualTo</operator><value><stringValue>Renewal</stringValue></value></filters>
+        <filters><field>IsClosed</field><operator>EqualTo</operator><value><booleanValue>false</booleanValue></value></filters>
+        <getFirstRecordOnly>true</getFirstRecordOnly>
+        <object>Opportunity</object>
+        <queriedFields>Id</queriedFields>
+        <storeOutputAutomatically>true</storeOutputAutomatically>
+    </recordLookups>
+    <recordLookups>
+        <name>Get_Source_Line</name>
+        <label>Get a line with its source asset</label>
+        <locationX>0</locationX>
+        <locationY>0</locationY>
+        <assignNullValuesIfNoRecordsFound>true</assignNullValuesIfNoRecordsFound>
+        <connector><targetReference>Get_Negative_Line</targetReference></connector>
+        <filterLogic>and</filterLogic>
+        <filters><field>QuoteId</field><operator>EqualTo</operator><value><elementReference>$Record.Id</elementReference></value></filters>
+        <filters><field>QuoteActionId</field><operator>IsNull</operator><value><booleanValue>false</booleanValue></value></filters>
+        <getFirstRecordOnly>true</getFirstRecordOnly>
+        <object>QuoteLineItem</object>
+        <queriedFields>Id</queriedFields>
+        <queriedFields>QuoteActionId</queriedFields>
+        <storeOutputAutomatically>true</storeOutputAutomatically>
+    </recordLookups>
+    <recordUpdates>
+        <name>Link_Quote</name>
+        <label>Link the quote to the new opportunity</label>
+        <locationX>0</locationX>
+        <locationY>0</locationY>
+        <connector><targetReference>Sync_Quote</targetReference></connector>
+        <filterLogic>and</filterLogic>
+        <filters><field>Id</field><operator>EqualTo</operator><value><elementReference>$Record.Id</elementReference></value></filters>
+        <inputAssignments><field>OpportunityId</field><value><elementReference>Create_Opportunity</elementReference></value></inputAssignments>
+        <object>Quote</object>
+    </recordUpdates>
+    <recordUpdates>
+        <name>Link_To_Open_Renewal</name>
+        <label>Attach the quote to the open renewal</label>
+        <locationX>0</locationX>
+        <locationY>0</locationY>
+        <filterLogic>and</filterLogic>
+        <filters><field>Id</field><operator>EqualTo</operator><value><elementReference>$Record.Id</elementReference></value></filters>
+        <inputAssignments><field>OpportunityId</field><value><elementReference>Get_Open_Renewal.Id</elementReference></value></inputAssignments>
+        <object>Quote</object>
+    </recordUpdates>
+    <recordUpdates>
+        <name>Sync_Quote</name>
+        <label>Make it the synced quote</label>
+        <locationX>0</locationX>
+        <locationY>0</locationY>
+        <filterLogic>and</filterLogic>
+        <filters><field>Id</field><operator>EqualTo</operator><value><elementReference>Create_Opportunity</elementReference></value></filters>
+        <inputAssignments><field>SyncedQuoteId</field><value><elementReference>$Record.Id</elementReference></value></inputAssignments>
+        <object>Opportunity</object>
+    </recordUpdates>
+    <start>
+        <locationX>0</locationX>
+        <locationY>0</locationY>
+        <filterLogic>(1 OR 2) AND 3</filterLogic>
+        <filters><field>OriginalActionType</field><operator>EqualTo</operator><value><stringValue>Amend</stringValue></value></filters>
+        <filters><field>OriginalActionType</field><operator>EqualTo</operator><value><stringValue>Renew</stringValue></value></filters>
+        <filters><field>OpportunityId</field><operator>IsNull</operator><value><booleanValue>true</booleanValue></value></filters>
+        <object>Quote</object>
+        <recordTriggerType>Create</recordTriggerType>
+        <scheduledPaths>
+            <connector><targetReference>Get_Source_Line</targetReference></connector>
+            <pathType>AsyncAfterCommit</pathType>
+        </scheduledPaths>
+        <triggerType>RecordAfterSave</triggerType>
+    </start>
+    <status>Active</status>
+</Flow>
