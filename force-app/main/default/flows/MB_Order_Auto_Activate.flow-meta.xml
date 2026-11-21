@@ -44,7 +44,7 @@
             <label>Yes – co-term into it</label>
         </rules>
     </decisions>
-    <description>MR-121 (MB-Q2C-04): activates orders created from a quote right after creation. Fills a missing bill-to contact (quote contact, else the account's first contact) and billing / shipping address (from the account); if something is still missing the order stays Draft, Activation Error is filled and the order owner gets a task. The customer's first order creates the contract (standard Create Contract, then activated); later orders are co-termed into the existing activated contract when it starts on or before the order start date (otherwise a new contract is created). Activating the order creates the assets (standard).</description>
+    <description>MR-121 (MB-Q2C-04): activates orders created from a quote right after creation. Fills a missing bill-to contact (quote contact, else the account's first contact) and billing / shipping address (from the account); if something is still missing the order stays Draft, Activation Error is filled and the order owner gets a task. The customer's first order creates the contract (standard Create Contract, then activated); later orders are co-termed into the existing activated contract when it starts on or before the order start date (otherwise a new contract is created). Activating the order creates the assets and billing schedules (standard) and publishes MB Order Activated for ERP / provisioning (MR-121 3.14).</description>
     <environments>Default</environments>
     <formulas>
         <name>fBillStreet</name>
@@ -102,6 +102,11 @@
         <expression>IF(ISBLANK({!$Flow.FaultMessage}), {!fMissing}, {!$Flow.FaultMessage})</expression>
     </formulas>
     <formulas>
+        <name>fContractId</name>
+        <dataType>String</dataType>
+        <expression>BLANKVALUE({!Get_Existing_Contract.Id}, {!Create_Contract.contractId})</expression>
+    </formulas>
+    <formulas>
         <name>fContactId</name>
         <dataType>String</dataType>
         <expression>BLANKVALUE({!$Record.BillToContactId}, BLANKVALUE({!$Record.Quote.ContactId}, {!Get_Account_Contact.Id}))</expression>
@@ -122,6 +127,18 @@
         <value><stringValue>AUTO_LAYOUT_CANVAS</stringValue></value>
     </processMetadataValues>
     <processType>AutoLaunchedFlow</processType>
+    <recordCreates>
+        <name>Publish_Activated</name>
+        <label>Publish MB Order Activated (ERP / provisioning)</label>
+        <locationX>0</locationX>
+        <locationY>0</locationY>
+        <inputAssignments><field>Account_Id__c</field><value><elementReference>$Record.AccountId</elementReference></value></inputAssignments>
+        <inputAssignments><field>Contract_Id__c</field><value><elementReference>fContractId</elementReference></value></inputAssignments>
+        <inputAssignments><field>Legal_Entity_Id__c</field><value><elementReference>$Record.Quote.LegalEntityId</elementReference></value></inputAssignments>
+        <inputAssignments><field>Order_Id__c</field><value><elementReference>$Record.Id</elementReference></value></inputAssignments>
+        <inputAssignments><field>Order_Number__c</field><value><elementReference>$Record.OrderNumber</elementReference></value></inputAssignments>
+        <object>MB_Order_Activated__e</object>
+    </recordCreates>
     <recordCreates>
         <name>Task_To_Owner</name>
         <label>Task to order operations (order owner)</label>
@@ -183,6 +200,7 @@
         <label>Activate the order</label>
         <locationX>0</locationX>
         <locationY>0</locationY>
+        <connector><targetReference>Publish_Activated</targetReference></connector>
         <faultConnector><targetReference>Record_Fault</targetReference></faultConnector>
         <filterLogic>and</filterLogic>
         <filters><field>Id</field><operator>EqualTo</operator><value><elementReference>$Record.Id</elementReference></value></filters>

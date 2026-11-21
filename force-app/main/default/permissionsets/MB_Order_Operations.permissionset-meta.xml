@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<PermissionSet xmlns="http://soap.sforce.com/2006/04/metadata">
+    <label>MB Order Operations</label>
+    <description>MR-121 3.15: order operations – fix and activate orders that failed the automatic activation checks; read contracts and assets.</description>
+    <hasActivationRequired>false</hasActivationRequired>
+    <fieldPermissions><editable>true</editable><field>Order.MB_Activation_Error__c</field><readable>true</readable></fieldPermissions>
+    <fieldPermissions><editable>false</editable><field>OrderItem.MB_Fulfilment_Route__c</field><readable>true</readable></fieldPermissions>
+    <objectPermissions><allowCreate>false</allowCreate><allowDelete>false</allowDelete><allowEdit>false</allowEdit><allowRead>true</allowRead><modifyAllRecords>false</modifyAllRecords><object>Asset</object><viewAllRecords>true</viewAllRecords></objectPermissions>
+    <objectPermissions><allowCreate>false</allowCreate><allowDelete>false</allowDelete><allowEdit>true</allowEdit><allowRead>true</allowRead><modifyAllRecords>false</modifyAllRecords><object>Contract</object><viewAllRecords>true</viewAllRecords></objectPermissions>
+    <objectPermissions><allowCreate>true</allowCreate><allowDelete>false</allowDelete><allowEdit>true</allowEdit><allowRead>true</allowRead><modifyAllRecords>true</modifyAllRecords><object>Order</object><viewAllRecords>true</viewAllRecords></objectPermissions>
+</PermissionSet>

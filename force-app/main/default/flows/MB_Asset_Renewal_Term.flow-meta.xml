@@ -10,7 +10,7 @@
         <assignmentItems><assignToReference>$Record.RenewalTermUnit</assignToReference><operator>Assign</operator><value><stringValue>Months</stringValue></value></assignmentItems>
         <assignmentItems><assignToReference>$Record.UnitPriceUplift</assignToReference><operator>Assign</operator><value><elementReference>fUplift</elementReference></value></assignmentItems>
     </assignments>
-    <description>MR-122: the standard Renew action needs RenewalTerm / RenewalTermUnit on every asset; assets created from orders get a 12-month renewal term when none is set, and a 5% renewal uplift (Unit Price Uplift) when none is set (MR-122 4.17).</description>
+    <description>MR-122: the standard Renew action needs RenewalTerm / RenewalTermUnit on every asset; subscription assets (Product Family Recurring) created from orders get a 12-month renewal term; hardware, services and usage assets get none (MR-121 3.11) when none is set, and a 5% renewal uplift (Unit Price Uplift) when none is set (MR-122 4.17).</description>
     <environments>Default</environments>
     <formulas>
         <name>fUplift</name>
@@ -27,8 +27,7 @@
         <locationX>0</locationX>
         <locationY>0</locationY>
         <connector><targetReference>Set_Renewal_Term</targetReference></connector>
-        <filterLogic>and</filterLogic>
-        <filters><field>RenewalTerm</field><operator>IsNull</operator><value><booleanValue>true</booleanValue></value></filters>
+        <filterFormula>AND(ISBLANK({!$Record.RenewalTerm}), TEXT({!$Record.Product2.Family}) = "Recurring")</filterFormula>
         <object>Asset</object>
         <recordTriggerType>Create</recordTriggerType>
         <triggerType>RecordBeforeSave</triggerType>
