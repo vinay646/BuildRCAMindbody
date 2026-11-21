@@ -4,10 +4,12 @@ SObject cl(String obj, Id srcId, Map<String, Object> ov) {
   for (Schema.SObjectField x : Schema.getGlobalDescribe().get(obj).getDescribe().fields.getMap().values()) { Schema.DescribeFieldResult d = x.getDescribe(); if (d.isCreateable()) f.add(d.getName()); }
   SObject s = Database.query('SELECT ' + String.join(f, ',') + ' FROM ' + obj + ' WHERE Id = :srcId')[0].clone(false, true);
   for (String k : ov.keySet()) s.put(k, ov.get(k));
+  if (s.getSObjectType().getDescribe().fields.getMap().containsKey('status') && new Set<String>{'UnitOfMeasureClass','UnitOfMeasure','UsageResource','ProductUsageResource','RateCardEntry','ProductUsageGrant'}.contains(obj)) s.put('Status', 'Draft');
   return s;
 }
 String log = '';
-SObject ins(SObject s, String tag) { try { insert s; log += tag + ' ok; '; return s; } catch (Exception e) { log += tag + ' ERR ' + e.getMessage().left(160) + '; '; return null; } }
+List<SObject> toActivate = new List<SObject>();
+SObject ins(SObject s, String tag) { try { insert s; if (s.get('Id') != null && s.getSObjectType().getDescribe().fields.getMap().containsKey('status') && s.get('Status') == 'Draft') toActivate.add(s); log += tag + ' ok; '; return s; } catch (Exception e) { log += tag + ' ERR ' + e.getMessage().left(160) + '; '; return null; } }
 Product2 cs = [SELECT Id FROM Product2 WHERE ProductCode = 'CS-25Gb'];
 ProductUsageResource csPur = [SELECT Id, UsageResourceId FROM ProductUsageResource WHERE ProductId = :cs.Id LIMIT 1];
 UsageResource csUr = [SELECT Id, UnitOfMeasureClassId, DefaultUnitOfMeasureId FROM UsageResource WHERE Id = :csPur.UsageResourceId];
@@ -49,4 +51,9 @@ for (String code : spec.keySet()) {
 // link rate card to the Mindbody USD price book
 if (rcId != null) for (Pricebook2 pb : [SELECT Id FROM Pricebook2 WHERE Name IN ('North America & Asia (USD)', 'Standard Price Book')])
   if ([SELECT COUNT() FROM PriceBookRateCard WHERE RateCardId = :rcId AND PriceBookId = :pb.Id] == 0) ins(new PriceBookRateCard(RateCardId = rcId, PriceBookId = pb.Id), 'pbRateCard');
+// activate: UoM, class, resources, product usage resources, rate entries (in creation order, then retry once)
+for (Integer pass = 0; pass < 2; pass++) for (SObject r : toActivate) if (r.get('Status') != 'Active') {
+  SObject u = r.getSObjectType().newSObject((Id) r.get('Id')); u.put('Status', 'Active');
+  try { update u; r.put('Status', 'Active'); log += 'activated ' + r.getSObjectType() + '; '; } catch (Exception e) { if (pass == 1) log += 'activate ' + r.getSObjectType() + ' ERR ' + e.getMessage().left(140) + '; '; }
+}
 System.debug(LoggingLevel.ERROR, 'UB ' + log);
