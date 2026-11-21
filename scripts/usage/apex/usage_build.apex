@@ -48,5 +48,5 @@ for (String code : spec.keySet()) {
 }
 // link rate card to the Mindbody USD price book
 if (rcId != null) for (Pricebook2 pb : [SELECT Id FROM Pricebook2 WHERE Name IN ('North America & Asia (USD)', 'Standard Price Book')])
-  if ([SELECT COUNT() FROM PriceBookRateCard WHERE RateCardId = :rcId AND PriceBookId = :pb.Id] == 0) ins(new PriceBookRateCard(RateCardId = rcId, PriceBookId = pb.Id, RateCardType = 'Base'), 'pbRateCard');
+  if ([SELECT COUNT() FROM PriceBookRateCard WHERE RateCardId = :rcId AND PriceBookId = :pb.Id] == 0) ins(new PriceBookRateCard(RateCardId = rcId, PriceBookId = pb.Id), 'pbRateCard');
 System.debug(LoggingLevel.ERROR, 'UB ' + log);
