@@ -1,9 +1,8 @@
 #!/usr/bin/env bash
-# Read-only: usage-related flows/actions and recent Create Empty Summaries batch parts
+# Read-only: inputs of the standard usage flows and the summary creation action
 API="/services/data/v$ORG_API"
-q() { sf data query --query "$1" --target-org target --json | jq -c '[.result.records[]? | del(.attributes)] // .message'; }
-echo "FLOW ACTIONS $(sf api request rest "$API/actions/custom/flow" --target-org target 2>/dev/null | jq -c '[.actions[]?.name | select(test("sage|Summar|Empty|Rating";"i"))]')"
-echo "STD ACTIONS $(sf api request rest "$API/actions/standard" --target-org target 2>/dev/null | jq -c '[.actions[]?.name | select(test("sage|Summar|Rating|Liable";"i"))]')"
-echo "DPE $(sf api request rest "$API/actions/custom/dataProcessingEngineAction" --target-org target 2>/dev/null | jq -c '[.actions[]?.name]')"
-echo "EMPTY PARTS $(q "SELECT Name, Status, InputRecordCount, OutputRecordCount, FailedRecordCount, CreatedDate FROM BatchJobPart WHERE Name LIKE '%mpty%' ORDER BY CreatedDate DESC LIMIT 4")"
-echo "BATCH JOB DEFS $(q "SELECT DeveloperName, Type FROM BatchJobDefinition" 2>&1 | head -c 600)"
+for a in flow/runtime_industries_usage__CreateSum flow/runtime_industries_usage__CreaUseSum flow/runtime_industries_usage__LiabSum flow/runtime_industries_usage__UseRateSum; do
+  echo "$a $(sf api request rest "$API/actions/custom/$a" --target-org target 2>/dev/null | jq -c '{label, inputs: [.inputs[]? | {name, type, required}]}')"
+done
+echo "invokeSummaryCreationService $(sf api request rest "$API/actions/standard/invokeSummaryCreationService" --target-org target 2>/dev/null | jq -c '{label, inputs: [.inputs[]? | {name, type, required, description}]}')"
+echo "invokeRatingService $(sf api request rest "$API/actions/standard/invokeRatingService" --target-org target 2>/dev/null | jq -c '{inputs: [.inputs[]? | {name, type, required}]}')"
