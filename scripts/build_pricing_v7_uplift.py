@@ -51,7 +51,7 @@ new = (
     f"<steps><advancedCondition><conditionLogic>1 AND 2 AND 3 AND 4 AND 5</conditionLogic>"
     + crit(1, "ItemUnitPriceUplift__std", "IsNotNull") + crit(2, "ItemUnitPriceUplift__std", "GreaterThan", "0")
     + crit(3, "SalesTransactionActionType", "Equals", "&apos;Renew&apos;") + crit(4, "LineItemQuantity", "GreaterThan", "0")
-    + crit(5, "ApplUnitPriceUpliftPct__std", "IsNull")
+    + crit(5, "ItemApplUnitPriceUpliftPct__std", "IsNull")
     + f"</advancedCondition><hasNestedExplainability>false</hasNestedExplainability><label>Filter renewal lines with an uplift</label>"
     f"<name>{name}Filter</name><parentStep>{name}</parentStep><resultIncluded>false</resultIncluded><sequenceNumber>1</sequenceNumber>{FLAGS}"
     f"<stepType>AdvancedListFilter</stepType></steps>"
@@ -59,7 +59,7 @@ new = (
     + P("formula-section-0-input", "Formula", "NetUnitPrice + NetUnitPrice * ItemUnitPriceUplift__std") + P("writeBackData", "Literal", "[]")
     + P("formula-section-1-input", "Formula", "ItemUnitPriceUplift__std") + P("formulaSectionCount", "Literal", "2") + P("HideWaterfall", "Literal", "false") + P("sectionCount", "Literal", "0")
     + P("selectedFunction", "Literal", "Get") + P("IsRealTime", "Literal", "false")
-    + P("formula-section-0-output", "Parameter", "NetUnitPrice", out=True) + P("formula-section-1-output", "Parameter", "ApplUnitPriceUpliftPct__std", out=True)
+    + P("formula-section-0-output", "Parameter", "NetUnitPrice", out=True) + P("formula-section-1-output", "Parameter", "ItemApplUnitPriceUpliftPct__std", out=True)
     + P("Output Variable", "Parameter", "NetUnitPrice", out=True)
     + f"</customElement><description>Formula Based Pricing</description><hasNestedExplainability>false</hasNestedExplainability>"
     f"<label>Renewal uplift</label><name>{name}Formula</name><parentStep>{name}</parentStep><resultIncluded>false</resultIncluded>"
