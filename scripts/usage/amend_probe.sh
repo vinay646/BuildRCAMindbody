@@ -7,8 +7,8 @@ a=$(q "SELECT Id FROM Asset WHERE AccountId = '$acc' AND Name = 'Ultimate' LIMIT
 echo "OriginalActionType values: $(sf sobject describe --sobject Quote --target-org target --json | jq -c '[.result.fields[] | select(.name=="OriginalActionType") | .picklistValues[]?.value]')"
 echo "Opp Type values: $(sf sobject describe --sobject Opportunity --target-org target --json | jq -c '[.result.fields[] | select(.name=="Type") | .picklistValues[]? | select(.active) | .value]')"
 d=$(date -u -d '+1 day' +%Y-%m-%dT00:00:00Z)
-echo "amend: $(sf api request rest "$API/actions/standard/initiateAmendment" --method POST --body "{\"inputs\":[{\"amendAssetIds\":\"$a\",\"amendStartDate\":\"$d\",\"quantityChange\":1,\"amendOutputType\":\"Quote\"}]}" --target-org target 2>&1 | jq -c '.[0] | {isSuccess, outputValues, errors}')"
-echo "renew: $(sf api request rest "$API/actions/standard/initiateRenewal" --method POST --body "{\"inputs\":[{\"renewAssetIds\":\"$a\",\"renewOutputType\":\"Quote\"}]}" --target-org target 2>&1 | jq -c '.[0] | {isSuccess, outputValues, errors}')"
+echo "amend: $(sf api request rest "$API/actions/standard/initiateAmendment" --method POST --body "{\"inputs\":[{\"amendAssetIds\":[\"$a\"],\"amendStartDate\":\"$d\",\"quantityChange\":1,\"amendOutputType\":\"Quote\"}]}" --target-org target 2>&1 | jq -c '.[0] | {isSuccess, outputValues, errors}')"
+echo "renew: $(sf api request rest "$API/actions/standard/initiateRenewal" --method POST --body "{\"inputs\":[{\"renewAssetIds\":[\"$a\"],\"renewOutputType\":\"Quote\"}]}" --target-org target 2>&1 | jq -c '.[0] | {isSuccess, outputValues, errors}')"
 sleep 40
 q "SELECT QuoteNumber, Name, OriginalActionType, OpportunityId, AccountId, Status, MB_MRR__c, RLM_TermMonths__c, CreatedDate FROM Quote WHERE AccountId = '$acc' AND CreatedDate = TODAY ORDER BY CreatedDate DESC LIMIT 4" '[.result.records[] | del(.attributes)]'
 for id in $(q "SELECT Id FROM Quote WHERE AccountId = '$acc' AND OriginalActionType != null ORDER BY CreatedDate DESC LIMIT 2" '.result.records[].Id' | tr -d '"'); do
