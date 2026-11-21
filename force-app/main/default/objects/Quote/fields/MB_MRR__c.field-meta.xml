@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>MB_MRR__c</fullName>
+    <label>MRR</label>
+    <description>MR-118: monthly recurring value of the quote (sum of the lines' MRR).</description>
+    <summarizedField>QuoteLineItem.MB_MRR__c</summarizedField>
+    <summaryForeignKey>QuoteLineItem.QuoteId</summaryForeignKey>
+    <summaryOperation>sum</summaryOperation>
+    <type>Summary</type>
+</CustomField>

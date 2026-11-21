@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>MB_Billing_Frequency__c</fullName>
+    <label>Billing Frequency</label>
+    <description>MR-118: copied from the synced quote by the flow MB Quote Sync To Opportunity.</description>
+    <type>Text</type>
+    <length>40</length>
+    <required>false</required>
+</CustomField>

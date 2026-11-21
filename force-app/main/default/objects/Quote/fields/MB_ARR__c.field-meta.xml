@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>MB_ARR__c</fullName>
+    <label>ARR</label>
+    <description>MR-118: annual recurring value = MRR × 12.</description>
+    <type>Currency</type>
+    <precision>16</precision>
+    <scale>2</scale>
+    <formula>MB_MRR__c * 12</formula>
+    <formulaTreatBlanksAs>BlankAsZero</formulaTreatBlanksAs>
+</CustomField>

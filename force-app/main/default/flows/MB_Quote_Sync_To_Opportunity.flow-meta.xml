@@ -1,0 +1,119 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Flow xmlns="http://soap.sforce.com/2006/04/metadata">
+    <apiVersion>62.0</apiVersion>
+    <decisions>
+        <name>Sync_Or_Update</name>
+        <label>Sync now or update synced?</label>
+        <locationX>0</locationX>
+        <locationY>0</locationY>
+        <defaultConnectorLabel>Nothing to do</defaultConnectorLabel>
+        <rules>
+            <name>First_Submitted_Quote</name>
+            <conditionLogic>and</conditionLogic>
+            <conditions>
+                <leftValueReference>fFirstSubmitted</leftValueReference>
+                <operator>EqualTo</operator>
+                <rightValue><booleanValue>true</booleanValue></rightValue>
+            </conditions>
+            <connector><targetReference>Sync_Quote</targetReference></connector>
+            <label>First submitted quote: sync it</label>
+        </rules>
+        <rules>
+            <name>Is_Synced_Quote</name>
+            <conditionLogic>and</conditionLogic>
+            <conditions>
+                <leftValueReference>fIsSynced</leftValueReference>
+                <operator>EqualTo</operator>
+                <rightValue><booleanValue>true</booleanValue></rightValue>
+            </conditions>
+            <connector><targetReference>Update_Opportunity_Fields</targetReference></connector>
+            <label>Synced quote: update the opportunity</label>
+        </rules>
+    </decisions>
+    <description>MR-118 (MB-Q2C-01): the first quote that leaves Draft on an opportunity without a synced quote becomes its synced quote (what Start Sync does), and a post tells the rep. While a quote is the synced quote, its Term, start / end date, billing frequency, MRR and ARR are copied to the opportunity. Replacing the synced quote stays a manual Start Sync.</description>
+    <environments>Default</environments>
+    <formulas>
+        <name>fFirstSubmitted</name>
+        <dataType>Boolean</dataType>
+        <expression>AND(NOT(ISPICKVAL({!$Record.Status}, "Draft")), TEXT({!$Record.Status}) &lt;&gt; TEXT({!$Record__Prior.Status}), ISBLANK({!$Record.Opportunity.SyncedQuoteId}))</expression>
+    </formulas>
+    <formulas>
+        <name>fIsSynced</name>
+        <dataType>Boolean</dataType>
+        <expression>{!$Record.Opportunity.SyncedQuoteId} = {!$Record.Id}</expression>
+    </formulas>
+    <formulas>
+        <name>fPost</name>
+        <dataType>String</dataType>
+        <expression>"Quote " &amp; {!$Record.QuoteNumber} &amp; " submitted and synced to this opportunity."</expression>
+    </formulas>
+    <formulas>
+        <name>fFrequency</name>
+        <dataType>String</dataType>
+        <expression>TEXT({!$Record.MB_Billing_Frequency__c})</expression>
+    </formulas>
+    <interviewLabel>MB Quote Sync To Opportunity {!$Flow.CurrentDateTime}</interviewLabel>
+    <label>MB Quote Sync To Opportunity</label>
+    <processMetadataValues>
+        <name>BuilderType</name>
+        <value><stringValue>LightningFlowBuilder</stringValue></value>
+    </processMetadataValues>
+    <processMetadataValues>
+        <name>CanvasMode</name>
+        <value><stringValue>AUTO_LAYOUT_CANVAS</stringValue></value>
+    </processMetadataValues>
+    <processType>AutoLaunchedFlow</processType>
+    <recordCreates>
+        <name>Post_To_Opportunity</name>
+        <label>Tell the rep on the opportunity</label>
+        <locationX>0</locationX>
+        <locationY>0</locationY>
+        <inputAssignments><field>Body</field><value><elementReference>fPost</elementReference></value></inputAssignments>
+        <inputAssignments><field>ParentId</field><value><elementReference>$Record.OpportunityId</elementReference></value></inputAssignments>
+        <object>FeedItem</object>
+        <storeOutputAutomatically>true</storeOutputAutomatically>
+    </recordCreates>
+    <recordUpdates>
+        <name>Sync_Quote</name>
+        <label>Sync the quote and copy its fields</label>
+        <locationX>0</locationX>
+        <locationY>0</locationY>
+        <connector><targetReference>Post_To_Opportunity</targetReference></connector>
+        <filterLogic>and</filterLogic>
+        <filters><field>Id</field><operator>EqualTo</operator><value><elementReference>$Record.OpportunityId</elementReference></value></filters>
+        <inputAssignments><field>MB_ARR__c</field><value><elementReference>$Record.MB_ARR__c</elementReference></value></inputAssignments>
+        <inputAssignments><field>MB_Billing_Frequency__c</field><value><elementReference>fFrequency</elementReference></value></inputAssignments>
+        <inputAssignments><field>MB_End_Date__c</field><value><elementReference>$Record.RLM_EndDate__c</elementReference></value></inputAssignments>
+        <inputAssignments><field>MB_MRR__c</field><value><elementReference>$Record.MB_MRR__c</elementReference></value></inputAssignments>
+        <inputAssignments><field>MB_Start_Date__c</field><value><elementReference>$Record.StartDate</elementReference></value></inputAssignments>
+        <inputAssignments><field>RLM_TermMonths__c</field><value><elementReference>$Record.RLM_TermMonths__c</elementReference></value></inputAssignments>
+        <inputAssignments><field>SyncedQuoteId</field><value><elementReference>$Record.Id</elementReference></value></inputAssignments>
+        <object>Opportunity</object>
+    </recordUpdates>
+    <recordUpdates>
+        <name>Update_Opportunity_Fields</name>
+        <label>Copy the synced quote's fields</label>
+        <locationX>0</locationX>
+        <locationY>0</locationY>
+        <filterLogic>and</filterLogic>
+        <filters><field>Id</field><operator>EqualTo</operator><value><elementReference>$Record.OpportunityId</elementReference></value></filters>
+        <inputAssignments><field>MB_ARR__c</field><value><elementReference>$Record.MB_ARR__c</elementReference></value></inputAssignments>
+        <inputAssignments><field>MB_Billing_Frequency__c</field><value><elementReference>fFrequency</elementReference></value></inputAssignments>
+        <inputAssignments><field>MB_End_Date__c</field><value><elementReference>$Record.RLM_EndDate__c</elementReference></value></inputAssignments>
+        <inputAssignments><field>MB_MRR__c</field><value><elementReference>$Record.MB_MRR__c</elementReference></value></inputAssignments>
+        <inputAssignments><field>MB_Start_Date__c</field><value><elementReference>$Record.StartDate</elementReference></value></inputAssignments>
+        <inputAssignments><field>RLM_TermMonths__c</field><value><elementReference>$Record.RLM_TermMonths__c</elementReference></value></inputAssignments>
+        <object>Opportunity</object>
+    </recordUpdates>
+    <start>
+        <locationX>0</locationX>
+        <locationY>0</locationY>
+        <connector><targetReference>Sync_Or_Update</targetReference></connector>
+        <filterLogic>and</filterLogic>
+        <filters><field>OpportunityId</field><operator>IsNull</operator><value><booleanValue>false</booleanValue></value></filters>
+        <object>Quote</object>
+        <recordTriggerType>CreateAndUpdate</recordTriggerType>
+        <triggerType>RecordAfterSave</triggerType>
+    </start>
+    <status>Active</status>
+</Flow>
