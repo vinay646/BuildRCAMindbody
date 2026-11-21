@@ -58,8 +58,13 @@ setup)
   done
   show ;;
 summary)
+  for U in $(q "SELECT Id FROM UsageEntitlementAccount WHERE AccountId = '$ACC'" | jq -r '.[].Id'); do
+    echo "== summary creation $U: $(rest POST /actions/standard/invokeSummaryCreationService "{\"inputs\":[{\"usageEntitlementAccountId\":\"$U\"}]}" | jq -c '.[0] | {isSuccess, errors}' 2>/dev/null)"
+  done
+  sleep 60; echo "UEA $(q "SELECT Name, BillingPeriodStartDateTime, BillingPeriodEndDateTime FROM UsageEntitlementAccount WHERE AccountId = '$ACC'")"
   echo "== Create Liable Summary"; rest POST /actions/custom/dataProcessingEngineAction/Create_Liable_Summary_v4 '{"inputs":[{}]}' | jq -c '.[0] | {isSuccess, errors}' 2>/dev/null; sleep 180
   echo "== Create Usage Summary"; rest POST /actions/custom/dataProcessingEngineAction/Create_Usage_Summary_v4 '{"inputs":[{}]}' | jq -c '.[0] | {isSuccess, errors}' 2>/dev/null; sleep 240
+  echo "== Ratable summary flow"; rest POST /actions/custom/flow/runtime_industries_usage__UseRateSum '{"inputs":[{}]}' | jq -c '.[0] | {isSuccess, errors}' 2>/dev/null; sleep 120
   show ;;
 invoice)
   BS=$(q "SELECT Id FROM BillingSchedule WHERE BillingAccountId = '$ACC'" | jq -c '[.[].Id]')
