@@ -19,8 +19,8 @@ print("lines:", q(f"SELECT Product2.ProductCode, Quantity, NetUnitPrice, LegalEn
 r = upd("Opportunity", opp, "StageName='Closed Won'"); print("closed won:", r.get("status"), r.get("message", "")[:200])
 o = wait_opp(opp); print("opp:", {k: v for k, v in o.items() if k != "attributes"})
 if o["MB_Order__c"]:
-    od = q(f"SELECT OrderNumber, Status, AccountId, Pricebook2Id, CurrencyIsoCode, EffectiveDate, QuoteId, OpportunityId FROM Order WHERE Id = '{o['MB_Order__c']}'")[0]
-    items = q(f"SELECT Product2.ProductCode, Quantity, UnitPrice, ServiceDate, EndDate, BillingFrequency2, LegalEntityId, BillingTreatmentId FROM OrderItem WHERE OrderId = '{o['MB_Order__c']}'")
+    od = q(f"SELECT OrderNumber, Status, AccountId, Pricebook2Id, CurrencyIsoCode, EffectiveDate, QuoteId FROM Order WHERE Id = '{o['MB_Order__c']}'")[0]
+    items = q(f"SELECT Product2.ProductCode, Quantity, UnitPrice, ServiceDate, EndDate FROM OrderItem WHERE OrderId = '{o['MB_Order__c']}'")
     print("order:", {k: v for k, v in od.items() if k != "attributes"}); print("order items:", len(items), [(i["Product2"]["ProductCode"], i["Quantity"], i["UnitPrice"]) for i in items])
     print("T3", "PASS" if od["QuoteId"] == qt["Id"] and items and o["MB_Bookings_ARR__c"] else "FAIL")
     upd("Opportunity", opp, "Description='save again'"); time.sleep(20)
