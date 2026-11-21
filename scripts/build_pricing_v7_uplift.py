@@ -48,10 +48,10 @@ crit = lambda i, f, op, v=None, vt="Literal": (f"<criteria><operator>{op}</opera
 new = (
     f"<steps><hasNestedExplainability>false</hasNestedExplainability><label>Mindbody renewal uplift</label><name>{name}</name>"
     f"<resultIncluded>false</resultIncluded><sequenceNumber>{SEQ}</sequenceNumber>{FLAGS}<stepType>ListGroup</stepType></steps>"
-    f"<steps><advancedCondition><conditionLogic>1 AND 2 AND 3 AND 4 AND 5</conditionLogic>"
+    f"<steps><advancedCondition><conditionLogic>1 AND 2 AND 3 AND 4 AND (5 OR 6)</conditionLogic>"
     + crit(1, "ItemUnitPriceUplift__std", "IsNotNull") + crit(2, "ItemUnitPriceUplift__std", "GreaterThan", "0")
     + crit(3, "SalesTransactionActionType", "Equals", "&apos;Renew&apos;") + crit(4, "LineItemQuantity", "GreaterThan", "0")
-    + crit(5, "ItemApplUnitPriceUpliftPct__std", "IsNull")
+    + crit(5, "ItemApplUnitPriceUpliftPct__std", "IsNull") + crit(6, "ItemApplUnitPriceUpliftPct__std", "Equals", "0")
     + f"</advancedCondition><hasNestedExplainability>false</hasNestedExplainability><label>Filter renewal lines with an uplift</label>"
     f"<name>{name}Filter</name><parentStep>{name}</parentStep><resultIncluded>false</resultIncluded><sequenceNumber>1</sequenceNumber>{FLAGS}"
     f"<stepType>AdvancedListFilter</stepType></steps>"
