@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Flow xmlns="http://soap.sforce.com/2006/04/metadata">
+    <apiVersion>62.0</apiVersion>
+    <description>MR-122 4.13: when a Renewal opportunity is Closed Lost, the account's activated contracts are marked Do Not Renew (the daily renewal job skips them) and the account's assets stop auto-renewing, so they end on their end date. The renewal quotes are set to Denied / Voided by MB Opportunity Close Quote Status.</description>
+    <environments>Default</environments>
+    <interviewLabel>MB Renewal Lost {!$Flow.CurrentDateTime}</interviewLabel>
+    <label>MB Renewal Lost</label>
+    <processMetadataValues><name>BuilderType</name><value><stringValue>LightningFlowBuilder</stringValue></value></processMetadataValues>
+    <processMetadataValues><name>CanvasMode</name><value><stringValue>AUTO_LAYOUT_CANVAS</stringValue></value></processMetadataValues>
+    <processType>AutoLaunchedFlow</processType>
+    <recordUpdates>
+        <name>Contracts_Not_Renewing</name>
+        <label>Contracts not renewing</label>
+        <locationX>0</locationX>
+        <locationY>0</locationY>
+        <connector><targetReference>Assets_Not_Renewing</targetReference></connector>
+        <filterLogic>and</filterLogic>
+        <filters><field>AccountId</field><operator>EqualTo</operator><value><elementReference>$Record.AccountId</elementReference></value></filters>
+        <filters><field>Status</field><operator>EqualTo</operator><value><stringValue>Activated</stringValue></value></filters>
+        <inputAssignments><field>MB_Do_Not_Renew__c</field><value><booleanValue>true</booleanValue></value></inputAssignments>
+        <object>Contract</object>
+    </recordUpdates>
+    <recordUpdates>
+        <name>Assets_Not_Renewing</name>
+        <label>Assets stop auto-renewing</label>
+        <locationX>0</locationX>
+        <locationY>0</locationY>
+        <filterLogic>and</filterLogic>
+        <filters><field>AccountId</field><operator>EqualTo</operator><value><elementReference>$Record.AccountId</elementReference></value></filters>
+        <filters><field>DoesAutomaticallyRenew</field><operator>EqualTo</operator><value><booleanValue>true</booleanValue></value></filters>
+        <inputAssignments><field>DoesAutomaticallyRenew</field><value><booleanValue>false</booleanValue></value></inputAssignments>
+        <object>Asset</object>
+    </recordUpdates>
+    <start>
+        <locationX>0</locationX>
+        <locationY>0</locationY>
+        <connector><targetReference>Contracts_Not_Renewing</targetReference></connector>
+        <filterFormula>AND(ISCHANGED({!$Record.StageName}), ISPICKVAL({!$Record.StageName}, "Closed Lost"), ISPICKVAL({!$Record.Type}, "Renewal"))</filterFormula>
+        <object>Opportunity</object>
+        <recordTriggerType>Update</recordTriggerType>
+        <triggerType>RecordAfterSave</triggerType>
+    </start>
+    <status>Active</status>
+</Flow>
