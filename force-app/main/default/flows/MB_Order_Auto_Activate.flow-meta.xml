@@ -1,0 +1,261 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Flow xmlns="http://soap.sforce.com/2006/04/metadata">
+    <actionCalls>
+        <name>Create_Contract</name>
+        <label>Create the customer's contract</label>
+        <locationX>0</locationX>
+        <locationY>0</locationY>
+        <actionName>createContract</actionName>
+        <actionType>createContract</actionType>
+        <connector><targetReference>Activate_New_Contract</targetReference></connector>
+        <faultConnector><targetReference>Record_Fault</targetReference></faultConnector>
+        <flowTransactionModel>CurrentTransaction</flowTransactionModel>
+        <inputParameters><name>sourceId</name><value><elementReference>$Record.Id</elementReference></value></inputParameters>
+        <storeOutputAutomatically>true</storeOutputAutomatically>
+    </actionCalls>
+    <apiVersion>62.0</apiVersion>
+    <decisions>
+        <name>Ready_To_Activate</name>
+        <label>Ready to activate?</label>
+        <locationX>0</locationX>
+        <locationY>0</locationY>
+        <defaultConnector><targetReference>Get_Existing_Contract</targetReference></defaultConnector>
+        <defaultConnectorLabel>Yes</defaultConnectorLabel>
+        <rules>
+            <name>Missing_Data</name>
+            <conditionLogic>and</conditionLogic>
+            <conditions><leftValueReference>fMissing</leftValueReference><operator>IsBlank</operator><rightValue><booleanValue>false</booleanValue></rightValue></conditions>
+            <connector><targetReference>Record_Missing</targetReference></connector>
+            <label>No</label>
+        </rules>
+    </decisions>
+    <decisions>
+        <name>Has_Contract</name>
+        <label>Customer already has an activated contract?</label>
+        <locationX>0</locationX>
+        <locationY>0</locationY>
+        <defaultConnector><targetReference>Create_Contract</targetReference></defaultConnector>
+        <defaultConnectorLabel>No – create one</defaultConnectorLabel>
+        <rules>
+            <name>Co_Term</name>
+            <conditionLogic>and</conditionLogic>
+            <conditions><leftValueReference>Get_Existing_Contract</leftValueReference><operator>IsNull</operator><rightValue><booleanValue>false</booleanValue></rightValue></conditions>
+            <connector><targetReference>Co_Term_Order</targetReference></connector>
+            <label>Yes – co-term into it</label>
+        </rules>
+    </decisions>
+    <description>MR-121 (MB-Q2C-04): activates orders created from a quote right after creation. Fills a missing bill-to contact (quote contact, else the account's first contact) and billing / shipping address (from the account); if something is still missing the order stays Draft, Activation Error is filled and the order owner gets a task. The customer's first order creates the contract (standard Create Contract, then activated); later orders are co-termed into the existing activated contract. Activating the order creates the assets (standard).</description>
+    <environments>Default</environments>
+    <formulas>
+        <name>fBillStreet</name>
+        <dataType>String</dataType>
+        <expression>IF(ISBLANK({!$Record.BillingStreet}), {!$Record.Account.BillingStreet}, {!$Record.BillingStreet})</expression>
+    </formulas>
+    <formulas>
+        <name>fBillCity</name>
+        <dataType>String</dataType>
+        <expression>IF(ISBLANK({!$Record.BillingStreet}), {!$Record.Account.BillingCity}, {!$Record.BillingCity})</expression>
+    </formulas>
+    <formulas>
+        <name>fBillState</name>
+        <dataType>String</dataType>
+        <expression>IF(ISBLANK({!$Record.BillingStreet}), {!$Record.Account.BillingState}, {!$Record.BillingState})</expression>
+    </formulas>
+    <formulas>
+        <name>fBillPostalCode</name>
+        <dataType>String</dataType>
+        <expression>IF(ISBLANK({!$Record.BillingStreet}), {!$Record.Account.BillingPostalCode}, {!$Record.BillingPostalCode})</expression>
+    </formulas>
+    <formulas>
+        <name>fBillCountry</name>
+        <dataType>String</dataType>
+        <expression>IF(ISBLANK({!$Record.BillingStreet}), {!$Record.Account.BillingCountry}, {!$Record.BillingCountry})</expression>
+    </formulas>
+    <formulas>
+        <name>fShipStreet</name>
+        <dataType>String</dataType>
+        <expression>IF(ISBLANK({!$Record.ShippingStreet}), {!$Record.Account.ShippingStreet}, {!$Record.ShippingStreet})</expression>
+    </formulas>
+    <formulas>
+        <name>fShipCity</name>
+        <dataType>String</dataType>
+        <expression>IF(ISBLANK({!$Record.ShippingStreet}), {!$Record.Account.ShippingCity}, {!$Record.ShippingCity})</expression>
+    </formulas>
+    <formulas>
+        <name>fShipState</name>
+        <dataType>String</dataType>
+        <expression>IF(ISBLANK({!$Record.ShippingStreet}), {!$Record.Account.ShippingState}, {!$Record.ShippingState})</expression>
+    </formulas>
+    <formulas>
+        <name>fShipPostalCode</name>
+        <dataType>String</dataType>
+        <expression>IF(ISBLANK({!$Record.ShippingStreet}), {!$Record.Account.ShippingPostalCode}, {!$Record.ShippingPostalCode})</expression>
+    </formulas>
+    <formulas>
+        <name>fShipCountry</name>
+        <dataType>String</dataType>
+        <expression>IF(ISBLANK({!$Record.ShippingStreet}), {!$Record.Account.ShippingCountry}, {!$Record.ShippingCountry})</expression>
+    </formulas>
+    <formulas>
+        <name>fTaskText</name>
+        <dataType>String</dataType>
+        <expression>IF(ISBLANK({!$Flow.FaultMessage}), {!fMissing}, {!$Flow.FaultMessage})</expression>
+    </formulas>
+    <formulas>
+        <name>fContactId</name>
+        <dataType>String</dataType>
+        <expression>BLANKVALUE({!$Record.BillToContactId}, BLANKVALUE({!$Record.Quote.ContactId}, {!Get_Account_Contact.Id}))</expression>
+    </formulas>
+    <formulas>
+        <name>fMissing</name>
+        <dataType>String</dataType>
+        <expression>TRIM(IF(ISBLANK({!fContactId}), "Bill-to contact missing. ", "") &amp; IF(ISBLANK(BLANKVALUE({!$Record.BillingStreet}, {!$Record.Account.BillingStreet})), "Billing address missing. ", "") &amp; IF(ISBLANK(BLANKVALUE({!$Record.ShippingStreet}, {!$Record.Account.ShippingStreet})), "Shipping address missing. ", "") &amp; IF(ISBLANK({!$Record.EffectiveDate}), "Start date missing.", ""))</expression>
+    </formulas>
+    <interviewLabel>MB Order Auto Activate {!$Flow.CurrentDateTime}</interviewLabel>
+    <label>MB Order Auto Activate</label>
+    <processMetadataValues>
+        <name>BuilderType</name>
+        <value><stringValue>LightningFlowBuilder</stringValue></value>
+    </processMetadataValues>
+    <processMetadataValues>
+        <name>CanvasMode</name>
+        <value><stringValue>AUTO_LAYOUT_CANVAS</stringValue></value>
+    </processMetadataValues>
+    <processType>AutoLaunchedFlow</processType>
+    <recordCreates>
+        <name>Task_To_Owner</name>
+        <label>Task to order operations (order owner)</label>
+        <locationX>0</locationX>
+        <locationY>0</locationY>
+        <inputAssignments><field>Description</field><value><elementReference>fTaskText</elementReference></value></inputAssignments>
+        <inputAssignments><field>OwnerId</field><value><elementReference>$Record.OwnerId</elementReference></value></inputAssignments>
+        <inputAssignments><field>Subject</field><value><stringValue>Order not activated – fix the Activation Error and activate the order</stringValue></value></inputAssignments>
+        <inputAssignments><field>WhatId</field><value><elementReference>$Record.Id</elementReference></value></inputAssignments>
+        <object>Task</object>
+        <storeOutputAutomatically>true</storeOutputAutomatically>
+    </recordCreates>
+    <recordLookups>
+        <name>Get_Account_Contact</name>
+        <label>Get the account's first contact</label>
+        <locationX>0</locationX>
+        <locationY>0</locationY>
+        <assignNullValuesIfNoRecordsFound>true</assignNullValuesIfNoRecordsFound>
+        <connector><targetReference>Fill_Order</targetReference></connector>
+        <filterLogic>and</filterLogic>
+        <filters><field>AccountId</field><operator>EqualTo</operator><value><elementReference>$Record.AccountId</elementReference></value></filters>
+        <getFirstRecordOnly>true</getFirstRecordOnly>
+        <object>Contact</object>
+        <queriedFields>Id</queriedFields>
+        <storeOutputAutomatically>true</storeOutputAutomatically>
+    </recordLookups>
+    <recordLookups>
+        <name>Get_Existing_Contract</name>
+        <label>Get the customer's activated contract</label>
+        <locationX>0</locationX>
+        <locationY>0</locationY>
+        <assignNullValuesIfNoRecordsFound>true</assignNullValuesIfNoRecordsFound>
+        <connector><targetReference>Has_Contract</targetReference></connector>
+        <filterLogic>and</filterLogic>
+        <filters><field>AccountId</field><operator>EqualTo</operator><value><elementReference>$Record.AccountId</elementReference></value></filters>
+        <filters><field>Status</field><operator>EqualTo</operator><value><stringValue>Activated</stringValue></value></filters>
+        <getFirstRecordOnly>true</getFirstRecordOnly>
+        <object>Contract</object>
+        <queriedFields>Id</queriedFields>
+        <storeOutputAutomatically>true</storeOutputAutomatically>
+    </recordLookups>
+    <recordUpdates>
+        <name>Activate_New_Contract</name>
+        <label>Activate the new contract</label>
+        <locationX>0</locationX>
+        <locationY>0</locationY>
+        <connector><targetReference>Activate_Order</targetReference></connector>
+        <faultConnector><targetReference>Record_Fault</targetReference></faultConnector>
+        <filterLogic>and</filterLogic>
+        <filters><field>Id</field><operator>EqualTo</operator><value><elementReference>Create_Contract.contractId</elementReference></value></filters>
+        <inputAssignments><field>Status</field><value><stringValue>Activated</stringValue></value></inputAssignments>
+        <object>Contract</object>
+    </recordUpdates>
+    <recordUpdates>
+        <name>Activate_Order</name>
+        <label>Activate the order</label>
+        <locationX>0</locationX>
+        <locationY>0</locationY>
+        <faultConnector><targetReference>Record_Fault</targetReference></faultConnector>
+        <filterLogic>and</filterLogic>
+        <filters><field>Id</field><operator>EqualTo</operator><value><elementReference>$Record.Id</elementReference></value></filters>
+        <inputAssignments><field>Status</field><value><stringValue>Activated</stringValue></value></inputAssignments>
+        <inputAssignments><field>MB_Activation_Error__c</field><value><stringValue></stringValue></value></inputAssignments>
+        <object>Order</object>
+    </recordUpdates>
+    <recordUpdates>
+        <name>Co_Term_Order</name>
+        <label>Co-term into the existing contract</label>
+        <locationX>0</locationX>
+        <locationY>0</locationY>
+        <connector><targetReference>Activate_Order</targetReference></connector>
+        <faultConnector><targetReference>Record_Fault</targetReference></faultConnector>
+        <filterLogic>and</filterLogic>
+        <filters><field>Id</field><operator>EqualTo</operator><value><elementReference>$Record.Id</elementReference></value></filters>
+        <inputAssignments><field>ContractId</field><value><elementReference>Get_Existing_Contract.Id</elementReference></value></inputAssignments>
+        <object>Order</object>
+    </recordUpdates>
+    <recordUpdates>
+        <name>Fill_Order</name>
+        <label>Fill bill-to contact and addresses</label>
+        <locationX>0</locationX>
+        <locationY>0</locationY>
+        <connector><targetReference>Ready_To_Activate</targetReference></connector>
+        <faultConnector><targetReference>Record_Fault</targetReference></faultConnector>
+        <filterLogic>and</filterLogic>
+        <filters><field>Id</field><operator>EqualTo</operator><value><elementReference>$Record.Id</elementReference></value></filters>
+        <inputAssignments><field>BillToContactId</field><value><elementReference>fContactId</elementReference></value></inputAssignments>
+        <inputAssignments><field>BillingStreet</field><value><elementReference>fBillStreet</elementReference></value></inputAssignments>
+        <inputAssignments><field>BillingCity</field><value><elementReference>fBillCity</elementReference></value></inputAssignments>
+        <inputAssignments><field>BillingState</field><value><elementReference>fBillState</elementReference></value></inputAssignments>
+        <inputAssignments><field>BillingPostalCode</field><value><elementReference>fBillPostalCode</elementReference></value></inputAssignments>
+        <inputAssignments><field>BillingCountry</field><value><elementReference>fBillCountry</elementReference></value></inputAssignments>
+        <inputAssignments><field>ShippingStreet</field><value><elementReference>fShipStreet</elementReference></value></inputAssignments>
+        <inputAssignments><field>ShippingCity</field><value><elementReference>fShipCity</elementReference></value></inputAssignments>
+        <inputAssignments><field>ShippingState</field><value><elementReference>fShipState</elementReference></value></inputAssignments>
+        <inputAssignments><field>ShippingPostalCode</field><value><elementReference>fShipPostalCode</elementReference></value></inputAssignments>
+        <inputAssignments><field>ShippingCountry</field><value><elementReference>fShipCountry</elementReference></value></inputAssignments>
+        <object>Order</object>
+    </recordUpdates>
+    <recordUpdates>
+        <name>Record_Fault</name>
+        <label>Record the activation error</label>
+        <locationX>0</locationX>
+        <locationY>0</locationY>
+        <connector><targetReference>Task_To_Owner</targetReference></connector>
+        <filterLogic>and</filterLogic>
+        <filters><field>Id</field><operator>EqualTo</operator><value><elementReference>$Record.Id</elementReference></value></filters>
+        <inputAssignments><field>MB_Activation_Error__c</field><value><elementReference>$Flow.FaultMessage</elementReference></value></inputAssignments>
+        <object>Order</object>
+    </recordUpdates>
+    <recordUpdates>
+        <name>Record_Missing</name>
+        <label>Record what is missing</label>
+        <locationX>0</locationX>
+        <locationY>0</locationY>
+        <connector><targetReference>Task_To_Owner</targetReference></connector>
+        <filterLogic>and</filterLogic>
+        <filters><field>Id</field><operator>EqualTo</operator><value><elementReference>$Record.Id</elementReference></value></filters>
+        <inputAssignments><field>MB_Activation_Error__c</field><value><elementReference>fMissing</elementReference></value></inputAssignments>
+        <object>Order</object>
+    </recordUpdates>
+    <start>
+        <locationX>0</locationX>
+        <locationY>0</locationY>
+        <filterLogic>and</filterLogic>
+        <filters><field>QuoteId</field><operator>IsNull</operator><value><booleanValue>false</booleanValue></value></filters>
+        <filters><field>Status</field><operator>EqualTo</operator><value><stringValue>Draft</stringValue></value></filters>
+        <object>Order</object>
+        <recordTriggerType>Create</recordTriggerType>
+        <scheduledPaths>
+            <connector><targetReference>Get_Account_Contact</targetReference></connector>
+            <pathType>AsyncAfterCommit</pathType>
+        </scheduledPaths>
+        <triggerType>RecordAfterSave</triggerType>
+    </start>
+    <status>Active</status>
+</Flow>
