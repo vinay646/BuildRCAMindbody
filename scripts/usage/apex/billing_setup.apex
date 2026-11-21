@@ -15,7 +15,7 @@ if ([SELECT COUNT() FROM BillingTreatment WHERE LegalEntityId = :au.Id] == 0) {
     for (BillingTreatment src : [SELECT Id, Name, BillingPolicyId, Description FROM BillingTreatment WHERE Name LIKE 'Billing Treatment - UK - %']) {
         BillingTreatment bt = new BillingTreatment(Name = src.Name.replace('UK', 'AU'), BillingPolicyId = src.BillingPolicyId, LegalEntityId = au.Id, Description = src.Description, Status = 'Draft');
         insert bt;
-        for (BillingTreatmentItem si : [SELECT Name, BillingType, ProcessingOrder, Percentage, FlatAmount, BillingTiming FROM BillingTreatmentItem WHERE BillingTreatmentId = :src.Id]) {
+        for (BillingTreatmentItem si : [SELECT Name, BillingType, ProcessingOrder, Percentage, FlatAmount FROM BillingTreatmentItem WHERE BillingTreatmentId = :src.Id]) {
             BillingTreatmentItem bi = si.clone(false, true); bi.Name = si.Name.replace('UK', 'AU'); bi.BillingTreatmentId = bt.Id; insert bi;
         }
         bt.Status = 'Active'; update bt;
