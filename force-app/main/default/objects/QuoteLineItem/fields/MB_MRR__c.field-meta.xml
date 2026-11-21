@@ -2,10 +2,10 @@
 <CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
     <fullName>MB_MRR__c</fullName>
     <label>MRR</label>
-    <description>MR-118: monthly recurring value of a subscription line (Net Unit Price × Quantity; Mindbody subscriptions are priced per month). 0 for one-time lines.</description>
+    <description>MR-118: monthly recurring value of a subscription line (Net Unit Price × Quantity; Mindbody subscriptions are priced per month). 0 for lines without a billing frequency (one-time items).</description>
     <type>Currency</type>
     <precision>16</precision>
     <scale>2</scale>
-    <formula>IF(OR(ISPICKVAL(SellingModelType, "TermDefined"), ISPICKVAL(SellingModelType, "Evergreen")), NetUnitPrice * Quantity, 0)</formula>
+    <formula>IF(ISPICKVAL(BillingFrequency, ""), 0, NetUnitPrice * Quantity)</formula>
     <formulaTreatBlanksAs>BlankAsZero</formulaTreatBlanksAs>
 </CustomField>
