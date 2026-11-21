@@ -44,14 +44,14 @@ for (String code : spec.keySet()) {
   Id urId = urs.isEmpty() ? ins(cl('UsageResource', csUr.Id, new Map<String, Object>{ 'Name' => s[0], 'Code' => s[1], 'UsageDefinitionProductId' => p.Id, 'UnitOfMeasureClassId' => s[2], 'DefaultUnitOfMeasureId' => s[3] }), code + ' resource')?.Id : urs[0].Id;
   if (urId == null) continue;
   List<ProductUsageResource> purs = [SELECT Id FROM ProductUsageResource WHERE ProductId = :p.Id AND UsageResourceId = :urId];
-  Id purId = purs.isEmpty() ? ins(cl('ProductUsageResource', csPur.Id, new Map<String, Object>{ 'ProductId' => p.Id, 'UsageResourceId' => urId }), code + ' PUR')?.Id : purs[0].Id;
+  Id purId = purs.isEmpty() ? ins(cl('ProductUsageResource', csPur.Id, new Map<String, Object>{ 'ProductId' => p.Id, 'UsageResourceId' => urId, 'EffectiveStartDate' => Datetime.newInstanceGmt(2026, 1, 1) }), code + ' PUR')?.Id : purs[0].Id;
   if (purId == null) continue;
   if ([SELECT COUNT() FROM ProductUsageResourcePolicy WHERE ProductUsageResourceId = :purId] == 0)
     ins(cl('ProductUsageResourcePolicy', csPol.Id, new Map<String, Object>{ 'ProductUsageResourceId' => purId, 'ProductSellingModelId' => evm, 'UsageAggregationPolicyId' => aggId }), code + ' PURP');
   if ([SELECT COUNT() FROM UsagePrdGrantBindingPolicy WHERE Product2Id = :p.Id] == 0)
     ins(new UsagePrdGrantBindingPolicy(Name = code + ' Binding Policy', Product2Id = p.Id, GrantBindingType = 'Self'), code + ' binding');
-  if (rcId != null && [SELECT COUNT() FROM RateCardEntry WHERE RateCardId = :rcId AND UsageResourceId = :urId] == 0)
-    ins(cl('RateCardEntry', csRce.Id, new Map<String, Object>{ 'RateCardId' => rcId, 'ProductId' => p.Id, 'UsageResourceId' => urId, 'ProductSellingModelId' => evm, 'Rate' => s[4], 'DefaultUnitOfMeasureClassId' => s[2], 'DefaultUnitOfMeasureId' => s[3] }), code + ' rate');
+  if (rcId != null && [SELECT COUNT() FROM RateCardEntry WHERE RateCardId = :rcId AND UsageResourceId = :urId AND Status IN ('Active','Draft')] == 0)
+    ins(cl('RateCardEntry', csRce.Id, new Map<String, Object>{ 'RateCardId' => rcId, 'ProductId' => p.Id, 'UsageResourceId' => urId, 'ProductSellingModelId' => evm, 'Rate' => s[4], 'EffectiveFrom' => Datetime.newInstanceGmt(2026, 1, 1), 'DefaultUnitOfMeasureClassId' => s[2], 'DefaultUnitOfMeasureId' => s[3] }), code + ' rate');
 }
 // link rate card to the Mindbody USD price book
 if (rcId != null) for (Pricebook2 pb : [SELECT Id FROM Pricebook2 WHERE Name IN ('North America & Asia (USD)', 'Standard Price Book')])
