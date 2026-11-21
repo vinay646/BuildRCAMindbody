@@ -16,13 +16,29 @@
         </inputParameters>
         <storeOutputAutomatically>true</storeOutputAutomatically>
     </actionCalls>
+    <actionCalls>
+        <name>Reprice_Quote</name>
+        <label>Reprice the synced quote</label>
+        <locationX>0</locationX>
+        <locationY>0</locationY>
+        <actionName>RepriceQuotesPST</actionName>
+        <actionType>apex</actionType>
+        <connector><targetReference>Create_Order</targetReference></connector>
+        <faultConnector><targetReference>Record_Error</targetReference></faultConnector>
+        <flowTransactionModel>CurrentTransaction</flowTransactionModel>
+        <inputParameters>
+            <name>ids</name>
+            <value><elementReference>$Record.SyncedQuoteId</elementReference></value>
+        </inputParameters>
+        <storeOutputAutomatically>true</storeOutputAutomatically>
+    </actionCalls>
     <apiVersion>62.0</apiVersion>
     <decisions>
         <name>Lines_Complete</name>
         <label>Legal entity and billing treatment on every line?</label>
         <locationX>0</locationX>
         <locationY>0</locationY>
-        <defaultConnector><targetReference>Create_Order</targetReference></defaultConnector>
+        <defaultConnector><targetReference>Reprice_Quote</targetReference></defaultConnector>
         <defaultConnectorLabel>Yes</defaultConnectorLabel>
         <rules>
             <name>Line_Missing_Data</name>
@@ -36,7 +52,7 @@
             <label>No</label>
         </rules>
     </decisions>
-    <description>MR-120 (MB-Q2C-03): at Closed Won (or when Retry Order is ticked) and with no order yet, checks that every line of the synced quote has a legal entity and a billing treatment, creates the order with the standard Create Order from Quote action, links it on the opportunity and stamps ARR, MRR and one-time bookings. Failures fill Order Error and give the owner a task; Retry Order runs it again. Runs after the save (asynchronous path).</description>
+    <description>MR-120 (MB-Q2C-03): at Closed Won (or when Retry Order is ticked) and with no order yet, checks that every line of the synced quote has a legal entity and a billing treatment, reprices the quote (Create Order needs current prices), creates the order with the standard Create Order from Quote action, links it on the opportunity and stamps ARR, MRR and one-time bookings. Failures fill Order Error and give the owner a task; Retry Order runs it again. Runs after the save (asynchronous path).</description>
     <environments>Default</environments>
     <formulas>
         <name>fLineError</name>
