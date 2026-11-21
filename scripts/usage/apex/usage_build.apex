@@ -1,13 +1,13 @@
 // CHANGES setup data: usage for MB-SMS (SMS overage, USD 0.008/text) and MB-MKT (marketplace fee, money, USD 1 per USD), cloned from the working CS-25Gb setup. Idempotent.
+String log = '';
 SObject cl(String obj, Id srcId, Map<String, Object> ov) {
   List<String> f = new List<String>();
   for (Schema.SObjectField x : Schema.getGlobalDescribe().get(obj).getDescribe().fields.getMap().values()) { Schema.DescribeFieldResult d = x.getDescribe(); if (d.isCreateable()) f.add(d.getName()); }
   SObject s = Database.query('SELECT ' + String.join(f, ',') + ' FROM ' + obj + ' WHERE Id = :srcId')[0].clone(false, true);
-  for (String k : ov.keySet()) s.put(k, ov.get(k));
+  for (String k : ov.keySet()) try { s.put(k, ov.get(k)); } catch (Exception e) { log += 'skip ' + obj + '.' + k + '; '; }
   if (s.getSObjectType().getDescribe().fields.getMap().containsKey('status') && new Set<String>{'UnitOfMeasureClass','UnitOfMeasure','UsageResource','ProductUsageResource','RateCardEntry','ProductUsageGrant'}.contains(obj)) s.put('Status', 'Draft');
   return s;
 }
-String log = '';
 List<SObject> toActivate = new List<SObject>();
 SObject ins(SObject s, String tag) { try { insert s; if (s.get('Id') != null && s.getSObjectType().getDescribe().fields.getMap().containsKey('status') && s.get('Status') == 'Draft') toActivate.add(s); log += tag + ' ok; '; return s; } catch (Exception e) { log += tag + ' ERR ' + e.getMessage().left(160) + '; '; return null; } }
 Product2 cs = [SELECT Id FROM Product2 WHERE ProductCode = 'CS-25Gb'];
