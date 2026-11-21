@@ -49,7 +49,7 @@ print("generate:", run(["sf", "api", "request", "rest", f"/services/data/v{os.en
 inv = {}
 for _ in range(10):
     time.sleep(8)
-    inv = one(f"SELECT Id, DocumentNumber, Status, CurrencyIsoCode, TotalAmount, TotalTaxAmount, TotalAmountWithTax, DueDate FROM Invoice WHERE ReferenceEntityId = '{od.get('Id')}' ORDER BY CreatedDate DESC LIMIT 1")
+    inv = one(f"SELECT Id, DocumentNumber, Status, CurrencyIsoCode, TotalAmount, TotalTaxAmount, TotalAmountWithTax, DueDate FROM Invoice WHERE BillingAccountId = '{ACCT}' AND CreatedDate = TODAY ORDER BY CreatedDate DESC LIMIT 1")
     if inv: break
 print("invoice:", {k: v for k, v in inv.items() if k != "attributes"})
 if inv: print("lines:", [(l["ChargeAmount"], l["TaxAmount"], l["StartDate"], l["EndDate"]) for l in q(f"SELECT ChargeAmount, TaxAmount, StartDate, EndDate FROM InvoiceLine WHERE InvoiceId = '{inv['Id']}'")])
