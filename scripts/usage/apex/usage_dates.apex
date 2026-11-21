@@ -10,7 +10,7 @@ for (SObject r : recs) {
   SObject u = r.getSObjectType().newSObject(r.Id); u.put(f, d);
   try { update u; log += r.getSObjectType() + ' ok; '; }
   catch (Exception e) {
-    try { SObject x = r.getSObjectType().newSObject(r.Id); x.put('Status', 'Draft'); update x; update u; x.put('Status', 'Active'); update x; log += r.getSObjectType() + ' ok(via draft); '; }
+    try { SObject x = r.getSObjectType().newSObject(r.Id); x.put('Status', 'Inactive'); update x; update u; x.put('Status', 'Active'); update x; log += r.getSObjectType() + ' ok(via draft); '; }
     catch (Exception e2) { log += r.getSObjectType() + ' ERR ' + e2.getMessage().left(150) + '; '; }
   }
 }
