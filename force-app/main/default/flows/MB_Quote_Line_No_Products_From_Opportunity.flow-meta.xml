@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Flow xmlns="http://soap.sforce.com/2006/04/metadata">
+    <apiVersion>62.0</apiVersion>
+    <customErrors>
+        <name>Block</name>
+        <label>Block products added on the opportunity</label>
+        <locationX>0</locationX>
+        <locationY>0</locationY>
+        <customErrorMessages>
+            <errorMessage>Add or change products on the quote, not on the opportunity – the opportunity follows its synced quote.</errorMessage>
+            <isFieldError>false</isFieldError>
+        </customErrorMessages>
+    </customErrors>
+    <description>MR-118 1.5 (one-way sync): a product added directly on an opportunity with a synced quote syncs back as a new quote line that already points to an opportunity product. Lines created on the quote never do, so this blocks only products added on the opportunity (the opportunity product is rolled back with it).</description>
+    <environments>Default</environments>
+    <interviewLabel>MB Quote Line No Products From Opportunity {!$Flow.CurrentDateTime}</interviewLabel>
+    <label>MB Quote Line No Products From Opportunity</label>
+    <processMetadataValues><name>BuilderType</name><value><stringValue>LightningFlowBuilder</stringValue></value></processMetadataValues>
+    <processMetadataValues><name>CanvasMode</name><value><stringValue>AUTO_LAYOUT_CANVAS</stringValue></value></processMetadataValues>
+    <processType>AutoLaunchedFlow</processType>
+    <start>
+        <locationX>0</locationX>
+        <locationY>0</locationY>
+        <connector><targetReference>Block</targetReference></connector>
+        <filterLogic>and</filterLogic>
+        <filters><field>OpportunityLineItemId</field><operator>IsNull</operator><value><booleanValue>false</booleanValue></value></filters>
+        <object>QuoteLineItem</object>
+        <recordTriggerType>Create</recordTriggerType>
+        <triggerType>RecordBeforeSave</triggerType>
+    </start>
+    <status>Active</status>
+</Flow>
