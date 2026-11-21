@@ -358,6 +358,7 @@ jobs:
           elif [ "$DEPLOY_PATH" = "ramp-probe" ]; then python3 scripts/usage/ramp_probe.py
           elif [ "$DEPLOY_PATH" = "q2c01" ]; then python3 scripts/usage/q2c01_test.py
           elif [ "$DEPLOY_PATH" = "q2c02" ]; then python3 scripts/usage/q2c02_test.py
+          elif [ "$DEPLOY_PATH" = "q2c03" ]; then python3 scripts/usage/q2c03_test.py
           elif [ "$DEPLOY_PATH" = "promo-build" ]; then python3 scripts/usage/promo_build.py
           elif [ "${DEPLOY_PATH%%:*}" = "promo-rebuild" ]; then ONLY="$(echo "$DEPLOY_PATH" | grep -o ":.*" | tr -d :)" REBUILD=1 python3 scripts/usage/promo_build.py; sleep 20; python3 scripts/usage/mr103_test.py
           elif [ "$DEPLOY_PATH" = "promo-get" ]; then ./scripts/usage/promo_get.sh

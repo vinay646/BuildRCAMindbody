@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>MB_Bookings_MRR__c</fullName>
+    <label>Bookings MRR</label>
+    <description>MR-120 2.13: stamped from the synced quote at Closed Won; never changes afterwards.</description>
+    <type>Currency</type><precision>16</precision><scale>2</scale><required>false</required>
+</CustomField>

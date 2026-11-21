@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>MB_Order__c</fullName>
+    <label>Order</label>
+    <description>MR-120: the order created from the synced quote at Closed Won (one per opportunity).</description>
+    <type>Lookup</type>
+    <referenceTo>Order</referenceTo>
+    <relationshipLabel>Won Opportunities</relationshipLabel>
+    <relationshipName>MB_Won_Opportunities</relationshipName>
+    <deleteConstraint>SetNull</deleteConstraint>
+    <required>false</required>
+</CustomField>

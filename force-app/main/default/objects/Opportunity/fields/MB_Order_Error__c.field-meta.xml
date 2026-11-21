@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>MB_Order_Error__c</fullName>
+    <label>Order Error</label>
+    <description>MR-120 2.10: why the order could not be created at Closed Won. Fix it and tick Retry Order.</description>
+    <type>LongTextArea</type><length>3000</length><visibleLines>3</visibleLines>
+</CustomField>

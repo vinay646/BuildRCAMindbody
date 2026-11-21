@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ValidationRule xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>MB_No_Reopen_After_Order</fullName>
+    <active>true</active>
+    <description>MR-120 2.11: a won opportunity can't be re-opened once its order exists; changes go through an amendment.</description>
+    <errorConditionFormula>AND(ISCHANGED(StageName), ISPICKVAL(PRIORVALUE(StageName), "Closed Won"), NOT(ISBLANK(MB_Order__c)))</errorConditionFormula>
+    <errorDisplayField>StageName</errorDisplayField>
+    <errorMessage>The order is already created; use an amendment to change this deal.</errorMessage>
+</ValidationRule>
