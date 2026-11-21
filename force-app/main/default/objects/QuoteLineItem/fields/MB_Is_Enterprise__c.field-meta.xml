@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>MB_Is_Enterprise__c</fullName>
+    <label>Enterprise Line</label>
+    <description>CFG-16: Enterprise plan line – the quote always needs Deal Desk approval.</description>
+    <type>Checkbox</type>
+    <formula>Product2.ProductCode = "MB-ENT"</formula>
+    <formulaTreatBlanksAs>BlankAsZero</formulaTreatBlanksAs>
+</CustomField>

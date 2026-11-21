@@ -3,6 +3,21 @@
     <description>Access to the Mindbody ARM build fields, the build loader and the hierarchy services. Assign to admins, the build team and the integration user.</description>
     <fieldPermissions>
         <editable>false</editable>
+        <field>QuoteLineItem.MB_Auto_Approve_Limit__c</field>
+        <readable>true</readable>
+    </fieldPermissions>
+    <fieldPermissions>
+        <editable>false</editable>
+        <field>QuoteLineItem.MB_Needs_Discount_Approval__c</field>
+        <readable>true</readable>
+    </fieldPermissions>
+    <fieldPermissions>
+        <editable>false</editable>
+        <field>QuoteLineItem.MB_Is_Enterprise__c</field>
+        <readable>true</readable>
+    </fieldPermissions>
+    <fieldPermissions>
+        <editable>false</editable>
         <field>QuoteLineItem.MB_Price_Before_Promotion__c</field>
         <readable>true</readable>
     </fieldPermissions>

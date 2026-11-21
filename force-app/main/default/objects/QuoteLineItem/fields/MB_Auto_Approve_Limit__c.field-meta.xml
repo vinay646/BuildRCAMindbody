@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>MB_Auto_Approve_Limit__c</fullName>
+    <label>Auto-Approve Discount Limit</label>
+    <description>CFG-16: largest rep discount approved automatically for the plan – Starter 10%, Accelerate 20%, Ultimate 25%. Blank for other products (Enterprise always goes to the deal desk).</description>
+    <type>Percent</type>
+    <precision>5</precision>
+    <scale>0</scale>
+    <formula>CASE(Product2.ProductCode, "MB-STR", 0.10, "MB-ACC", 0.20, "MB-ULT", 0.25, NULL)</formula>
+    <formulaTreatBlanksAs>BlankAsBlank</formulaTreatBlanksAs>
+</CustomField>

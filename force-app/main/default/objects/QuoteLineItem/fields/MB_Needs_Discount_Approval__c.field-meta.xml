@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>MB_Needs_Discount_Approval__c</fullName>
+    <label>Needs Discount Approval</label>
+    <description>CFG-16: the rep discount (Discount) is above the plan's auto-approve limit – the quote needs Sales Manager approval.</description>
+    <type>Checkbox</type>
+    <formula>AND(NOT(ISBLANK(MB_Auto_Approve_Limit__c)), Discount &gt; MB_Auto_Approve_Limit__c)</formula>
+    <formulaTreatBlanksAs>BlankAsZero</formulaTreatBlanksAs>
+</CustomField>

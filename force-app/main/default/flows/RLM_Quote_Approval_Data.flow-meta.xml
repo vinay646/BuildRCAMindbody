@@ -2,7 +2,32 @@
 <Flow xmlns="http://soap.sforce.com/2006/04/metadata">
     <apiVersion>67.0</apiVersion>
     <areMetricsLoggedToDataCloud>false</areMetricsLoggedToDataCloud>
+    <assignments>
+        <description>Mindbody approval criteria (CFG-16, PRC-18).</description>
+        <name>Set_Mindbody_Flags</name>
+        <label>Set Mindbody approval flags</label>
+        <locationX>0</locationX>
+        <locationY>0</locationY>
+        <assignmentItems><assignToReference>NeedsDiscountApproval</assignToReference><operator>Assign</operator><value><elementReference>fHasDiscountLine</elementReference></value></assignmentItems>
+        <assignmentItems><assignToReference>HasEnterprise</assignToReference><operator>Assign</operator><value><elementReference>fHasEnterpriseLine</elementReference></value></assignmentItems>
+        <assignmentItems><assignToReference>BelowFloor</assignToReference><operator>Assign</operator><value><elementReference>fHasBelowFloorLine</elementReference></value></assignmentItems>
+    </assignments>
     <environments>Default</environments>
+    <formulas>
+        <name>fHasDiscountLine</name>
+        <dataType>Boolean</dataType>
+        <expression>NOT(ISBLANK({!Get_Discount_Line.Id}))</expression>
+    </formulas>
+    <formulas>
+        <name>fHasEnterpriseLine</name>
+        <dataType>Boolean</dataType>
+        <expression>NOT(ISBLANK({!Get_Enterprise_Line.Id}))</expression>
+    </formulas>
+    <formulas>
+        <name>fHasBelowFloorLine</name>
+        <dataType>Boolean</dataType>
+        <expression>NOT(ISBLANK({!Get_Below_Floor_Line.Id}))</expression>
+    </formulas>
     <interviewLabel>RLM Quote Approval Data {!$Flow.CurrentDateTime}</interviewLabel>
     <label>RLM Quote Approval Data</label>
     <processMetadataValues>
@@ -30,6 +55,7 @@
         <locationX>0</locationX>
         <locationY>0</locationY>
         <assignNullValuesIfNoRecordsFound>false</assignNullValuesIfNoRecordsFound>
+        <connector><targetReference>Get_Discount_Line</targetReference></connector>
         <filterLogic>and</filterLogic>
         <filters>
             <field>Id</field>
@@ -56,6 +82,51 @@
             <field>RLM_Payment_Terms__c</field>
         </outputAssignments>
     </recordLookups>
+    <recordLookups>
+        <name>Get_Discount_Line</name>
+        <label>Get line needing discount approval</label>
+        <locationX>0</locationX>
+        <locationY>0</locationY>
+        <assignNullValuesIfNoRecordsFound>true</assignNullValuesIfNoRecordsFound>
+        <connector><targetReference>Get_Enterprise_Line</targetReference></connector>
+        <filterLogic>and</filterLogic>
+        <filters><field>QuoteId</field><operator>EqualTo</operator><value><elementReference>QuoteId</elementReference></value></filters>
+        <filters><field>MB_Needs_Discount_Approval__c</field><operator>EqualTo</operator><value><booleanValue>true</booleanValue></value></filters>
+        <getFirstRecordOnly>true</getFirstRecordOnly>
+        <object>QuoteLineItem</object>
+        <queriedFields>Id</queriedFields>
+        <storeOutputAutomatically>true</storeOutputAutomatically>
+    </recordLookups>
+    <recordLookups>
+        <name>Get_Enterprise_Line</name>
+        <label>Get Enterprise line</label>
+        <locationX>0</locationX>
+        <locationY>0</locationY>
+        <assignNullValuesIfNoRecordsFound>true</assignNullValuesIfNoRecordsFound>
+        <connector><targetReference>Get_Below_Floor_Line</targetReference></connector>
+        <filterLogic>and</filterLogic>
+        <filters><field>QuoteId</field><operator>EqualTo</operator><value><elementReference>QuoteId</elementReference></value></filters>
+        <filters><field>MB_Is_Enterprise__c</field><operator>EqualTo</operator><value><booleanValue>true</booleanValue></value></filters>
+        <getFirstRecordOnly>true</getFirstRecordOnly>
+        <object>QuoteLineItem</object>
+        <queriedFields>Id</queriedFields>
+        <storeOutputAutomatically>true</storeOutputAutomatically>
+    </recordLookups>
+    <recordLookups>
+        <name>Get_Below_Floor_Line</name>
+        <label>Get line below floor</label>
+        <locationX>0</locationX>
+        <locationY>0</locationY>
+        <assignNullValuesIfNoRecordsFound>true</assignNullValuesIfNoRecordsFound>
+        <connector><targetReference>Set_Mindbody_Flags</targetReference></connector>
+        <filterLogic>and</filterLogic>
+        <filters><field>QuoteId</field><operator>EqualTo</operator><value><elementReference>QuoteId</elementReference></value></filters>
+        <filters><field>MB_Below_Floor__c</field><operator>EqualTo</operator><value><booleanValue>true</booleanValue></value></filters>
+        <getFirstRecordOnly>true</getFirstRecordOnly>
+        <object>QuoteLineItem</object>
+        <queriedFields>Id</queriedFields>
+        <storeOutputAutomatically>true</storeOutputAutomatically>
+    </recordLookups>
     <start>
         <locationX>0</locationX>
         <locationY>0</locationY>
@@ -64,6 +135,30 @@
         </connector>
     </start>
     <status>Active</status>
+    <variables>
+        <name>BelowFloor</name>
+        <dataType>Boolean</dataType>
+        <isCollection>false</isCollection>
+        <isInput>false</isInput>
+        <isOutput>true</isOutput>
+        <value><booleanValue>false</booleanValue></value>
+    </variables>
+    <variables>
+        <name>HasEnterprise</name>
+        <dataType>Boolean</dataType>
+        <isCollection>false</isCollection>
+        <isInput>false</isInput>
+        <isOutput>true</isOutput>
+        <value><booleanValue>false</booleanValue></value>
+    </variables>
+    <variables>
+        <name>NeedsDiscountApproval</name>
+        <dataType>Boolean</dataType>
+        <isCollection>false</isCollection>
+        <isInput>false</isInput>
+        <isOutput>true</isOutput>
+        <value><booleanValue>false</booleanValue></value>
+    </variables>
     <variables>
         <name>DiscountApprovalLevel</name>
         <dataType>Number</dataType>
