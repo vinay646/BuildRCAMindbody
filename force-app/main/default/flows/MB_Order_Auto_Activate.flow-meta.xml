@@ -44,7 +44,7 @@
             <label>Yes – co-term into it</label>
         </rules>
     </decisions>
-    <description>MR-121 (MB-Q2C-04): activates orders created from a quote right after creation. Fills a missing bill-to contact (quote contact, else the account's first contact) and billing / shipping address (from the account); if something is still missing the order stays Draft, Activation Error is filled and the order owner gets a task. The customer's first order creates the contract (standard Create Contract, then activated); later orders are co-termed into the existing activated contract. Activating the order creates the assets (standard).</description>
+    <description>MR-121 (MB-Q2C-04): activates orders created from a quote right after creation. Fills a missing bill-to contact (quote contact, else the account's first contact) and billing / shipping address (from the account); if something is still missing the order stays Draft, Activation Error is filled and the order owner gets a task. The customer's first order creates the contract (standard Create Contract, then activated); later orders are co-termed into the existing activated contract when it starts on or before the order start date (otherwise a new contract is created). Activating the order creates the assets (standard).</description>
     <environments>Default</environments>
     <formulas>
         <name>fBillStreet</name>
@@ -158,6 +158,7 @@
         <filterLogic>and</filterLogic>
         <filters><field>AccountId</field><operator>EqualTo</operator><value><elementReference>$Record.AccountId</elementReference></value></filters>
         <filters><field>Status</field><operator>EqualTo</operator><value><stringValue>Activated</stringValue></value></filters>
+        <filters><field>StartDate</field><operator>LessThanOrEqualTo</operator><value><elementReference>$Record.EffectiveDate</elementReference></value></filters>
         <getFirstRecordOnly>true</getFirstRecordOnly>
         <object>Contract</object>
         <queriedFields>Id</queriedFields>
@@ -228,6 +229,7 @@
         <locationX>0</locationX>
         <locationY>0</locationY>
         <connector><targetReference>Task_To_Owner</targetReference></connector>
+        <faultConnector><targetReference>Task_To_Owner</targetReference></faultConnector>
         <filterLogic>and</filterLogic>
         <filters><field>Id</field><operator>EqualTo</operator><value><elementReference>$Record.Id</elementReference></value></filters>
         <inputAssignments><field>MB_Activation_Error__c</field><value><elementReference>$Flow.FaultMessage</elementReference></value></inputAssignments>
