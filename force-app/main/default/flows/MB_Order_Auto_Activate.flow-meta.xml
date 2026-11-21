@@ -174,6 +174,7 @@
         <filterLogic>and</filterLogic>
         <filters><field>Id</field><operator>EqualTo</operator><value><elementReference>Create_Contract.contractId</elementReference></value></filters>
         <inputAssignments><field>ContractTerm</field><value><elementReference>$Record.Quote.RLM_TermMonths__c</elementReference></value></inputAssignments>
+        <inputAssignments><field>UnitPriceUplift</field><value><numberValue>5.0</numberValue></value></inputAssignments>
         <inputAssignments><field>Status</field><value><stringValue>Activated</stringValue></value></inputAssignments>
         <object>Contract</object>
     </recordUpdates>

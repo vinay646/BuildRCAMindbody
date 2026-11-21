@@ -3,14 +3,21 @@
     <apiVersion>62.0</apiVersion>
     <assignments>
         <name>Set_Renewal_Term</name>
-        <label>Default renewal term 12 months</label>
+        <label>Default renewal term 12 months and 5% uplift</label>
         <locationX>0</locationX>
         <locationY>0</locationY>
         <assignmentItems><assignToReference>$Record.RenewalTerm</assignToReference><operator>Assign</operator><value><numberValue>12.0</numberValue></value></assignmentItems>
         <assignmentItems><assignToReference>$Record.RenewalTermUnit</assignToReference><operator>Assign</operator><value><stringValue>Months</stringValue></value></assignmentItems>
+        <assignmentItems><assignToReference>$Record.UnitPriceUplift</assignToReference><operator>Assign</operator><value><elementReference>fUplift</elementReference></value></assignmentItems>
     </assignments>
-    <description>MR-122: the standard Renew action needs RenewalTerm / RenewalTermUnit on every asset; assets created from orders get a 12-month renewal term when none is set.</description>
+    <description>MR-122: the standard Renew action needs RenewalTerm / RenewalTermUnit on every asset; assets created from orders get a 12-month renewal term when none is set, and a 5% renewal uplift (Unit Price Uplift) when none is set (MR-122 4.17).</description>
     <environments>Default</environments>
+    <formulas>
+        <name>fUplift</name>
+        <dataType>Number</dataType>
+        <expression>BLANKVALUE({!$Record.UnitPriceUplift}, 5)</expression>
+        <scale>2</scale>
+    </formulas>
     <interviewLabel>MB Asset Renewal Term {!$Flow.CurrentDateTime}</interviewLabel>
     <label>MB Asset Renewal Term</label>
     <processMetadataValues><name>BuilderType</name><value><stringValue>LightningFlowBuilder</stringValue></value></processMetadataValues>
