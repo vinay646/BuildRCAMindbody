@@ -14,6 +14,7 @@ E1=$(q "SELECT Id, Product2Id FROM PricebookEntry WHERE Product2.ProductCode = '
 OPP=$(mk Opportunity "Name='QA TEST Enterprise check' AccountId=$ACC StageName=Prospecting CloseDate=$D Pricebook2Id=$PB" | jq -r '.result.id // empty')
 R=$(mk Quote "Name='QA TEST Enterprise check' OpportunityId=$OPP Pricebook2Id=$PB RLM_TermMonths__c=24 StartDate=$D"); QT=$(echo "$R" | jq -r '.result.id // empty')
 [ -z "$QT" ] && echo "quote error: $(echo "$R" | jq -r .message | head -c 300)"
+sleep 5; echo "QUOTE MASTER FIELDS $(sf data query --query "SELECT FIELDS(CUSTOM) FROM Quote WHERE Id = '$QT' LIMIT 1" --target-org target --json 2>/dev/null | jq -c '.result.records[0] | with_entries(select(.value != null and .value != false and (.key|test("Master|Contract|Parent";"i"))))')"
 R=$(mk QuoteLineItem "QuoteId=$QT Product2Id=$(echo "$E1" | jq -r .Product2Id) PricebookEntryId=$(echo "$E1" | jq -r .Id) Quantity=1 UnitPrice=0 StartDate=$D EndDate=$E BillingFrequency=Monthly")
 echo "ADD ENTERPRISE: status $(echo "$R" | jq -r .status) | $(echo "$R" | jq -r '.message // "line added"' | head -c 300) | lines on quote: $(q "SELECT COUNT(Id) n FROM QuoteLineItem WHERE QuoteId = '$QT'" | jq -r '.[0].n')"
 [ -n "$OPP" ] && echo "cleanup: $(sf data delete record --sobject Opportunity --record-id $OPP --target-org target --json 2>&1 | jq -r .status)"
