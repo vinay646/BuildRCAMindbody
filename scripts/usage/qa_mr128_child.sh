@@ -30,6 +30,10 @@ TB=$(echo "$TOPB" | jq -r '.[0].Id // empty')
 echo "B: top $(echo "$TOPB" | jq -c '.[0]') activated contracts $(q "SELECT ContractNumber, Status FROM Contract WHERE AccountId = '$TB' AND Status = 'Activated'" | jq -c '[.[].ContractNumber]')"
 if [ -n "$TB" ]; then
   R=$(mka "QA TEST MR-128 ChildB $S" Region "$TB" "3$S Test St"); CHB=$(echo "$R" | jq -r '.id // empty')
+  sleep 5; echo "B child fields: $(sf data query --query "SELECT FIELDS(CUSTOM) FROM Account WHERE Id = '$CHB' LIMIT 1" --target-org target --json 2>/dev/null | jq -c '.result.records[0] | with_entries(select(.value != null and .value != false and (.key|test("Root|Master|Parent|Top|Contract";"i"))))')"
+  echo "B top fields: $(sf data query --query "SELECT FIELDS(CUSTOM) FROM Account WHERE Id = '$TB' LIMIT 1" --target-org target --json 2>/dev/null | jq -c '.result.records[0] | with_entries(select(.value != null and .value != false and (.key|test("Root|Master|Parent|Top|Contract";"i"))))')"
+  echo "B contracts: $(sf data query --query "SELECT FIELDS(CUSTOM), ContractNumber, Status FROM Contract WHERE AccountId = '$TB' LIMIT 5" --target-org target --json 2>/dev/null | jq -c '[.result.records[] | with_entries(select(.value != null and .value != false and (.key|test("Number|Status|Master|Type";"i"))))]')"
+  try TOP "$TB"
   [ -z "$CHB" ] && echo "childB error: $(echo "$R" | jq -r ".[0].message? // ." | head -c 300)" || try B "$CHB"
 fi
 sleep 3
