@@ -7,7 +7,7 @@ PB=$(q "SELECT Id FROM Pricebook2 WHERE Name LIKE 'North America%' AND IsActive 
 PBE=$(q "SELECT Id, Product2Id, ProductSellingModel.Name FROM PricebookEntry WHERE Product2.ProductCode = 'MB-ENT' AND Pricebook2Id = '$PB' AND IsActive = true")
 echo "pricebook $PB enterprise entries $(echo "$PBE" | jq -c '[.[] | .ProductSellingModel.Name]')"
 E1=$(echo "$PBE" | jq -c '[.[] | select(.ProductSellingModel.Name == "Term Monthly")][0] // .[0]')
-R=$(mk Account "Name='QA TEST MR-128 $S' BillingStreet='1 Test St' BillingCity=Austin BillingState=Texas BillingPostalCode=73301 BillingCountry='United States' ShippingStreet='1 Test St' ShippingCity=Austin ShippingState=Texas ShippingPostalCode=73301 ShippingCountry='United States'")
+R=$(mk Account "Name='QA TEST MR-128 $S' Account_Level__c=Corporate Payer_Type__c=Self-Pay BillingStreet='1 Test St' BillingCity=Austin BillingState=Texas BillingPostalCode=73301 BillingCountry='United States' ShippingStreet='1 Test St' ShippingCity=Austin ShippingState=Texas ShippingPostalCode=73301 ShippingCountry='United States'")
 ACC=$(echo "$R" | jq -r '.result.id // empty'); [ -z "$ACC" ] && { echo "account error: $(echo "$R" | jq -r .message | head -c 400)"; exit 1; }
 echo "account $ACC contracts: $(q "SELECT COUNT(Id) n FROM Contract WHERE AccountId = '$ACC'" | jq -r '.[0].n')"
 OPP=$(mk Opportunity "Name='QA TEST MR-128 $S' AccountId=$ACC StageName=Prospecting CloseDate=$D Pricebook2Id=$PB" | jq -r '.result.id // empty')
