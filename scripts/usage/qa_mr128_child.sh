@@ -3,7 +3,8 @@
 q() { sf data query --query "$1" --target-org target --json 2>/dev/null | jq -c '[.result.records[]? | del(.attributes)]'; }
 mk() { sf data create record --sobject "$1" --values "$2" --target-org target --json 2>&1; }
 D=$(date -u +%Y-%m-%d); E=$(date -u -d '+2 years -1 day' +%Y-%m-%d); S=$(date -u +%H%M%S)
-ADDR="BillingStreet='1 Test St' BillingCity=Austin BillingState=Texas BillingPostalCode=73301 BillingCountry='United States' ShippingStreet='1 Test St' ShippingCity=Austin ShippingState=Texas ShippingPostalCode=73301 ShippingCountry='United States'"
+addr() { echo "BillingStreet='$1 Test St' BillingCity=Austin BillingState=Texas BillingPostalCode=73301 BillingCountry='United States' ShippingStreet='$1 Test St' ShippingCity=Austin ShippingState=Texas ShippingPostalCode=73301 ShippingCountry='United States'"; }
+#ADDR="BillingStreet='1 Test St' BillingCity=Austin BillingState=Texas BillingPostalCode=73301 BillingCountry='United States' ShippingStreet='1 Test St' ShippingCity=Austin ShippingState=Texas ShippingPostalCode=73301 ShippingCountry='United States'"
 PB=$(q "SELECT Id FROM Pricebook2 WHERE Name LIKE 'North America%' AND IsActive = true LIMIT 1" | jq -r '.[0].Id')
 E1=$(q "SELECT Id, Product2Id FROM PricebookEntry WHERE Product2.ProductCode = 'MB-ENT' AND Pricebook2Id = '$PB' AND IsActive = true AND ProductSellingModel.Name = 'Term Monthly' LIMIT 1" | jq -c '.[0]')
 CLEAN=()
@@ -15,8 +16,8 @@ try() { # $1 label, $2 child account id
   echo "$1 ADD ENTERPRISE: status $(echo "$R" | jq -r .status) | $(echo "$R" | jq -r '.message // "line added"' | head -c 300) | lines on quote: $(q "SELECT COUNT(Id) n FROM QuoteLineItem WHERE QuoteId = '$QT'" | jq -r '.[0].n')"
 }
 # A: new top account (no contracts) + child
-TOPA=$(mk Account "Name='QA TEST MR-128 TopA $S' Account_Level__c=Corporate Vertical__c=Fitness Region__c=NA $ADDR" | jq -r '.result.id // empty')
-R=$(mk Account "Name='QA TEST MR-128 ChildA $S' Account_Level__c=Region ParentId=$TOPA Vertical__c=Fitness Region__c=NA $ADDR"); CHA=$(echo "$R" | jq -r '.result.id // empty')
+TOPA=$(mk Account "Name='QA TEST MR-128 TopA $S' Account_Level__c=Corporate Vertical__c=Fitness Region__c=NA $(addr "1$S")" | jq -r '.result.id // empty')
+R=$(mk Account "Name='QA TEST MR-128 ChildA $S' Account_Level__c=Region ParentId=$TOPA Vertical__c=Fitness Region__c=NA $(addr "2$S")"); CHA=$(echo "$R" | jq -r '.result.id // empty')
 [ -z "$CHA" ] && echo "childA error: $(echo "$R" | jq -r .message | head -c 300)"
 echo "A: top $TOPA contracts $(q "SELECT COUNT(Id) n FROM Contract WHERE AccountId = '$TOPA'" | jq -r '.[0].n'), child $CHA"
 [ -n "$CHA" ] && try A "$CHA"
@@ -25,7 +26,7 @@ TOPB=$(q "SELECT Id, Name FROM Account WHERE Name LIKE 'Rock%Roll%' AND ParentId
 TB=$(echo "$TOPB" | jq -r '.[0].Id // empty')
 echo "B: top $(echo "$TOPB" | jq -c '.[0]') activated contracts $(q "SELECT ContractNumber, Status FROM Contract WHERE AccountId = '$TB' AND Status = 'Activated'" | jq -c '[.[].ContractNumber]')"
 if [ -n "$TB" ]; then
-  R=$(mk Account "Name='QA TEST MR-128 ChildB $S' Account_Level__c=Region ParentId=$TB Vertical__c=Fitness Region__c=NA $ADDR"); CHB=$(echo "$R" | jq -r '.result.id // empty')
+  R=$(mk Account "Name='QA TEST MR-128 ChildB $S' Account_Level__c=Region ParentId=$TB Vertical__c=Fitness Region__c=NA $(addr "3$S")"); CHB=$(echo "$R" | jq -r '.result.id // empty')
   [ -z "$CHB" ] && echo "childB error: $(echo "$R" | jq -r .message | head -c 300)" || try B "$CHB"
 fi
 sleep 3
