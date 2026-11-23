@@ -6,6 +6,7 @@ mk() { sf data create record --sobject "$1" --values "$2" --target-org target --
 D=$(date -u +%Y-%m-%d); E=$(date -u -d '+2 years -1 day' +%Y-%m-%d)
 A=$(q "SELECT Name, Account_Level__c, ParentId, Parent.Name, Root_Account__c, Root_Account__r.Name FROM Account WHERE Id = '$ACC'" | jq -c '.[0] | {Name, Level: .Account_Level__c, Parent: .Parent.Name, Root: .Root_Account__r.Name, RootId: .Root_Account__c}')
 echo "ACCOUNT $A"; ROOT=$(echo "$A" | jq -r '.RootId // empty')
+echo "MASTER FIELDS $(sf data query --query "SELECT FIELDS(CUSTOM) FROM Account WHERE Id = '$ACC' LIMIT 1" --target-org target --json 2>/dev/null | jq -c '.result.records[0] | with_entries(select(.value != null and .value != false and (.key|test("Root|Master|Contract|Level";"i"))))')"
 echo "OWN CONTRACTS $(q "SELECT ContractNumber, Status, Contract_Type__c FROM Contract WHERE AccountId = '$ACC'" | jq -c '[.[] | [.ContractNumber, .Status, .Contract_Type__c]]')"
 [ -n "$ROOT" ] && echo "ROOT CONTRACTS $(q "SELECT ContractNumber, Status, Contract_Type__c FROM Contract WHERE AccountId = '$ROOT'" | jq -c '[.[] | [.ContractNumber, .Status, .Contract_Type__c]]')"
 PB=$(q "SELECT Id FROM Pricebook2 WHERE Name LIKE 'North America%' AND IsActive = true LIMIT 1" | jq -r '.[0].Id')
