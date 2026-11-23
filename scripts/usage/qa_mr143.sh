@@ -10,7 +10,7 @@ OPP=$(mk Opportunity "Name='QA TEST MR-143 $S' AccountId=$ACC StageName=Prospect
 QT=$(mk Quote "Name='QA TEST MR-143' OpportunityId=$OPP Pricebook2Id=$PB RLM_TermMonths__c=12 StartDate=$D" | jq -r '.result.id // empty')
 T=$(q "SELECT Id, Product2Id, ProductSellingModel.Name FROM PricebookEntry WHERE Product2.ProductCode = 'MB-TAM' AND Pricebook2Id = '$PB' AND IsActive = true LIMIT 1" | jq -c '.[0]')
 echo "setup: account $ACC quote $QT TAM entry $(echo "$T" | jq -c '{m: .ProductSellingModel.Name}')"
-R=$(mk QuoteLineItem "QuoteId=$QT Product2Id=$(echo "$T" | jq -r .Product2Id) PricebookEntryId=$(echo "$T" | jq -r .Id) Quantity=1 UnitPrice=0 StartDate=$D EndDate=$E")
+R=$(mk QuoteLineItem "QuoteId=$QT Product2Id=$(echo "$T" | jq -r .Product2Id) PricebookEntryId=$(echo "$T" | jq -r .Id) Quantity=1 UnitPrice=0 StartDate=$D EndDate=$E BillingFrequency=Monthly")
 echo "TAM line on 12-month quote: $(echo "$R" | jq -r 'if .status == 0 then "added" else "error: " + (.message | .[0:200]) end')"
 echo "TEST 4 (TAM quote, term 12 -> 24): $(up Quote $QT 'RLM_TermMonths__c=24')"
 echo "TEST 5 (term 18): $(up Quote $QT 'RLM_TermMonths__c=18')"
