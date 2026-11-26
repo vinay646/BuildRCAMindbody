@@ -1,6 +1,34 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Flow xmlns="http://soap.sforce.com/2006/04/metadata">
+    <actionCalls>
+        <description>Reprices the quote in the same save (Place Sales Transaction, or a queued job when that is not possible), so the term, frequency and volume discounts and the totals follow the new term or start date at once.</description>
+        <name>Reprice_Quote</name>
+        <label>Reprice quote</label>
+        <locationX>176</locationX>
+        <locationY>839</locationY>
+        <actionName>RepriceQuotesPST</actionName>
+        <actionType>apex</actionType>
+        <faultConnector><targetReference>Keep_Reprice_Error</targetReference></faultConnector>
+        <flowTransactionModel>CurrentTransaction</flowTransactionModel>
+        <inputParameters>
+            <name>ids</name>
+            <value><elementReference>$Record.Id</elementReference></value>
+        </inputParameters>
+        <storeOutputAutomatically>true</storeOutputAutomatically>
+    </actionCalls>
     <apiVersion>62.0</apiVersion>
+    <assignments>
+        <description>A failed reprice never blocks the date or term change: the error is kept and the rep reprices from the quote.</description>
+        <name>Keep_Reprice_Error</name>
+        <label>Keep reprice error</label>
+        <locationX>440</locationX>
+        <locationY>947</locationY>
+        <assignmentItems>
+            <assignToReference>repriceError</assignToReference>
+            <operator>Assign</operator>
+            <value><elementReference>$Flow.FaultMessage</elementReference></value>
+        </assignmentItems>
+    </assignments>
     <assignments>
         <name>Set_Line_Dates</name>
         <label>Set line dates</label>
@@ -38,7 +66,7 @@
             <isFieldError>false</isFieldError>
         </customErrorMessages>
     </customErrors>
-    <description>When the quote's Start Date or Term (Months) changes, every quote line (except ramp segments) gets the quote Start Date; term lines also get End Date = Start + Term - 1 day; evergreen and one-time lines keep no end date.</description>
+    <description>When the quote's Start Date or Term (Months) changes, every quote line (except ramp segments) gets the quote Start Date; term lines also get End Date = Start + Term - 1 day; evergreen and one-time lines keep no end date. The quote is then repriced (RepriceQuotesPST) so discounts and totals update at once.</description>
     <environments>Default</environments>
     <formulas>
         <name>fLineTerm</name>
@@ -114,6 +142,7 @@
         <label>Update lines</label>
         <locationX>176</locationX>
         <locationY>731</locationY>
+        <connector><targetReference>Reprice_Quote</targetReference></connector>
         <faultConnector><targetReference>Show_Validation_Message</targetReference></faultConnector>
         <inputReference>linesToUpdate</inputReference>
     </recordUpdates>
@@ -127,6 +156,13 @@
         <triggerType>RecordAfterSave</triggerType>
     </start>
     <status>Active</status>
+    <variables>
+        <name>repriceError</name>
+        <dataType>String</dataType>
+        <isCollection>false</isCollection>
+        <isInput>false</isInput>
+        <isOutput>false</isOutput>
+    </variables>
     <variables>
         <name>linesToUpdate</name>
         <dataType>SObject</dataType>
