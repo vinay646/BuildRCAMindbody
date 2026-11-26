@@ -3,7 +3,9 @@ import sys,re,datetime
 src,out=sys.argv[1],sys.argv[2]
 x=open(src).read()
 vers=re.findall(r'<versions>.*?</versions>', x, re.S)
-act=[v for v in vers if '<status>Active</status>' in v][0]
+import os
+VER=os.environ.get('VER')
+act=[v for v in vers if (f'<versionNumber>{VER}</versionNumber>' in v if VER else '<status>Active</status>' in v)][0]
 n=int(re.search(r'<versionNumber>(\d+)</versionNumber>', act).group(1)); m=max(int(re.search(r'<versionNumber>(\d+)</versionNumber>', v).group(1)) for v in vers)+1
 v=act; m=n  # in place: same version
 def shift(mm):
