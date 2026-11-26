@@ -1,0 +1,3 @@
+#!/usr/bin/env bash
+# Read-only: term/count fields on the lines of the QA quote "New Quote For Hierarchy Count Test"
+sf data query --query "SELECT Quote.QuoteNumber, Quote.RLM_TermMonths__c, Quote.StartDate, Product2.ProductCode, StartDate, EndDate, SubscriptionTerm, SubscriptionTermUnit, PricingTermCount, NetUnitPrice, TotalPrice, CreatedDate, LastModifiedDate FROM QuoteLineItem WHERE Quote.Name = 'New Quote For Hierarchy Count Test' AND Product2.ProductCode = 'MB-ACC'" --target-org target --json 2>&1 | jq -c '.result.records[]? | del(.attributes) | .Quote |= {QuoteNumber, RLM_TermMonths__c, StartDate} | .Product2 = .Product2.ProductCode'
