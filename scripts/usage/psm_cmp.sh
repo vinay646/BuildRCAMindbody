@@ -1,0 +1,5 @@
+#!/usr/bin/env bash
+# Read-only: the Term Monthly selling model, its option on Accelerate, and proration policies
+sf data query --query "SELECT FIELDS(ALL) FROM ProductSellingModel WHERE Name = 'Term Monthly' LIMIT 2" --target-org target --json 2>/dev/null | jq -c '[.result.records[] | with_entries(select(.value != null and (.key|test("Created|LastMod|System|Owner|attributes|Viewed|Referenced")|not)))]' | sed 's/^/PSM /'
+sf data query --query "SELECT FIELDS(ALL) FROM ProductSellingModelOption WHERE Product2.ProductCode = 'MB-ACC' LIMIT 3" --target-org target --json 2>/dev/null | jq -c '[.result.records[] | with_entries(select(.value != null and (.key|test("Created|LastMod|System|Owner|attributes|Viewed|Referenced|^Id$")|not)))]' | sed 's/^/PSMO /'
+sf data query --query "SELECT FIELDS(ALL) FROM ProrationPolicy LIMIT 5" --target-org target --json 2>/dev/null | jq -c '[.result.records[]? | with_entries(select(.value != null and (.key|test("Created|LastMod|System|Owner|attributes|Viewed|Referenced")|not)))]' | sed 's/^/PRORATION /'
