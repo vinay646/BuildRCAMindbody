@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# CHANGES QA pricing: builds RLM_DefaultPricingProcedure next version (= active + "Mindbody line term from quote" first step), deploys it as Draft; ACTIVATE=1 also activates it
+# CHANGES QA pricing: adds the "Mindbody line term from quote" step (after Pricing Setting) to the ACTIVE RLM_DefaultPricingProcedure version in place and deploys it
 R=$(pwd); T=$(mktemp -d); cd $T; sf project generate --name p >/dev/null 2>&1; cd p
 sf project retrieve start --metadata "ExpressionSetDefinition:RLM_DefaultPricingProcedure" --target-org target --json >/dev/null 2>&1
 F=$(find . -name 'RLM_DefaultPricingProcedure.expressionSetDefinition-meta.xml' | head -1)

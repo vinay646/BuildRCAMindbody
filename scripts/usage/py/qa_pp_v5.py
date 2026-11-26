@@ -5,15 +5,12 @@ x=open(src).read()
 vers=re.findall(r'<versions>.*?</versions>', x, re.S)
 act=[v for v in vers if '<status>Active</status>' in v][0]
 n=int(re.search(r'<versionNumber>(\d+)</versionNumber>', act).group(1)); m=max(int(re.search(r'<versionNumber>(\d+)</versionNumber>', v).group(1)) for v in vers)+1
-v=act.replace('<status>Active</status>','<status>Draft</status>').replace(f'<versionNumber>{n}</versionNumber>',f'<versionNumber>{m}</versionNumber>')
-v=re.sub(r'(<fullName>[^<]*_V)\d+0(</fullName>)', lambda k: f'{k.group(1)}{m}0{k.group(2)}', v)
-v=re.sub(r'<rank>\d+</rank>', f'<rank>{m}</rank>', v)
-v=re.sub(r'<startDate>[^<]*</startDate>', f'<startDate>{datetime.date.today()}T00:00:00.000Z</startDate>', v, count=1)
-v=re.sub(r'(<label>[^<]*?)V\d+(</label>)', lambda k: f'{k.group(1)}V{m}{k.group(2)}', v, count=1)
+v=act; m=n  # in place: same version
 def shift(mm):
     b=mm.group(0)
     if '<parentStep>' in b: return b
     k=int(re.search(r'<sequenceNumber>(\d+)</sequenceNumber>', b).group(1))
+    if k<2: return b
     return b.replace(f'<sequenceNumber>{k}</sequenceNumber>', f'<sequenceNumber>{k+1}</sequenceNumber>',1)
 v=re.sub(r'<steps>(?:(?!<steps>).)*?</steps>', shift, v, flags=re.S)
 FL=('<shouldExposExecPathMsgOnly>true</shouldExposExecPathMsgOnly><shouldExposeConditionDetails>false</shouldExposeConditionDetails>'
@@ -25,7 +22,7 @@ js=('{&quot;whereConditions&quot;:[{&quot;field&quot;:{&quot;dataType&quot;:&quo
     '&quot;'+DT+'&quot;,&quot;name&quot;:&quot;section-0-output&quot;,&quot;value&quot;:&quot;ItemSubscriptionTerm&quot;,&quot;allowCompatibleDataTypes&quot;:true}}]}')
 G='MindbodyLineTermFromQuote'
 new=(f"<steps><hasNestedExplainability>false</hasNestedExplainability><label>Mindbody line term from quote</label><name>{G}</name>"
- f"<resultIncluded>false</resultIncluded><sequenceNumber>1</sequenceNumber>{FL}<stepType>ListGroup</stepType></steps>"
+ f"<resultIncluded>false</resultIncluded><sequenceNumber>2</sequenceNumber>{FL}<stepType>ListGroup</stepType></steps>"
  f"<steps><advancedCondition><conditionLogic>1 AND 2</conditionLogic>"
  f"<criteria><operator>IsNull</operator><sequenceNumber>1</sequenceNumber><sourceFieldName>ItemSubscriptionTerm</sourceFieldName></criteria>"
  f"<criteria><operator>Equals</operator><sequenceNumber>2</sequenceNumber><sourceFieldName>SellingModelType</sourceFieldName><value>&apos;TermDefined&apos;</value><valueType>Literal</valueType></criteria>"
@@ -43,4 +40,5 @@ i=v.index('<steps>'); v=v[:i]+new+v[i:]
 first=x.index(vers[0]); last=x.rindex(vers[-1])+len(vers[-1])
 y=x[:first]+v+x[last:]
 open(out,'w').write(y)
-print('BUILT version', m, 'from active', n, 'dataType', DT)
+assert 'MindbodyLineTermFromQuote' not in act, 'step already present'
+print('BUILT in-place version', n, 'dataType', DT)
