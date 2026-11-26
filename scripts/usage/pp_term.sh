@@ -16,7 +16,9 @@ for v in re.findall(r'<versions>(.*?)</versions>', x, re.S):
     for s in re.findall(r'<steps>(.*?)</steps>', v, re.S):
         name=re.search(r'<name>(.*?)</name>', s); label=re.search(r'<label>(.*?)</label>', s)
         txt=(name.group(1) if name else '')+' '+(label.group(1) if label else '')
-        if re.search(r'term|frequen|volume|schedule|tier', s, re.I):
+        if re.search(r'TermBasedDiscount|Term Discount|BillingFrequencyBasedDiscounts|VolumeDiscountbyHierarchyLocations', s):
+            print('RAW', re.sub(r'\s+',' ', s)[:2500]); continue
+        if False:
             params=re.findall(r'<parameterName>(.*?)</parameterName>\s*<type>.*?</type>\s*<value>(.*?)</value>', s, re.S)
             params=params or re.findall(r'<name>(\w+)</name>\s*<type>\w+</type>\s*<value>(.*?)</value>', s, re.S)
             print(' -', txt.strip(), '|', '; '.join(f'{a}={b}' for a,b in params)[:600])
