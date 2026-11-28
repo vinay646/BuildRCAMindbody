@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Flow xmlns="http://soap.sforce.com/2006/04/metadata">
+    <actionCalls>
+        <name>Remove_Other_Promotions</name>
+        <label>Remove promotions not from the quote coupon</label>
+        <locationX>308</locationX>
+        <locationY>276</locationY>
+        <actionName>MbPromotionGuard</actionName>
+        <actionType>apex</actionType>
+        <flowTransactionModel>CurrentTransaction</flowTransactionModel>
+        <inputParameters>
+            <name>quoteIds</name>
+            <value><elementReference>$Record.QuoteLineItem.QuoteId</elementReference></value>
+        </inputParameters>
+        <storeOutputAutomatically>true</storeOutputAutomatically>
+    </actionCalls>
+    <apiVersion>62.0</apiVersion>
+    <description>MR-103: only the quote's Coupon Code may discount a quote. When a Promotion price adjustment is created on a quote line (for example a promotion switched on in the configurator's promotions panel without the coupon), Apex MbPromotionGuard runs after the save and removes every promotion on the quote that does not carry the quote's Coupon Code (all of them when there is no code or it does not qualify), then reprices.</description>
+    <environments>Default</environments>
+    <interviewLabel>MB Quote Line Promotion Guard {!$Flow.CurrentDateTime}</interviewLabel>
+    <label>MB Quote Line Promotion Guard</label>
+    <processMetadataValues>
+        <name>BuilderType</name>
+        <value><stringValue>LightningFlowBuilder</stringValue></value>
+    </processMetadataValues>
+    <processMetadataValues>
+        <name>CanvasMode</name>
+        <value><stringValue>AUTO_LAYOUT_CANVAS</stringValue></value>
+    </processMetadataValues>
+    <processType>AutoLaunchedFlow</processType>
+    <start>
+        <locationX>50</locationX>
+        <locationY>0</locationY>
+        <filterLogic>and</filterLogic>
+        <filters>
+            <field>AdjustmentSource</field>
+            <operator>EqualTo</operator>
+            <value><stringValue>Promotion</stringValue></value>
+        </filters>
+        <object>QuoteLinePriceAdjustment</object>
+        <recordTriggerType>Create</recordTriggerType>
+        <scheduledPaths>
+            <connector><targetReference>Remove_Other_Promotions</targetReference></connector>
+            <pathType>AsyncAfterCommit</pathType>
+        </scheduledPaths>
+        <triggerType>RecordAfterSave</triggerType>
+    </start>
+    <status>Active</status>
+</Flow>

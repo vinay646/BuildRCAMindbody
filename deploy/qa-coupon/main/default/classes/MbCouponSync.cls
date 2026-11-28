@@ -5,6 +5,9 @@
  *    placeholder carrying the code, and the quote is repriced, which applies the promotion to its eligible products.
  *  - It does not qualify yet (for example Starter added but Payments not yet): this coupon's promotion adjustments
  *    are removed (if any) and the code waits on the quote; the next line added checks again. No error is raised.
+ *  - Only the quote's coupon may discount the quote: any other promotion on its lines (for example one switched on in
+ *    the configurator's promotions panel, with no coupon) is removed, and with no Coupon Code every promotion is removed.
+ *    Also called by the MB Quote Line Promotion Guard flow when a promotion adjustment lands on a line.
  */
 public with sharing class MbCouponSync {
 
@@ -20,29 +23,30 @@ public with sharing class MbCouponSync {
         List<String> reprice = new List<String>();
         for (Quote q : [SELECT Id, Coupon_Code__c FROM Quote WHERE Id IN :ids]) {
             String code = q.Coupon_Code__c == null ? '' : q.Coupon_Code__c.trim().toUpperCase();
-            if (String.isBlank(code)) {
-                continue;
-            }
-            Boolean eligible = MbCouponRules.check(q.Id, code) == null;
-            Map<Id, List<QuoteLinePriceAdjustment>> byLine = new Map<Id, List<QuoteLinePriceAdjustment>>();
+            Boolean eligible = String.isNotBlank(code) && MbCouponRules.check(q.Id, code) == null;
+            Map<Id, Boolean> lineHasCoupon = new Map<Id, Boolean>();
             for (QuoteLineItem l : [SELECT Id FROM QuoteLineItem WHERE QuoteId = :q.Id]) {
-                byLine.put(l.Id, new List<QuoteLinePriceAdjustment>());
-            }
-            for (QuoteLinePriceAdjustment a : [SELECT Id, QuoteLineItemId FROM QuoteLinePriceAdjustment
-                    WHERE QuoteLineItem.QuoteId = :q.Id AND AdjustmentSource = 'Promotion' AND CouponCode = :code]) {
-                byLine.get(a.QuoteLineItemId).add(a);
+                lineHasCoupon.put(l.Id, false);
             }
             Boolean changed = false;
-            for (Id lineId : byLine.keySet()) {
-                List<QuoteLinePriceAdjustment> existing = byLine.get(lineId);
-                if (eligible && existing.isEmpty()) {
-                    toCreate.add(new QuoteLinePriceAdjustment(QuoteLineItemId = lineId, AdjustmentSource = 'Promotion',
-                        AdjustmentType = 'AdjustmentPercentage', AdjustmentValue = 0, CouponCode = code,
-                        Description = RepriceQuotesPST.PLACEHOLDER));
+            for (QuoteLinePriceAdjustment a : [SELECT Id, QuoteLineItemId, CouponCode FROM QuoteLinePriceAdjustment
+                    WHERE QuoteLineItem.QuoteId = :q.Id AND AdjustmentSource = 'Promotion']) {
+                String aCode = a.CouponCode == null ? '' : a.CouponCode.trim().toUpperCase();
+                if (eligible && aCode == code) {
+                    lineHasCoupon.put(a.QuoteLineItemId, true);   // the quote's own coupon: keep
+                } else {
+                    toDelete.add(a);                               // another promotion, or the coupon does not qualify
                     changed = true;
-                } else if (!eligible && !existing.isEmpty()) {
-                    toDelete.addAll(existing);
-                    changed = true;
+                }
+            }
+            if (eligible) {
+                for (Id lineId : lineHasCoupon.keySet()) {
+                    if (!lineHasCoupon.get(lineId)) {
+                        toCreate.add(new QuoteLinePriceAdjustment(QuoteLineItemId = lineId, AdjustmentSource = 'Promotion',
+                            AdjustmentType = 'AdjustmentPercentage', AdjustmentValue = 0, CouponCode = code,
+                            Description = RepriceQuotesPST.PLACEHOLDER));
+                        changed = true;
+                    }
                 }
             }
             if (changed) {
