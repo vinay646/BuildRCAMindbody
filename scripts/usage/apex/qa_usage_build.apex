@@ -53,7 +53,7 @@ for (String c : rates.keySet()) {
   UsageResource r = [SELECT Id, UnitOfMeasureClassId, DefaultUnitOfMeasureId FROM UsageResource WHERE Code = :(String) rates.get(c)[0]];
   if ([SELECT COUNT() FROM RateCardEntry WHERE RateCardId = :smsRce.RateCardId AND UsageResourceId = :r.Id AND Status IN ('Active','Draft')] == 0) {
     try {
-      SObject e = cl('RateCardEntry', smsRce.Id, new Map<String, Object>{ 'ProductId' => prod.get(c).Id, 'UsageResourceId' => r.Id, 'ProductSellingModelId' => evm, 'Rate' => rates.get(c)[1], 'EffectiveFrom' => Datetime.newInstanceGmt(2026, 1, 1), 'Status' => 'Draft' });
+      SObject e = cl('RateCardEntry', smsRce.Id, new Map<String, Object>{ 'ProductId' => prod.get(c).Id, 'UsageResourceId' => r.Id, 'ProductSellingModelId' => evm, 'Rate' => rates.get(c)[1], 'Status' => 'Draft' });
       insert e; toActivate.add(e); log += c + ' rate ok; ';
     } catch (Exception ex) { log += c + ' rate ERR ' + ex.getMessage().left(150) + '; '; }
   }
