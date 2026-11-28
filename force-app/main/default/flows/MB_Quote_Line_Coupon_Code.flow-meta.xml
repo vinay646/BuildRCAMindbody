@@ -1,27 +1,22 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Flow xmlns="http://soap.sforce.com/2006/04/metadata">
     <actionCalls>
-        <name>Reprice_Quote</name>
-        <label>Reprice quote</label>
-        <locationX>600</locationX>
-        <locationY>200</locationY>
-        <actionName>RepriceQuotesPST</actionName>
+        <name>Sync_Coupon</name>
+        <label>Sync quote coupon</label>
+        <locationX>176</locationX>
+        <locationY>323</locationY>
+        <actionName>MbCouponSync</actionName>
         <actionType>apex</actionType>
         <flowTransactionModel>CurrentTransaction</flowTransactionModel>
         <inputParameters>
-            <name>ids</name>
+            <name>quoteIds</name>
             <value><elementReference>$Record.QuoteId</elementReference></value>
         </inputParameters>
         <storeOutputAutomatically>true</storeOutputAutomatically>
     </actionCalls>
     <apiVersion>62.0</apiVersion>
-    <description>A line added to a quote that has a Coupon Code gets a 0% Promotion price adjustment carrying that code (upper case), and the flow reprices the quote in the same save (Apex action RepriceQuotesPST), which applies the coupon's promotion to it when the product is eligible.</description>
+    <description>A line added to a quote that has a Coupon Code: Apex MbCouponSync checks the coupon rules again with the new lines. If the quote qualifies now, every line gets the coupon (0% Promotion placeholder carrying the code) and the quote is repriced, which applies the promotion to its eligible products. If not yet (for example Starter added before Payments), the coupon waits on the quote with no error and applies when the missing product is added. So the coupon can be entered before any product.</description>
     <environments>Default</environments>
-    <formulas>
-        <name>fCoupon</name>
-        <dataType>String</dataType>
-        <expression>UPPER(TRIM({!$Record.Quote.Coupon_Code__c}))</expression>
-    </formulas>
     <interviewLabel>MB Quote Line Coupon Code {!$Flow.CurrentDateTime}</interviewLabel>
     <label>MB Quote Line Coupon Code</label>
     <processMetadataValues>
@@ -33,43 +28,10 @@
         <value><stringValue>AUTO_LAYOUT_CANVAS</stringValue></value>
     </processMetadataValues>
     <processType>AutoLaunchedFlow</processType>
-    <recordCreates>
-        <name>Create_Placeholder</name>
-        <label>Create coupon placeholder</label>
-        <locationX>176</locationX>
-        <locationY>323</locationY>
-        <connector><targetReference>Reprice_Quote</targetReference></connector>
-        <inputAssignments>
-            <field>QuoteLineItemId</field>
-            <value><elementReference>$Record.Id</elementReference></value>
-        </inputAssignments>
-        <inputAssignments>
-            <field>AdjustmentSource</field>
-            <value><stringValue>Promotion</stringValue></value>
-        </inputAssignments>
-        <inputAssignments>
-            <field>AdjustmentType</field>
-            <value><stringValue>AdjustmentPercentage</stringValue></value>
-        </inputAssignments>
-        <inputAssignments>
-            <field>AdjustmentValue</field>
-            <value><numberValue>0.0</numberValue></value>
-        </inputAssignments>
-        <inputAssignments>
-            <field>CouponCode</field>
-            <value><elementReference>fCoupon</elementReference></value>
-        </inputAssignments>
-        <inputAssignments>
-            <field>Description</field>
-            <value><stringValue>Quote coupon code</stringValue></value>
-        </inputAssignments>
-        <object>QuoteLinePriceAdjustment</object>
-        <storeOutputAutomatically>true</storeOutputAutomatically>
-    </recordCreates>
     <start>
         <locationX>50</locationX>
         <locationY>0</locationY>
-        <connector><targetReference>Create_Placeholder</targetReference></connector>
+        <connector><targetReference>Sync_Coupon</targetReference></connector>
         <filterFormula>NOT(ISBLANK({!$Record.Quote.Coupon_Code__c}))</filterFormula>
         <object>QuoteLineItem</object>
         <recordTriggerType>Create</recordTriggerType>

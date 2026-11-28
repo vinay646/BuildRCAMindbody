@@ -42,16 +42,19 @@ public with sharing class MbCouponRules {
         String prior = q.Opportunity == null ? null : q.Opportunity.MB_Prior_System__c;
         List<String> reasons = new List<String>();
 
+        // Coupon entered before any product: only quote-level conditions now; product conditions are
+        // checked as lines are added (MbCouponSync applies the coupon once the quote qualifies).
+        Boolean products = !codes.isEmpty();
         if (code == 'LAUNCH3') {
-            if (!codes.contains('MB-STR')) reasons.add('the quote must include the Starter plan');
+            if (products && !codes.contains('MB-STR')) reasons.add('the quote must include the Starter plan');
             if (term < 12) reasons.add('the term must be at least 12 months');
-            if (!codes.contains('MB-PAY')) reasons.add('the quote must include Mindbody Payments');
+            if (products && !codes.contains('MB-PAY')) reasons.add('the quote must include Mindbody Payments');
             if (isExistingCustomer(q.AccountId)) reasons.add('it is for new customers only');
         } else if (code == 'SWITCH50') {
-            if (!codes.contains('MB-ACC') && !codes.contains('MB-ULT')) reasons.add('the quote must include the Accelerate or Ultimate plan');
+            if (products && !codes.contains('MB-ACC') && !codes.contains('MB-ULT')) reasons.add('the quote must include the Accelerate or Ultimate plan');
             if (String.isBlank(prior) || prior == 'None') reasons.add('the opportunity must name the competitor in Prior System');
             if (term < 24) reasons.add('the term must be at least 24 months');
-            if (!codes.contains('MB-DCV')) reasons.add('the quote must include Data Conversion');
+            if (products && !codes.contains('MB-DCV')) reasons.add('the quote must include Data Conversion');
         } else if (code == 'GROW2') {
             if (!isExistingCustomer(q.AccountId)) reasons.add('it is for existing customers adding a location');
         }
