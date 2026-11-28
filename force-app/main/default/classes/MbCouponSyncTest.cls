@@ -24,8 +24,7 @@ private class MbCouponSyncTest {
         }
         Test.stopTest();
         // Starter without Payments: not eligible, so no coupon placeholder stays on the line
-        System.assertEquals(0, [SELECT COUNT() FROM QuoteLinePriceAdjustment WHERE QuoteLineItem.QuoteId = :q.Id AND CouponCode = 'LAUNCH3'
-                                AND Description = :RepriceQuotesPST.PLACEHOLDER]);
+        System.assertEquals(0, [SELECT COUNT() FROM QuoteLinePriceAdjustment WHERE QuoteLineItem.QuoteId = :q.Id AND CouponCode = 'LAUNCH3']);
         MbCouponSync.sync(new List<Id>());
     }
 }
